@@ -343,20 +343,43 @@ Total Weekly Payout: 5.1 AVAX + 900 $BATTLE
 
 ---
 
-## 8. Web2 → Web3 Upgrade Flow (Simple, No Normie NFTs)
+## 8. Web2 Detection & Web3 Upgrade Flow
+
+**Web2 detection requires ZERO game dev changes.** The game writes scores to Firebase
+for all players. The backend sync cron finds new UIDs → creates them as Web2 (no wallet).
 
 ```
+  DETECTION (automatic, no game changes):
+
+  Unity Game                 Firebase                  Backend (cron every 1 min)
+   │                            │                          │
+   │  New player plays          │                          │
+   │  Game writes score         │                          │
+   │───────────────────────────►│                          │
+   │                            │  { username, Score: 500 }│
+   │                            │                          │
+   │                            │  syncNewUsersJob polls   │
+   │                            │◄─────────────────────────│
+   │                            │  New UID found!          │
+   │                            │─────────────────────────►│
+   │                            │                          │  Create MongoDB user:
+   │                            │                          │  playerType: "web2"
+   │                            │                          │  address: null
+   │                            │                          │  points: 500
+   │                            │                          │
+   │  Player keeps playing      │                          │
+   │  Points accumulate in DB   │                          │
+
+  UPGRADE (when player gets NFT + connects wallet):
+
   Web2 Player                Frontend                 Backend
    │                            │                        │
-   │  Playing as Web2           │                        │
-   │  (4 characters, basic wpns)│                        │
-   │  Points tracked in MongoDB │                        │
+   │  Gets ChainBoi NFT        │                        │
+   │  (claim page, Joepegs,     │                        │
+   │   or platform purchase)    │                        │
    │                            │                        │
-   │  Buys ChainBoi NFT        │                        │
-   │  (from Joepegs, platform,  │                        │
-   │   or any marketplace)      │                        │
-   │                            │                        │
-   │  Connects wallet on website│                        │
+   │  Visits website            │                        │
+   │  Connects wallet           │                        │
    │───────────────────────────►│                        │
    │                            │ POST /auth/login       │
    │                            │ { address }            │
@@ -398,8 +421,9 @@ Total Weekly Payout: 5.1 AVAX + 900 $BATTLE
 | Inventory display | ✅ | ✅ |
 | Anti-Cheat (basic) | ✅ | ✅ (full) |
 | WebSocket (live leaderboard) | ✅ | ✅ |
-| Web2 player tracking | ✅ | ✅ |
+| Web2 player tracking (auto-detect) | ✅ | ✅ |
 | Web2→Web3 upgrade (simple) | ✅ | ✅ |
+| Claim page (testnet NFT for judges) | ✅ | N/A |
 | Loot Boxes | ❌ | ✅ |
 | Armor system | ❌ | ✅ |
 | Airdrop system | ❌ | ✅ |

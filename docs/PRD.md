@@ -644,7 +644,7 @@ chainbois-api/
 | POST | `/api/v1/game/end-session` | Clear Firebase flags on game exit | Firebase Token |
 
 **Cron Jobs (not endpoints - run on PM2 instance 0):**
-- `syncNewUsersJob` (every 1 min) - poll Firebase for new game users, create MongoDB records
+- `syncNewUsersJob` (every 1 min) - poll Firebase for new game users, create MongoDB records as `playerType: "web2"` (since they have no wallet yet). When a user later connects a wallet via the website, they upgrade to `playerType: "web3"` automatically. This requires ZERO game dev changes - any score appearing in Firebase for an unknown UID is simply a new Web2 player.
 - `syncScoresJob` (every 5 min) - sync scores from Firebase to MongoDB, update leaderboard
 
 ### 6.3 Training Room
@@ -700,7 +700,16 @@ chainbois-api/
 
 **No ChainBoi Money.** Points convert directly to $BATTLE tokens. If users want AVAX, they sell $BATTLE on a DEX themselves.
 
-### 6.7 Inventory
+### 6.7 Claim (Simple page for hackathon testers/judges)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/v1/claim/status` | Remaining claimable NFTs, limit per wallet | Public |
+| POST | `/api/v1/claim` | Claim a free testnet ChainBoi NFT (1 per wallet) | Firebase Token |
+
+Simple flow: connect wallet → click "Claim" → backend transfers a pre-minted NFT from platform wallet to user. Limited to 1 per wallet. For hackathon judges and testers to try the app.
+
+### 6.8 Inventory
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
@@ -1077,17 +1086,23 @@ Users can list/sell NFTs on Joepegs. We just link to it. No custom marketplace.
 10. User exits game → backend clears Firebase flags
 ```
 
-### 13.2 Web2 → Web3 Upgrade
+### 13.2 Web2 → Web3 Detection & Upgrade
 
-Simple approach (no Normie NFTs):
+**How Web2 players are detected (ZERO game dev changes needed):**
 
+The game writes scores to Firebase for all players. The `syncNewUsersJob` cron (every 1 min) polls Firebase and finds UIDs that don't exist in MongoDB yet. These are automatically created as `playerType: "web2"` because they have no wallet address associated. No game code changes required - the distinction is simply: registered in MongoDB with a wallet = Web3, without a wallet = Web2.
+
+**Upgrade flow:**
 1. Web2 player plays with limited access (4 characters, basic weapons)
 2. Progress tracked in MongoDB (points, scores, games played)
-3. When they buy a ChainBoi NFT and connect wallet:
-   - Their accumulated points become convertible to $BATTLE
-   - Their progress data is written to NFT metadata
-   - They get full character/weapon access based on NFT level
-4. No special "normie NFT" - just a playerType flag change
+3. Player acquires a ChainBoi NFT (buy on Joepegs, claim from our claim page, etc.)
+4. Player visits website, connects wallet, logs in
+5. Backend detects NFT in wallet during login
+6. `playerType` updated from `"web2"` → `"web3"` automatically
+7. Accumulated points become convertible to $BATTLE
+8. Progress data written to NFT metadata
+9. Full character/weapon access based on NFT level
+10. Firebase updated with `hasNFT: true, level: N` → game unlocks content
 
 ---
 
