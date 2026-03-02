@@ -1,159 +1,153 @@
 # ChainBois - Overall Feature Document & Flow Diagrams
 
-**Version:** 1.0 | **Date:** March 2, 2026
+**Version:** 2.0 | **Date:** March 2, 2026 | **MVP Deadline:** March 9, 2026
 
 ---
 
-## 1. System Overview Flow
+## 1. System Overview
 
 ```
-                              ┌──────────────────────────┐
-                              │     CHAINBOIS PLATFORM    │
-                              └──────────┬───────────────┘
-                                         │
-              ┌──────────────────────────┼──────────────────────────┐
-              │                          │                          │
-    ┌─────────▼─────────┐    ┌──────────▼──────────┐    ┌─────────▼─────────┐
-    │    FRONTEND        │    │    UNITY GAME        │    │  WALLET MGT API   │
-    │    (Next.js)       │    │    (PC + Mobile)     │    │  (Separate Repo)  │
-    │                    │    │                      │    │                   │
-    │ • Landing Page     │    │ • Battle Royale      │    │ • Key Storage     │
-    │ • Training Room    │    │ • Frontline          │    │ • Tx Signing      │
-    │ • Battleground     │    │ • Search & Destroy   │    │ • Account Mgmt    │
-    │ • Armory           │    │ • Team Deathmatch    │    │                   │
-    │ • Inventory        │    │ • Domination         │    │                   │
-    │ • Mint Page        │    │ • Kill Confirmed     │    │                   │
-    └─────────┬─────────┘    └──────────┬──────────┘    └─────────┬─────────┘
-              │                          │                          │
-              │  Bearer JWT              │  API Key + HMAC          │  x-client-id
-              │  + x-client-id           │                          │  + IP whitelist
-              │                          │                          │
-              └──────────────────────────┼──────────────────────────┘
-                                         │
-                              ┌──────────▼───────────────┐
-                              │    CHAINBOIS MAIN API    │
-                              │    (Express.js)          │
-                              │                          │
-                              │ Modules:                 │
-                              │ ┌──────┐ ┌──────┐       │
-                              │ │ Auth │ │Train │       │
-                              │ └──────┘ └──────┘       │
-                              │ ┌──────┐ ┌──────┐       │
-                              │ │Battle│ │Armory│       │
-                              │ └──────┘ └──────┘       │
-                              │ ┌──────┐ ┌──────┐       │
-                              │ │ Inv  │ │ Mint │       │
-                              │ └──────┘ └──────┘       │
-                              │ ┌──────┐ ┌──────┐       │
-                              │ │ Game │ │Points│       │
-                              │ └──────┘ └──────┘       │
-                              └──────────┬───────────────┘
-                                         │
-              ┌──────────────┬───────────┼───────────┬──────────────┐
-              │              │           │           │              │
-    ┌─────────▼──┐  ┌───────▼───┐  ┌────▼───┐  ┌───▼────┐  ┌─────▼─────┐
-    │  MongoDB   │  │  Firebase  │  │ Redis  │  │Cloudinary│ │  Pinata   │
-    │            │  │  Realtime  │  │        │  │          │ │  (IPFS)   │
-    │ Users      │  │  DB        │  │ Cache  │  │ NFT      │ │           │
-    │ NFTs       │  │            │  │ Queues │  │ Images   │ │ Metadata  │
-    │ Tournaments│  │ Game Sync  │  │ Socket │  │ Badges   │ │ JSON      │
-    │ Scores     │  │ Levels     │  │        │  │          │ │           │
-    └────────────┘  └───────────┘  └────────┘  └──────────┘ └───────────┘
-                                         │
-                              ┌──────────▼───────────────┐
-                              │   AVALANCHE C-CHAIN      │
-                              │   (Fuji Testnet)         │
-                              │                          │
-                              │ Contracts:               │
-                              │ • $BATTLE (ERC-20)       │
-                              │ • ChainBois NFT (ERC-721)│
-                              │ • Weapon NFT (ERC-721)   │
-                              │ • LevelUp                │
-                              │ • Prize Distribution     │
-                              │ • Points Conversion      │
-                              └──────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                        CHAINBOIS PLATFORM                            │
+│                                                                      │
+│  ┌────────────┐   ┌────────────┐   ┌─────────────────────────────┐  │
+│  │ Unity Game │   │  Frontend  │   │     Backend API             │  │
+│  │ (PC+Mobile)│   │ (Next.js)  │   │     (Express.js)            │  │
+│  │            │   │            │   │                             │  │
+│  │ Firebase ──┼───┼── Firebase ┼───┼── Firebase (poll/write)     │  │
+│  │ Auth       │   │ Auth       │   │                             │  │
+│  │            │   │ Thirdweb   │   │ Modules:                    │  │
+│  │ Reads:     │   │ Wallet     │   │ • Auth (Firebase tokens)    │  │
+│  │ • hasNFT   │   │            │   │ • Game Sync (Firebase cron) │  │
+│  │ • level    │   │ Calls API: │   │ • Training Room             │  │
+│  │ • weapons  │   │ Bearer tok │   │ • Battleground              │  │
+│  │            │   │ + address  │   │ • Armory (platform wallets) │  │
+│  │ Writes:    │   │            │   │ • Inventory                 │  │
+│  │ • score    │   │            │   │ • Points → $BATTLE          │  │
+│  │ • username │   │            │   │ • Leaderboard               │  │
+│  └────────────┘   └────────────┘   │ • Cron Jobs                 │  │
+│                                     │ • Discord Webhooks          │  │
+│                                     └──────────────┬──────────────┘  │
+│                                                    │                 │
+│       ┌────────────┬───────────┬───────────┬───────┘                 │
+│       ▼            ▼           ▼           ▼                         │
+│  ┌─────────┐ ┌──────────┐ ┌───────┐ ┌───────────┐                   │
+│  │ MongoDB │ │ Firebase │ │ Redis │ │ Avalanche │                   │
+│  │         │ │ Realtime │ │       │ │ C-Chain   │                   │
+│  │ Users   │ │ DB       │ │ Cache │ │ (Fuji)    │                   │
+│  │ NFTs    │ │          │ │ Queue │ │           │                   │
+│  │ Scores  │ │ Game↔API │ │ Sock  │ │ Contracts │                   │
+│  │ Txns    │ │ Sync     │ │       │ │ NFTs      │                   │
+│  └─────────┘ └──────────┘ └───────┘ │ Tokens    │                   │
+│                                      └───────────┘                   │
+│                                                                      │
+│  External: Cloudinary (images) | Pinata (IPFS) | Discord (webhooks)  │
+│  Marketplace: Joepegs (external, we just link to it)                 │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Authentication Flow
+## 2. Authentication Flow (Firebase-based)
 
 ```
-  User                    Frontend                 Backend                  Blockchain
-   │                         │                        │                        │
-   │  Click Connect Wallet   │                        │                        │
-   │────────────────────────►│                        │                        │
-   │                         │                        │                        │
-   │  Thirdweb Wallet Modal  │                        │                        │
-   │◄────────────────────────│                        │                        │
-   │                         │                        │                        │
-   │  Approve Connection     │                        │                        │
-   │────────────────────────►│                        │                        │
-   │                         │                        │                        │
-   │                         │ POST /auth/connect      │                        │
-   │                         │ { address }             │                        │
-   │                         │───────────────────────►│                        │
-   │                         │                        │  Find/Create User      │
-   │                         │                        │  Generate Nonce        │
-   │                         │◄───────────────────────│                        │
-   │                         │ { nonce, isNewUser }    │                        │
-   │                         │                        │                        │
-   │  Sign Nonce Message     │                        │                        │
-   │◄────────────────────────│                        │                        │
-   │────────────────────────►│                        │                        │
-   │                         │                        │                        │
-   │                         │ POST /auth/verify       │                        │
-   │                         │ { address, signature,   │                        │
-   │                         │   nonce }               │                        │
-   │                         │───────────────────────►│                        │
-   │                         │                        │  Verify Signature      │
-   │                         │                        │  Create JWT            │
-   │                         │                        │  Set Refresh Cookie    │
-   │                         │◄───────────────────────│                        │
-   │                         │ { accessToken, user }   │                        │
-   │                         │ + httpOnly cookie       │                        │
-   │                         │                        │                        │
-   │  Authenticated ✓        │                        │                        │
-   │◄────────────────────────│                        │                        │
+  User                    Frontend                 Backend                Firebase
+   │                         │                        │                      │
+   │  Click Connect Wallet   │                        │                      │
+   │────────────────────────►│                        │                      │
+   │                         │                        │                      │
+   │  Thirdweb Wallet Modal  │                        │                      │
+   │  (Core/Trust Wallet)    │                        │                      │
+   │◄───────────────────────►│                        │                      │
+   │                         │                        │                      │
+   │                         │  Get Firebase ID token  │                      │
+   │                         │─────────────────────────────────────────────►│
+   │                         │◄─────────────────────────────────────────────│
+   │                         │  firebaseIdToken        │                      │
+   │                         │                        │                      │
+   │                         │ POST /auth/login        │                      │
+   │                         │ Authorization: Bearer   │                      │
+   │                         │   <firebaseIdToken>     │                      │
+   │                         │ Body: { address }       │                      │
+   │                         │───────────────────────►│                      │
+   │                         │                        │  verifyIdToken()     │
+   │                         │                        │─────────────────────►│
+   │                         │                        │◄─────────────────────│
+   │                         │                        │  { uid, email }      │
+   │                         │                        │                      │
+   │                         │                        │  Find/create user    │
+   │                         │                        │  Check NFTs on-chain │
+   │                         │                        │  Write to Firebase:  │
+   │                         │                        │  hasNFT, level, wpns │
+   │                         │                        │─────────────────────►│
+   │                         │                        │                      │
+   │                         │◄───────────────────────│                      │
+   │                         │ { user, assets, weapons}│                      │
+   │                         │                        │                      │
+   │  Authenticated ✓        │                        │                      │
+   │◄────────────────────────│                        │                      │
 ```
 
 ---
 
-## 3. NFT Minting Flow (Hackathon Claim)
+## 3. Game Integration Flow (Firebase Sync Pattern)
 
 ```
-  Judge/User              Frontend                 Backend               Blockchain
-   │                         │                        │                        │
-   │  Visit /claim           │                        │                        │
-   │────────────────────────►│                        │                        │
-   │                         │ GET /mint/status        │                        │
-   │                         │───────────────────────►│                        │
-   │                         │◄───────────────────────│                        │
-   │                         │ { remaining, price }    │                        │
-   │                         │                        │                        │
-   │  Click "Claim NFT"     │                        │                        │
-   │────────────────────────►│                        │                        │
-   │                         │ POST /mint/claim        │                        │
-   │                         │ { address }             │                        │
-   │                         │───────────────────────►│                        │
-   │                         │                        │  Check claim limit     │
-   │                         │                        │  Prepare mint tx       │
-   │                         │                        │                        │
-   │                         │                        │───────────────────────►│
-   │                         │                        │  Mint NFT (from        │
-   │                         │                        │  platform wallet)      │
-   │                         │                        │◄───────────────────────│
-   │                         │                        │  txHash                │
-   │                         │                        │                        │
-   │                         │                        │  Create NFT record     │
-   │                         │                        │  Upload metadata       │
-   │                         │                        │                        │
-   │                         │◄───────────────────────│                        │
-   │                         │ { tokenId, txHash,      │                        │
-   │                         │   nftData }             │                        │
-   │                         │                        │                        │
-   │  NFT Claimed! ✓         │                        │                        │
-   │◄────────────────────────│                        │                        │
+  Unity Game              Firebase Realtime DB              Backend API
+   │                            │                               │
+   │  User registers/logs in    │                               │
+   │  (Firebase Auth)           │                               │
+   │───────────────────────────►│                               │
+   │                            │                               │
+   │  Writes: { username,       │                               │
+   │    Score: 0 }              │                               │
+   │───────────────────────────►│                               │
+   │                            │                               │
+   │                            │  syncNewUsersJob (every 1min) │
+   │                            │◄──────────────────────────────│
+   │                            │  Reads /users, finds new UIDs │
+   │                            │──────────────────────────────►│
+   │                            │                               │  Creates MongoDB user
+   │                            │                               │
+   │                            │  Backend writes back:         │
+   │                            │  { level: 0, hasnft: false }  │
+   │                            │◄──────────────────────────────│
+   │                            │                               │
+   │ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+   │    USER VISITS WEBSITE     │                               │
+   │    CONNECTS WALLET         │                               │
+   │    LOGS IN VIA FRONTEND    │                               │
+   │ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+   │                            │                               │
+   │                            │  Backend verifies NFTs        │
+   │                            │  Writes: { hasnft: true,      │
+   │                            │    level: 3, weapons: [...] } │
+   │                            │◄──────────────────────────────│
+   │                            │                               │
+   │  Game reads Firebase       │                               │
+   │  Sees hasnft=true          │                               │
+   │  Unlocks 16 characters     │                               │
+   │  Loads owned weapons       │                               │
+   │◄───────────────────────────│                               │
+   │                            │                               │
+   │  ═══ GAMEPLAY ═══         │                               │
+   │                            │                               │
+   │  Updates score in Firebase │                               │
+   │───────────────────────────►│                               │
+   │                            │                               │
+   │                            │  syncScoresJob (every 5min)   │
+   │                            │◄──────────────────────────────│
+   │                            │  Reads scores, detects changes│
+   │                            │──────────────────────────────►│
+   │                            │                               │  Updates MongoDB
+   │                            │                               │  Updates leaderboard
+   │ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+   │    USER EXITS GAME         │                               │
+   │ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+   │                            │                               │
+   │                            │  Clears: { hasnft: false,     │
+   │                            │    weapons: [] }              │
+   │                            │◄──────────────────────────────│
 ```
 
 ---
@@ -171,480 +165,339 @@
    │                         │───────────────────────►│                        │
    │                         │                        │  Verify ownership      │
    │                         │                        │  Check level < 7       │
-   │                         │                        │  Calculate cost (1 AVAX)│
+   │                         │                        │  Cost: 1 AVAX          │
    │                         │                        │  Prepare unsigned tx   │
    │                         │◄───────────────────────│                        │
    │                         │ { unsignedTx, cost }    │                        │
    │                         │                        │                        │
    │  Sign Transaction       │                        │                        │
-   │  (Wallet Popup)         │                        │                        │
    │◄────────────────────────│                        │                        │
    │────────────────────────►│                        │                        │
    │                         │                        │                        │
    │                         │ POST /training/confirm  │                        │
    │                         │ { tokenId, signedTx }   │                        │
    │                         │───────────────────────►│                        │
+   │                         │                        │  Submit tx to chain    │
    │                         │                        │───────────────────────►│
-   │                         │                        │  Submit tx             │
    │                         │                        │  Wait confirmation     │
    │                         │                        │◄───────────────────────│
    │                         │                        │                        │
-   │                         │                        │  Update MongoDB level  │
+   │                         │                        │  Update on-chain level │
+   │                         │                        │───────────────────────►│
+   │                         │                        │◄───────────────────────│
+   │                         │                        │                        │
+   │                         │                        │  Update MongoDB        │
    │                         │                        │  Update Firebase       │
    │                         │                        │  New Cloudinary URL    │
    │                         │                        │  Re-pin metadata IPFS  │
-   │                         │                        │  Trigger reindex       │
    │                         │                        │  Emit ERC-4906 event   │
-   │                         │                        │                        │
    │                         │◄───────────────────────│                        │
-   │                         │ { nft: { level: 3,      │                        │
-   │                         │   badge: "level_3",     │                        │
-   │                         │   imageUri: "..." } }   │                        │
-   │                         │                        │                        │
+   │                         │ { nft: updated data }   │                        │
    │  Level Up Animation ✓   │                        │                        │
    │◄────────────────────────│                        │                        │
 ```
 
 ---
 
-## 5. Game Integration Flow
+## 5. Tournament Lifecycle + Auto Prize Distribution
 
 ```
-  Unity Game                              Backend                    Blockchain
-   │                                         │                          │
-   │  Game Launch / Player Login              │                          │
-   │                                         │                          │
-   │  POST /game/verify-assets               │                          │
-   │  { address, gameApiKey }                │                          │
-   │────────────────────────────────────────►│                          │
-   │                                         │  Verify API key          │
-   │                                         │  Query Data API          │
-   │                                         │─────────────────────────►│
-   │                                         │  Get NFTs + Tokens       │
-   │                                         │◄─────────────────────────│
-   │                                         │                          │
-   │                                         │  Determine unlocks:      │
-   │                                         │  Level 3 = 16 characters │
-   │                                         │  + owned weapons         │
-   │◄────────────────────────────────────────│                          │
-   │  { characters: [...16],                 │                          │
-   │    weapons: [...],                      │                          │
-   │    playerType: "web3",                  │                          │
-   │    level: 3 }                           │                          │
-   │                                         │                          │
-   │  POST /game/session/start               │                          │
-   │  { address, gameMode, nftTokenId }      │                          │
-   │────────────────────────────────────────►│                          │
-   │                                         │  Create GameSession      │
-   │                                         │  Start anti-cheat timer  │
-   │◄────────────────────────────────────────│                          │
-   │  { sessionId }                          │                          │
-   │                                         │                          │
-   │  ... GAMEPLAY (5-30 min) ...            │                          │
-   │                                         │                          │
-   │  POST /game/session/end                 │                          │
-   │  { sessionId, score: 3200, kills: 15,   │                          │
-   │    hmac: "abc123..." }                  │                          │
-   │────────────────────────────────────────►│                          │
-   │                                         │  Verify HMAC signature   │
-   │                                         │  Validate session timing │
-   │                                         │  Check score ≤ 5000      │
-   │                                         │  Anti-cheat checks       │
-   │                                         │  Update points balance   │
-   │                                         │  Update Firebase         │
-   │                                         │  Update leaderboard      │
-   │◄────────────────────────────────────────│                          │
-   │  { pointsEarned: 3200,                 │                          │
-   │    totalPoints: 18400,                  │                          │
-   │    rank: 5 }                            │                          │
+┌─────────────────────────────────────────────────────────────────────┐
+│                    TOURNAMENT LIFECYCLE                               │
+│                                                                      │
+│  Wednesday 12PM EST              Monday 12PM EST                     │
+│       │                               │                              │
+│       ▼                               ▼                              │
+│  ┌──────────┐                   ┌──────────┐                         │
+│  │  START    │═══ 5 days ══════►│   END    │                         │
+│  │Tournament │                   │Tournament│                         │
+│  └──────────┘                   └────┬─────┘                         │
+│                                      │                               │
+│                                      ▼                               │
+│                              ┌───────────────┐                       │
+│                              │ AUTO-PROCESS   │                       │
+│                              │ 1. Sort scores │                       │
+│                              │ 2. Pick top 3  │                       │
+│                              │ 3. Send prizes │ ◄── From prize pool   │
+│                              │    from pool   │     wallet (auto)     │
+│                              │ 4. Discord     │                       │
+│                              │    notification│ ──► Discord webhook   │
+│                              │ 5. Save history│                       │
+│                              │ 6. Reset board │ ◄── Delete all weekly │
+│                              └───────┬───────┘     leaderboard entries│
+│                                      │                               │
+│                                      ▼                               │
+│                              ┌───────────────┐                       │
+│                              │   COOLDOWN     │                       │
+│                              │   48 hours     │                       │
+│                              │   Armory CLOSED│                       │
+│                              └───────┬───────┘                       │
+│                                      │                               │
+│                                      ▼ Wednesday 12PM EST            │
+│                              ┌───────────────┐                       │
+│                              │   NEW          │                       │
+│                              │   TOURNAMENT   │                       │
+│                              └───────────────┘                       │
+│                                                                      │
+│  If prize send fails → FailedPayout record → auto-retry cron         │
+│  If pool balance low → Discord alert to admin                        │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 6. Tournament Lifecycle
+### Discord Notification Example
 
 ```
-Tournament Cron Job (runs every hour on PM2 instance 0)
+🏆 Week 12 - Level 3 Tournament Winners!
 
-    ┌─────────────────────────────────────────────────────────┐
-    │                  TOURNAMENT LIFECYCLE                     │
-    │                                                          │
-    │  Wednesday 12PM EST         Monday 12PM EST              │
-    │       │                          │                       │
-    │       ▼                          ▼                       │
-    │  ┌─────────┐              ┌─────────┐                   │
-    │  │  START   │──5 days────►│   END   │                   │
-    │  │Tournament│              │Tournament│                   │
-    │  └─────────┘              └────┬────┘                   │
-    │       │                        │                         │
-    │       │                        ▼                         │
-    │       │                  ┌──────────┐                    │
-    │       │                  │Calculate │                    │
-    │       │                  │ Winners  │                    │
-    │       │                  │(Top 3)   │                    │
-    │       │                  └────┬─────┘                    │
-    │       │                       │                          │
-    │       │                       ▼                          │
-    │       │                  ┌──────────┐                    │
-    │       │                  │  COOLDOWN │                   │
-    │       │                  │  48 hours │                   │
-    │       │                  └────┬─────┘                    │
-    │       │                       │                          │
-    │       │                       ▼ Wednesday 12PM EST       │
-    │       │                  ┌──────────┐                    │
-    │       └──────────────────│  RESTART │                    │
-    │                          │Tournament│                    │
-    │                          └──────────┘                    │
-    │                                                          │
-    │  Prize Collection Window: Up to 1 week after END         │
-    │  Armory: CLOSED during cooldown                          │
-    │  Points during cooldown: Reset at tournament start       │
-    └─────────────────────────────────────────────────────────┘
-```
+🥇 1st Place: PlayerX - 47,200 pts → 3.0 AVAX sent ✓
+🥈 2nd Place: PlayerY - 41,800 pts → 2.1 AVAX sent ✓
+🥉 3rd Place: PlayerZ - 38,500 pts → 900 $BATTLE sent ✓
 
-### Prize Collection Flow
-
-```
-  Winner                  Frontend                 Backend               Blockchain
-   │                         │                        │                        │
-   │  See "Collect Prize"    │                        │                        │
-   │  button on Battleground │                        │                        │
-   │────────────────────────►│                        │                        │
-   │                         │ POST /tournaments/      │                        │
-   │                         │   {level}/collect-prize │                        │
-   │                         │ { address }             │                        │
-   │                         │───────────────────────►│                        │
-   │                         │                        │  Verify winner         │
-   │                         │                        │  Check not expired     │
-   │                         │                        │  Check not collected   │
-   │                         │                        │                        │
-   │                         │                        │  1st/2nd: Send AVAX   │
-   │                         │                        │  3rd: Send $BATTLE    │
-   │                         │                        │───────────────────────►│
-   │                         │                        │  Transfer tx           │
-   │                         │                        │◄───────────────────────│
-   │                         │                        │                        │
-   │                         │                        │  Mark collected        │
-   │                         │                        │  Record transaction    │
-   │                         │◄───────────────────────│                        │
-   │                         │ { txHash, amount,       │                        │
-   │                         │   currency }            │                        │
-   │  Prize Collected! ✓     │                        │                        │
-   │◄────────────────────────│                        │                        │
+Total Weekly Payout: 5.1 AVAX + 900 $BATTLE
 ```
 
 ---
 
-## 7. Armory Purchase Flow
+## 6. Armory Purchase Flow (Buy from Platform Wallets)
 
 ```
   User                    Frontend                 Backend               Blockchain
    │                         │                        │                        │
    │  Browse Weapons         │                        │                        │
-   │────────────────────────►│                        │                        │
-   │                         │ GET /armory/weapons     │                        │
+   │────────────────────────►│ GET /armory/weapons     │                        │
    │                         │───────────────────────►│                        │
    │                         │◄───────────────────────│                        │
-   │                         │ { weapons: [...] }      │                        │
-   │  Weapons displayed      │                        │                        │
+   │  Weapons displayed      │ { weapons by category } │                        │
    │◄────────────────────────│                        │                        │
    │                         │                        │                        │
    │  Click "Buy" on SCAR   │                        │                        │
+   │────────────────────────►│ GET /armory/weapon/:id  │                        │
+   │                         │───────────────────────►│                        │
+   │                         │◄───────────────────────│                        │
+   │                         │ { price (server-side),  │                        │
+   │                         │   platformWalletAddr }  │                        │
+   │                         │                        │                        │
+   │  Confirm Purchase       │                        │                        │
    │────────────────────────►│                        │                        │
+   │                         │  Build $BATTLE transfer │                        │
+   │                         │  tx to platform wallet  │                        │
+   │  Sign Transaction       │                        │                        │
+   │◄────────────────────────│                        │                        │
+   │────────────────────────►│                        │                        │
+   │                         │                        │                        │
    │                         │ POST /armory/purchase/  │                        │
    │                         │   weapon               │                        │
-   │                         │ { weaponId, address }   │                        │
+   │                         │ { weaponId, txHash }    │                        │
    │                         │───────────────────────►│                        │
-   │                         │                        │  Check $BATTLE balance │
-   │                         │                        │  Check supply          │
-   │                         │                        │  Check armory open     │
+   │                         │                        │  Verify on-chain:      │
+   │                         │                        │  • Correct sender      │
+   │                         │                        │  • Correct receiver    │
+   │                         │                        │  • Correct amount      │
+   │                         │                        │  • Not stale (<50s)    │
+   │                         │                        │  • Supply available    │
    │                         │                        │                        │
-   │                         │                        │  Deduct $BATTLE:       │
-   │                         │                        │  50% burn, 50% liq    │
-   │                         │                        │───────────────────────►│
-   │                         │                        │  Burn tx               │
-   │                         │                        │◄───────────────────────│
-   │                         │                        │                        │
-   │                         │                        │  Mint Weapon NFT       │
-   │                         │                        │───────────────────────►│
+   │                         │                        │  Transfer weapon NFT   │
+   │                         │                        │  from platform wallet  │
    │                         │                        │  to user wallet        │
+   │                         │                        │───────────────────────►│
    │                         │                        │◄───────────────────────│
    │                         │                        │                        │
+   │                         │                        │  Update Firebase:      │
+   │                         │                        │  weapons: [..., SCAR]  │
+   │                         │                        │  (game sees it now)    │
+   │                         │                        │                        │
+   │                         │                        │  50% of $BATTLE burned │
    │                         │                        │  Record transaction    │
-   │                         │                        │  Sync to game (Firebase)│
    │                         │◄───────────────────────│                        │
    │                         │ { weapon, txHash }      │                        │
    │  Weapon Purchased! ✓    │                        │                        │
+   │  Available in-game now  │                        │                        │
    │◄────────────────────────│                        │                        │
 ```
 
 ---
 
-## 8. Points Conversion Flow
+## 7. Points → $BATTLE Conversion Flow
 
 ```
-  Points Earned       ChainBoi Money         $BATTLE Token          AVAX
-  (In-Game)           (Platform Currency)     (ERC-20)              (Native)
-       │                     │                     │                    │
-       │  1:1 conversion     │                     │                    │
-       │────────────────────►│                     │                    │
-       │  (Off-chain,        │  1:1 conversion     │                    │
-       │   deducts from      │────────────────────►│                    │
-       │   accumulated       │  (On-chain tx,      │  Market rate       │
-       │   points first)     │   mints $BATTLE)    │───────────────────►│
-       │                     │                     │  (DEX swap or      │
-       │                     │                     │   direct conversion)│
-       │                     │                     │                    │
+  Points (In-Game)                     $BATTLE (ERC-20)
+       │                                     │
+       │  1:1 conversion                     │
+       │  POST /points/convert               │
+       │  { amount }                         │
+       │────────────────────────────────────►│
+       │                                     │
+       │  Backend:                           │
+       │  1. Deduct points from MongoDB      │
+       │  2. Mint $BATTLE to user wallet     │
+       │  3. Record transaction              │
+       │                                     │
+       │  If user wants AVAX later:          │
+       │  They sell $BATTLE on Trader Joe    │
+       │  or any DEX themselves.             │
+       │  NOT our concern.                   │
 
-  Deduction Priority:
-  1. Accumulated (pre-tournament) points first
-  2. Current tournament points only if accumulated insufficient
-
-  Restrictions:
-  - Web2 players: Cannot convert to $BATTLE (no wallet)
-  - Armory closed during tournament cooldown
-```
-
----
-
-## 9. Web2 → Web3 Upgrade Flow
-
-```
-  Web2 Player                Frontend                 Backend               Blockchain
-   │                            │                        │                        │
-   │  Playing as Web2           │                        │                        │
-   │  (4 characters, no NFT)   │                        │                        │
-   │                            │                        │                        │
-   │  Click "Upgrade to Web3"  │                        │                        │
-   │───────────────────────────►│                        │                        │
-   │                            │                        │                        │
-   │  Connect Wallet            │                        │                        │
-   │  (Thirdweb)                │                        │                        │
-   │◄──────────────────────────►│                        │                        │
-   │                            │                        │                        │
-   │                            │ POST /player/          │                        │
-   │                            │   normie-upgrade       │                        │
-   │                            │ { address }            │                        │
-   │                            │──────────────────────►│                        │
-   │                            │                       │  Calculate cost:        │
-   │                            │                       │  120% × floor price     │
-   │                            │◄──────────────────────│                        │
-   │                            │ { cost, unsignedTx }  │                        │
-   │                            │                       │                        │
-   │  Sign Payment              │                       │                        │
-   │◄──────────────────────────►│                       │                        │
-   │                            │                       │                        │
-   │                            │ POST /player/         │                        │
-   │                            │   normie-upgrade/     │                        │
-   │                            │   confirm             │                        │
-   │                            │──────────────────────►│                        │
-   │                            │                       │───────────────────────►│
-   │                            │                       │  Transfer Normie NFT   │
-   │                            │                       │  Remove normie flag    │
-   │                            │                       │◄───────────────────────│
-   │                            │                       │                        │
-   │                            │                       │  Reset points to 0     │
-   │                            │                       │  Update playerType     │
-   │                            │                       │  Full character access │
-   │                            │◄──────────────────────│                        │
-   │                            │ { user, nft }         │                        │
-   │  Now Web3 Player! ✓        │                       │                        │
-   │◄──────────────────────────►│                       │                        │
+  NO "ChainBoi Money" intermediary.
+  Direct: Points → $BATTLE → (DEX if they want AVAX)
 ```
 
 ---
 
-## 10. Feature Matrix: Hackathon MVP vs Full Product
+## 8. Web2 → Web3 Upgrade Flow (Simple, No Normie NFTs)
 
-| Feature | Hackathon (Phase 1) | Post-Hackathon (Phase 2+) |
-|---------|:-------------------:|:-------------------------:|
-| Wallet Connect (Thirdweb) | ✅ | ✅ |
-| JWT Authentication | ✅ | ✅ |
-| ChainBoi NFT Minting | ✅ (claim page) | ✅ (full mint) |
-| NFT Display (Training Room) | ✅ | ✅ |
-| Level-Up System | ✅ | ✅ |
-| Badge Overlays (Cloudinary) | ✅ | ✅ |
-| Tournament System | ✅ (seeded data OK) | ✅ (automated) |
-| Leaderboard | ✅ (basic) | ✅ (real-time) |
-| Prize Collection | ✅ | ✅ (automated) |
-| Weapon Catalog | ✅ | ✅ |
-| Weapon Purchase ($BATTLE) | ✅ | ✅ |
-| Points Conversion | ✅ | ✅ |
-| Inventory Display | ✅ | ✅ |
-| Game Asset Verification | ✅ | ✅ |
-| Game Session / Score | ✅ | ✅ |
-| Anti-Cheat | ✅ (basic) | ✅ (full) |
-| WebSocket (live updates) | ✅ (basic) | ✅ (full) |
+```
+  Web2 Player                Frontend                 Backend
+   │                            │                        │
+   │  Playing as Web2           │                        │
+   │  (4 characters, basic wpns)│                        │
+   │  Points tracked in MongoDB │                        │
+   │                            │                        │
+   │  Buys ChainBoi NFT        │                        │
+   │  (from Joepegs, platform,  │                        │
+   │   or any marketplace)      │                        │
+   │                            │                        │
+   │  Connects wallet on website│                        │
+   │───────────────────────────►│                        │
+   │                            │ POST /auth/login       │
+   │                            │ { address }            │
+   │                            │──────────────────────►│
+   │                            │                       │  Detect NFT in wallet
+   │                            │                       │  Update playerType:
+   │                            │                       │    "web2" → "web3"
+   │                            │                       │  Accumulated points
+   │                            │                       │    now convertible
+   │                            │                       │  Progress data written
+   │                            │                       │    to NFT metadata
+   │                            │                       │  Write Firebase:
+   │                            │                       │    hasNFT=true, level
+   │                            │◄──────────────────────│
+   │                            │ { user, assets }      │
+   │  Now Web3 Player! ✓        │                       │
+   │  Full character access     │                       │
+   │  Can convert pts→$BATTLE   │                       │
+   │◄──────────────────────────►│                       │
+```
+
+---
+
+## 9. Feature Matrix: Hackathon MVP vs Full Product
+
+| Feature | MVP (March 9) | Phase 2+ |
+|---------|:------------:|:--------:|
+| Firebase Auth + Wallet Connect | ✅ | ✅ |
+| Game ↔ Firebase sync (cron jobs) | ✅ | ✅ |
+| Asset verification + Firebase write | ✅ | ✅ |
+| NFT creation (pre-minted to platform) | ✅ | ✅ |
+| NFT display (Training Room) | ✅ | ✅ |
+| Level-Up System + Badge overlays | ✅ | ✅ |
+| Tournament lifecycle (cron) | ✅ | ✅ |
+| Leaderboard (time-filtered) | ✅ | ✅ |
+| Auto prize distribution + Discord | ✅ | ✅ |
+| Weapon catalog + purchase from platform | ✅ | ✅ |
+| Points → $BATTLE conversion | ✅ | ✅ |
+| Inventory display | ✅ | ✅ |
+| Anti-Cheat (basic) | ✅ | ✅ (full) |
+| WebSocket (live leaderboard) | ✅ | ✅ |
+| Web2 player tracking | ✅ | ✅ |
+| Web2→Web3 upgrade (simple) | ✅ | ✅ |
 | Loot Boxes | ❌ | ✅ |
-| Armor Purchase | ❌ | ✅ |
-| Airdrop System | ❌ | ✅ |
+| Armor system | ❌ | ✅ |
+| Airdrop system | ❌ | ✅ |
 | Battlepass | ❌ | ✅ |
-| Secondary Marketplace | ❌ | ✅ |
-| Web2 Player System | ❌ | ✅ |
-| Normie NFT Upgrade | ❌ | ✅ |
-| Burn Mechanism | ❌ | ✅ |
-| $BATTLE → AVAX Cash-out | ❌ | ✅ |
-| Mythic Upgrade System | ❌ | ✅ |
-| Merchandise Page | ❌ | ✅ |
-| APEX Integration | ❌ | ✅ |
+| Mythic upgrade / chip draws | ❌ | ✅ |
+| APEX widget integration | ❌ | ✅ |
+| In-house secondary marketplace | ❌ | ✅ |
+
+---
+
+## 10. Implementation Order + Frontend Doc Delivery
+
+```
+  Day 1: Phase 0 - Foundation
+  ├── Express scaffolding, models, middleware
+  ├── avaxUtils, cryptUtils, discordService
+  └── 📄 FE Doc: env setup, auth pattern, request format
+       │
+  Day 2: Phase 1 - Game Integration + Auth     ◄── FRONTEND PRIORITY
+  ├── Firebase auth (decodeToken middleware)
+  ├── Login (Firebase token + wallet address)
+  ├── Asset verification → Firebase write
+  ├── Cron: sync new users (1min), sync scores (5min)
+  ├── Web2 player support
+  └── 📄 FE Doc: auth flow, game endpoints, events
+       │
+  Day 3: Phase 2 - Smart Contracts + NFTs
+  ├── Deploy BattleToken, ChainBoisNFT, WeaponNFT
+  ├── Art generation (if traits provided)
+  ├── Pre-mint to platform wallets
+  └── 📄 FE Doc: contract addresses, NFT data format
+       │
+  Day 4: Phase 3 - Training Room
+  ├── NFT query, level-up flow, badge system
+  └── 📄 FE Doc: training room endpoints, level-up UX
+       │
+  Day 5-6: Phase 4 - Battleground + Leaderboard
+  ├── Tournament cron, leaderboard, auto prizes
+  ├── Discord notifications
+  └── 📄 FE Doc: tournament endpoints, WebSocket events
+       │
+  Day 7: Phase 5 - Armory + Points
+  ├── Weapon purchase from platform wallets
+  ├── Points → $BATTLE conversion
+  └── 📄 FE Doc: armory endpoints, purchase flow
+       │
+  Day 8: Phase 6 - Inventory + Polish
+  ├── Inventory aggregation, tx history
+  └── 📄 FE Doc: inventory endpoints
+       │
+  Day 8-9: Phase 7 - Testing + Demo
+  ├── Full test suite
+  ├── Postman collection
+  ├── Demo video script
+  └── 📄 Complete API documentation
+```
 
 ---
 
 ## 11. Database Relationships
 
 ```
-  User (address)
+  User (uid + address)
    │
-   ├──── owns ──── ChainBoiNFT (tokenId)
-   │                    │
-   │                    ├── level (0-7)
-   │                    ├── badge
-   │                    └── traits []
+   ├── owns ──── ChainBoiNFT (tokenId)
+   │                  ├── level (0-7)
+   │                  ├── badge
+   │                  └── traits []
    │
-   ├──── owns ──── WeaponNFT (tokenId)
-   │                    │
-   │                    ├── category
-   │                    ├── blueprintTier
-   │                    └── mythicLevel
+   ├── owns ──── WeaponNFT (tokenId)
+   │                  ├── category
+   │                  └── blueprintTier
    │
-   ├──── has ──── Points
-   │               ├── accumulated
-   │               ├── tournament
-   │               └── chainboiMoney
+   ├── has ──── Points (pointsBalance in User model)
    │
-   ├──── plays ──── GameSession
-   │                    │
-   │                    ├── score
-   │                    ├── kills
-   │                    └── verified
+   ├── plays ──── GameSession []
+   │                  ├── score (max 5000)
+   │                  └── verified
    │
-   ├──── competes ──── Tournament (level)
-   │                      │
-   │                      ├── leaderboard []
-   │                      ├── winners []
-   │                      └── prizePool
+   ├── competes ──── WeeklyLeaderboard
+   │                      ├── highScore
+   │                      ├── totalScore
+   │                      └── gamesPlayed
    │
-   └──── tracked by ──── SecurityProfile
-                             │
-                             ├── threatScore
-                             ├── violations []
-                             └── status
-```
-
----
-
-## 12. Implementation Order & Dependencies
-
-```
-  Phase 0: Foundation
-  ├── Express scaffolding
-  ├── MongoDB models
-  ├── Auth system
-  ├── avaxUtils.js
-  └── Error handling
-       │
-       ▼
-  Phase 1: Smart Contracts
-  ├── BattleToken.sol
-  ├── ChainBoisNFT.sol
-  ├── WeaponNFT.sol
-  └── Deploy to Fuji
-       │
-       ▼
-  Phase 2: NFT Art & Minting ──────────────────── (needs traits ZIP)
-  ├── HashLips configuration
-  ├── Art generation
-  ├── IPFS upload
-  ├── Cloudinary upload
-  └── Mint endpoints
-       │
-       ▼
-  Phase 3: Training Room ─────── depends on: Phase 1 (contracts), Phase 2 (NFTs)
-  ├── NFT query
-  ├── Level-up flow
-  └── Badge system
-       │
-       ▼
-  Phase 4: Game Integration ──── depends on: Phase 3 (NFT levels)
-  ├── Asset verification
-  ├── Session management
-  ├── Anti-cheat
-  └── Points sync
-       │
-       ▼
-  Phase 5: Battleground ─────── depends on: Phase 4 (points/scores)
-  ├── Tournament cron
-  ├── Leaderboard
-  └── Prize distribution
-       │
-       ▼
-  Phase 6: Armory ──────────── depends on: Phase 1 ($BATTLE), Phase 4 (points)
-  ├── Weapon catalog
-  ├── Purchase flow
-  └── Points conversion
-       │
-       ▼
-  Phase 7: Inventory ──────── depends on: Phase 2, 3, 6 (all assets)
-  ├── Asset aggregation
-  └── Transaction history
-       │
-       ▼
-  Phase 8: Polish & Docs
-  ├── Test suite
-  ├── Postman collection
-  ├── Frontend docs
-  └── Demo prep
-```
-
----
-
-## 13. Security Architecture Summary
-
-```
-  ┌─────────────────────────────────────────────────────┐
-  │                    SECURITY LAYERS                   │
-  │                                                     │
-  │  Layer 1: Network                                   │
-  │  ├── HTTPS only                                     │
-  │  ├── CORS whitelist                                 │
-  │  ├── Rate limiting (100-1000 req/min)               │
-  │  └── IP blocking (suspicious behavior)              │
-  │                                                     │
-  │  Layer 2: Application                               │
-  │  ├── Helmet (security headers)                      │
-  │  ├── NoSQL injection prevention (mongoSanitize)     │
-  │  ├── XSS prevention                                 │
-  │  ├── HPP (parameter pollution)                      │
-  │  └── Endpoint whitelist validation                  │
-  │                                                     │
-  │  Layer 3: Authentication                            │
-  │  ├── JWT (15min expiry) for frontend                │
-  │  ├── API Key + HMAC for game client                 │
-  │  ├── x-client-id + IP whitelist for wallet-mgt      │
-  │  └── Refresh tokens (httpOnly cookies)              │
-  │                                                     │
-  │  Layer 4: Authorization                             │
-  │  ├── Role-based (user/admin)                        │
-  │  ├── Ownership verification (NFT/wallet)            │
-  │  └── Game session validation                        │
-  │                                                     │
-  │  Layer 5: Anti-Cheat                                │
-  │  ├── Session tracking                               │
-  │  ├── Score plausibility checks                      │
-  │  ├── Velocity/timing analysis                       │
-  │  ├── Daily earning caps                             │
-  │  └── Threat scoring → cooldown → temp → perm ban    │
-  │                                                     │
-  │  Layer 6: Data                                      │
-  │  ├── AES encryption for wallet keys                 │
-  │  ├── Separate wallet-mgt service                    │
-  │  └── Transaction ledger (audit trail)               │
-  └─────────────────────────────────────────────────────┘
+   ├── tracked by ──── SecurityProfile
+   │                        ├── threatScore
+   │                        └── status
+   │
+   └── synced via ──── Firebase Realtime DB
+                            ├── hasNFT (game reads)
+                            ├── level (game reads)
+                            ├── weapons (game reads)
+                            └── score (game writes)
 ```
 
 ---
 
 **Next Steps:**
-1. Review this document and the PRD
+1. Review this updated document and the updated PRD
 2. Approve or request changes
-3. Begin Phase 0: Foundation implementation
+3. Begin Phase 0: Foundation → deliver FE docs → Phase 1: Game Integration

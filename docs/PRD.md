@@ -1,8 +1,9 @@
 # ChainBois API - Product Requirements Document (PRD)
 
-**Version:** 1.0
+**Version:** 2.0
 **Date:** March 2, 2026
 **Status:** Draft - Pending Review
+**MVP Deadline:** March 9, 2026
 
 ---
 
@@ -36,26 +37,25 @@ ChainBois is a Web3 gaming platform on the **Avalanche C-Chain** that connects a
 
 ### 1.2 Immediate Context
 
-- **Avalanche Build Games Hackathon** - 6-week timeline, $1M prize pool
+- **Avalanche Build Games Hackathon** - $1M prize pool
+- **MVP Deadline: March 9, 2026** - must have working API + frontend integration + demo
 - All blockchain features use **Fuji testnet** for the hackathon
-- MVP deadline: ~10 days from project start
-- Frontend is already largely built (Next.js 15 + Thirdweb)
-- Game (Unity) exists on PC and mobile
+- Frontend is already largely built (Next.js 15 + Thirdweb) - needs API docs per phase ASAP
+- Game (Unity) exists on PC and mobile - limited game dev changes possible
+- Must deliver frontend integration docs after each phase for parallel FE work
 
-### 1.3 Project Scope
-
-This PRD covers the **backend API** that serves:
-- The frontend website (Next.js)
-- The Unity game client
-- Internal services (wallet management)
-
-### 1.4 Key Principles
+### 1.3 Key Principles
 
 1. **Use SDKs and APIs over custom smart contracts** wherever possible
 2. **Backend-heavy blockchain logic** - keep AVAX operations server-side
 3. **Separate wallet management** into its own secure service
-4. **Phase-based delivery** with documentation after each phase
-5. **Testnet first** - everything on Fuji for hackathon, mainnet migration later
+4. **Phase-based delivery** with frontend docs after EACH phase
+5. **Testnet first** - everything on Fuji for hackathon
+6. **Follow reference project patterns** - especially ghetto-pigeons and pigeon-puffs
+7. **Game communicates via Firebase** - game devs have limited ability to make changes
+8. **No custom marketplace** - use existing marketplaces (Joepegs, etc.)
+9. **No ChainBoi Money** - points convert directly to $BATTLE
+10. **Auto-distribute prizes** - no manual claiming, Discord notifications
 
 ---
 
@@ -69,7 +69,7 @@ This PRD covers the **backend API** that serves:
 │   (Next.js 15)   │     │   (PC + Mobile)   │     │   (Future)      │
 └────────┬────────┘     └────────┬──────────┘     └────────┬────────┘
          │                       │                          │
-         │  REST + WebSocket     │  REST (secured)          │  REST
+         │ REST + WebSocket      │ Firebase Realtime DB     │ REST
          ▼                       ▼                          ▼
 ┌────────────────────────────────────────────────────────────────────┐
 │                     ChainBois Main API                             │
@@ -79,18 +79,18 @@ This PRD covers the **backend API** that serves:
 │  │  Auth    │ │ Training │ │  Battle  │ │  Armory  │ │ Game   │  │
 │  │ Module   │ │  Room    │ │  ground  │ │  Module  │ │ Sync   │  │
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └────────┘  │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐  │
-│  │Inventory │ │  Mint    │ │ Airdrop  │ │Leaderboard││ Points │  │
-│  │ Module   │ │  Module  │ │  Module  │ │  Module  │ │ Module │  │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └────────┘  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐             │
+│  │Inventory │ │Leaderboard││ Points   │ │  Cron    │             │
+│  │ Module   │ │  Module  │ │ Module   │ │  Jobs    │             │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘             │
 └───────────────────────┬────────────────────────────────────────────┘
                         │
          ┌──────────────┼──────────────┐
          ▼              ▼              ▼
 ┌──────────────┐ ┌───────────┐ ┌──────────────┐
 │  MongoDB     │ │  Firebase │ │  Redis       │
-│  (Primary DB)│ │  (Realtime│ │  (Cache +    │
-│              │ │   Sync)   │ │   Queues)    │
+│  (Primary DB)│ │  Realtime │ │  (Cache +    │
+│              │ │  DB       │ │   Queues)    │
 └──────────────┘ └───────────┘ └──────────────┘
 
          ┌──────────────────────────┐
@@ -99,6 +99,7 @@ This PRD covers the **backend API** that serves:
          │   - IP whitelisted       │
          │   - x-client-id auth     │
          │   - Encrypted key store  │
+         │   - Signs & sends txs    │
          └────────────┬─────────────┘
                       │
                       ▼
@@ -106,12 +107,59 @@ This PRD covers the **backend API** that serves:
          │   Avalanche C-Chain      │
          │   (Fuji Testnet)         │
          │   - Smart Contracts      │
-         │   - Token Operations     │
-         │   - NFT Operations       │
+         │   - NFTs pre-minted in   │
+         │     platform wallets     │
          └──────────────────────────┘
 ```
 
-### 2.2 Service Separation
+### 2.2 Key Architectural Pattern: Game ↔ Backend via Firebase
+
+Following the ghetto-pigeons and pigeon-puffs pattern:
+
+```
+Unity Game                    Firebase Realtime DB              Backend API
+    │                               │                              │
+    │  Writes user data             │                              │
+    │  (score, username)            │                              │
+    │──────────────────────────────►│                              │
+    │                               │                              │
+    │                               │  Cron polls every 1-5 min   │
+    │                               │◄─────────────────────────────│
+    │                               │                              │
+    │                               │  Backend reads new users +   │
+    │                               │  score changes               │
+    │                               │─────────────────────────────►│
+    │                               │                              │  Syncs to MongoDB
+    │                               │                              │  Updates leaderboard
+    │                               │                              │
+    │  Backend writes back:         │                              │
+    │  hasNFT, level, weapons       │                              │
+    │◄──────────────────────────────│◄─────────────────────────────│
+    │                               │                              │
+    │  Game reads Firebase          │                              │
+    │  to unlock content            │                              │
+```
+
+### 2.3 Key Pattern: NFT/Weapon Sales from Platform Wallets
+
+NFTs and weapons are **pre-minted and held in platform wallets**. When a user buys:
+
+1. User pays (on-chain tx to platform wallet)
+2. Backend verifies payment on-chain
+3. Backend transfers NFT/weapon from platform wallet to user wallet
+4. Backend uses encrypted keys from wallet-mgt service to sign transfers
+
+### 2.4 Key Pattern: Auto Prize Distribution
+
+Prizes are **auto-sent** by the backend, not manually claimed:
+
+1. Cron job runs at tournament end (or weekly leaderboard reset)
+2. Backend calculates winners (top 3)
+3. Backend sends prizes from prize pool wallet to winners' wallets
+4. Discord webhook notification sent with results
+5. Failed payouts stored in FailedPayout collection, retried automatically
+
+### 2.5 Service Separation
 
 | Service | Repository | Purpose |
 |---------|-----------|---------|
@@ -141,7 +189,7 @@ This PRD covers the **backend API** that serves:
 | EVM Interaction | ethers.js v6 | Contract calls, transactions |
 | Avalanche Data | @avalanche-sdk/chainkit | Data API (NFT/token queries) |
 | Avalanche Client | @avalanche-sdk/client | Wallet creation, AVAX transfers |
-| Smart Contracts | Solidity 0.8.20+ | ERC-20, ERC-721, game contracts |
+| Smart Contracts | Solidity 0.8.24+ | ERC-20, ERC-721 |
 | Contract Tooling | Hardhat | Compilation, deployment, testing |
 | Contract Templates | OpenZeppelin v5 | ERC standards, access control |
 
@@ -152,9 +200,9 @@ This PRD covers the **backend API** that serves:
 | Cloudinary | Dynamic NFT image transformations (badge overlays) |
 | Pinata | IPFS storage for NFT metadata |
 | Avalanche Data API | NFT/token balance queries, transfer history |
-| DexScreener API | Token price feeds |
-| Snowtrace API | Contract verification, tx data |
-| Firebase Realtime DB | Game-to-server sync |
+| Snowtrace API | Contract verification |
+| Firebase Realtime DB | Game ↔ backend sync |
+| Discord Webhooks | Prize notifications, alerts |
 
 ### 3.4 Security
 
@@ -166,7 +214,7 @@ This PRD covers the **backend API** that serves:
 | Parameter Pollution | hpp |
 | Rate Limiting | express-rate-limit |
 | Encryption | Node.js crypto (AES) |
-| Auth | JWT (jsonwebtoken) |
+| Auth | Firebase Admin (verifyIdToken) |
 | Cookie Security | cookie-parser (httpOnly, secure, sameSite) |
 
 ---
@@ -186,7 +234,7 @@ chainbois-api/
 │
 ├── config/
 │   ├── db.js                    # MongoDB connection
-│   ├── firebase.js              # Firebase Admin init
+│   ├── firebase.js              # Firebase Admin init (main + chainbois game instance)
 │   ├── redis.js                 # Redis connection
 │   ├── cloudinary.js            # Cloudinary config
 │   └── constants.js             # App-wide constants
@@ -195,45 +243,42 @@ chainbois-api/
 │   ├── userModel.js
 │   ├── chainboiNftModel.js
 │   ├── weaponNftModel.js
-│   ├── armorModel.js
 │   ├── tournamentModel.js
 │   ├── leaderboardModel.js
+│   ├── weeklyLeaderboardModel.js
+│   ├── leaderboardHistoryModel.js
 │   ├── gameSessionModel.js
 │   ├── transactionModel.js
+│   ├── failedPayoutModel.js
 │   ├── settingsModel.js
 │   ├── securityProfileModel.js
-│   ├── airdropModel.js
-│   ├── lootBoxModel.js
+│   ├── walletModel.js
 │   └── ...
 │
 ├── controllers/
 │   ├── authController.js
+│   ├── gameController.js         # Firebase sync, asset verification
 │   ├── trainingRoomController.js
 │   ├── battlegroundController.js
 │   ├── armoryController.js
 │   ├── inventoryController.js
-│   ├── mintController.js
-│   ├── gameController.js
 │   ├── pointsController.js
 │   ├── leaderboardController.js
-│   ├── airdropController.js
 │   └── ...
 │
 ├── routes/
 │   ├── authRoutes.js
+│   ├── gameRoutes.js
 │   ├── trainingRoomRoutes.js
 │   ├── battlegroundRoutes.js
 │   ├── armoryRoutes.js
 │   ├── inventoryRoutes.js
-│   ├── mintRoutes.js
-│   ├── gameRoutes.js
 │   ├── pointsRoutes.js
 │   ├── leaderboardRoutes.js
 │   └── ...
 │
 ├── middleware/
-│   ├── auth.js                  # JWT verification
-│   ├── gameAuth.js              # Game client API key auth
+│   ├── auth.js                  # Firebase token verification (decodeToken)
 │   ├── antiCheat.js             # Anti-cheat/exploit system
 │   ├── ipBlocking.js            # IP-based blocking
 │   ├── validateEndpoint.js      # Endpoint whitelist
@@ -243,49 +288,44 @@ chainbois-api/
 ├── utils/
 │   ├── avaxUtils.js             # Avalanche blockchain utilities
 │   ├── contractUtils.js         # Smart contract interaction
-│   ├── cloudinaryUtils.js       # Image manipulation
+│   ├── cloudinaryUtils.js       # Image manipulation (badge overlays)
 │   ├── ipfsUtils.js             # Pinata/IPFS operations
+│   ├── discordService.js        # Discord webhook notifications
 │   ├── formatUtils.js           # Number/string formatting
-│   ├── cryptUtils.js            # Encryption/decryption
+│   ├── cryptUtils.js            # Encryption/decryption (wallet keys)
 │   ├── catchAsync.js            # Async error wrapper
 │   ├── AppError.js              # Custom error class
 │   └── apiFeatures.js           # Query filtering/pagination
 │
 ├── jobs/
+│   ├── syncNewUsersJob.js       # Poll Firebase for new game users (every 1 min)
+│   ├── syncScoresJob.js         # Sync scores from Firebase to MongoDB (every 5 min)
 │   ├── tournamentJob.js         # Tournament lifecycle cron
-│   ├── airdropJob.js            # Weekly airdrop snapshots
-│   ├── syncJob.js               # Firebase sync jobs
-│   └── healthJob.js             # Health monitoring
+│   ├── leaderboardResetJob.js   # Weekly leaderboard reset + auto prize distribution
+│   ├── retryPayoutsJob.js       # Retry failed payouts
+│   └── healthJob.js             # Health monitoring + pool balance alerts
 │
 ├── contracts/                   # Solidity smart contracts
 │   ├── BattleToken.sol
 │   ├── ChainBoisNFT.sol
-│   ├── WeaponNFT.sol
-│   ├── LevelUp.sol
-│   ├── PrizeDistribution.sol
-│   └── PointsConversion.sol
+│   └── WeaponNFT.sol
 │
-├── scripts/                     # Deployment & utility scripts
+├── scripts/
 │   ├── deploy.js
 │   ├── generateArt.js
 │   ├── uploadMetadata.js
 │   └── seedData.js
 │
 ├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
 │
 └── docs/
-    ├── PRD.md                   # This document
-    ├── plans/                   # Phase plans
-    ├── api-docs/                # Frontend API documentation
+    ├── PRD.md
+    ├── FEATURE_OVERVIEW.md
+    ├── api-docs/                # Frontend API docs (per phase)
     └── postman/                 # Postman collections
 ```
 
 ### 4.2 Middleware Chain (app.js)
-
-Following the established pattern from reference projects:
 
 ```
 1. helmet()                          # Security headers
@@ -305,8 +345,6 @@ Following the established pattern from reference projects:
 
 ### 4.3 Response Format
 
-Standardized across all endpoints to match frontend expectations:
-
 ```json
 // Success (single item)
 {
@@ -314,7 +352,7 @@ Standardized across all endpoints to match frontend expectations:
   "data": { ... }
 }
 
-// Success (paginated list)
+// Success (paginated list) - matches frontend fetchPaginatedData
 {
   "success": true,
   "data": {
@@ -341,17 +379,19 @@ Standardized across all endpoints to match frontend expectations:
 
 ```javascript
 {
-  address: String,              // Wallet address (primary identifier)
+  uid: String,                  // Firebase Auth UID
+  address: String,              // Wallet address (null for Web2 players)
   playerType: String,           // "web2" | "web3"
-  username: String,             // In-game username
+  username: String,             // In-game username (from Firebase)
+  email: String,                // From Firebase Auth
   role: String,                 // "user" | "admin"
-  pointsBalance: Number,        // Accumulated points (pre-tournament)
-  tournamentPoints: Number,     // Current tournament points
-  chainboiMoneyBalance: Number, // ChainBoi Money balance
+  pointsBalance: Number,        // Accumulated points
   battleTokenBalance: Number,   // Cached $BATTLE balance
-  isVerified: Boolean,          // Wallet verification status
+  hasNft: Boolean,              // Owns a ChainBoi NFT
+  nftTokenId: Number,           // Primary ChainBoi NFT token ID
+  level: Number,                // Current NFT level (0-7)
+  isVerified: Boolean,          // Wallet verified
   isBanned: Boolean,
-  refreshToken: String,
   lastLogin: Date,
   createdAt: Date,
   updatedAt: Date
@@ -366,7 +406,6 @@ Standardized across all endpoints to match frontend expectations:
   contractAddress: String,
   ownerAddress: String,
   level: Number,                // 0=Trainee, 1-7
-  isNormie: Boolean,            // Web2 player NFT
   traits: [{
     trait_type: String,
     value: String
@@ -377,9 +416,8 @@ Standardized across all endpoints to match frontend expectations:
     score: Number,
     gamesPlayed: Number
   },
-  metadataUri: String,          // Current IPFS/API metadata URI
-  imageUri: String,             // Current Cloudinary image URI
-  isListed: Boolean,            // Listed on marketplace
+  metadataUri: String,
+  imageUri: String,
   createdAt: Date,
   updatedAt: Date
 }
@@ -391,13 +429,14 @@ Standardized across all endpoints to match frontend expectations:
 {
   tokenId: Number,
   contractAddress: String,
-  ownerAddress: String,
+  ownerAddress: String,         // Platform wallet address until sold
   weaponName: String,           // e.g., "BP50", "SCAR"
   category: String,             // "assault" | "smg" | "lmg" | "marksman" | "handgun" | "launcher" | "melee"
   blueprintTier: String,        // "base" | "epic" | "legendary" | "mythic"
   mythicLevel: Number,          // 0-5 (only for mythic tier)
-  upgradeChips: Number,         // Chips accumulated toward next mythic level
+  price: Number,                // Price in $BATTLE
   supply: Number,               // Total supply of this weapon
+  sold: Number,                 // Number sold
   metadataUri: String,
   imageUri: String,
   createdAt: Date,
@@ -413,76 +452,129 @@ Standardized across all endpoints to match frontend expectations:
   status: String,               // "upcoming" | "active" | "cooldown" | "completed"
   startTime: Date,              // Wednesday 12PM EST
   endTime: Date,                // Monday 12PM EST
-  cooldownEndTime: Date,        // Wednesday 12PM EST (48h after end)
+  cooldownEndTime: Date,        // Wednesday 12PM EST
   prizePool: Number,            // AVAX amount
   prizeDistribution: {
-    first: Number,              // AVAX for 1st place
-    second: Number,             // AVAX for 2nd place
-    third: Number               // $BATTLE for 3rd place
+    first: Number,              // AVAX
+    second: Number,             // AVAX
+    third: Number               // $BATTLE equivalent
   },
   winners: [{
-    rank: Number,               // 1, 2, 3
+    rank: Number,
     address: String,
+    username: String,
     points: Number,
-    collected: Boolean,
-    collectedAt: Date
+    paid: Boolean,
+    txHash: String,
+    paidAt: Date
   }],
-  prizeCollectionDeadline: Date, // 1 week after tournament end
   createdAt: Date
 }
 ```
 
-### 5.5 Leaderboard Model
+### 5.5 Weekly Leaderboard Model
 
 ```javascript
 {
-  tournamentId: ObjectId,
-  level: Number,
   address: String,
   username: String,
-  points: Number,
-  rank: Number,
-  period: String,               // "tournament" | "weekly" | "monthly" | "all-time"
+  tournamentLevel: Number,
+  highScore: Number,
+  totalScore: Number,
+  gamesPlayed: Number,
   createdAt: Date,
   updatedAt: Date
 }
+// Deleted and recreated each week after prize distribution
 ```
 
-### 5.6 Game Session Model
+### 5.6 Leaderboard History Model
 
 ```javascript
 {
+  weekNumber: Number,
+  tournamentLevel: Number,
+  winners: [{
+    rank: Number,
+    address: String,
+    username: String,
+    highScore: Number,
+    prizeAmount: Number,
+    prizeCurrency: String,      // "AVAX" | "BATTLE"
+    txHash: String
+  }],
+  totalPayout: Number,
+  createdAt: Date
+}
+```
+
+### 5.7 Game Session Model
+
+```javascript
+{
+  uid: String,                  // Firebase UID
   address: String,
   sessionId: String,
-  gameMode: String,             // "battle_royale" | "frontline" | "search_destroy" | etc.
+  gameMode: String,
   startTime: Date,
   endTime: Date,
   score: Number,                // Max 5,000 per match
   kills: Number,
   pointsEarned: Number,
-  verified: Boolean,            // Anti-cheat verification passed
-  nftTokenId: Number,           // ChainBoi NFT used
+  verified: Boolean,
+  nftTokenId: Number,
   createdAt: Date
 }
 ```
 
-### 5.7 Transaction Model
+### 5.8 Transaction Model
 
 ```javascript
 {
-  type: String,                 // "level_up" | "weapon_purchase" | "armor_purchase" | "loot_box" |
-                                // "points_conversion" | "prize_collection" | "mint" | "chip_draw"
-  address: String,
+  type: String,                 // "level_up" | "weapon_purchase" | "points_conversion" |
+                                // "prize_payout" | "nft_transfer"
+  fromAddress: String,
+  toAddress: String,
   amount: Number,
-  currency: String,             // "AVAX" | "BATTLE" | "POINTS" | "CHAINBOI_MONEY"
-  txHash: String,               // On-chain transaction hash
+  currency: String,             // "AVAX" | "BATTLE"
+  txHash: String,
   status: String,               // "pending" | "confirmed" | "failed"
-  metadata: Object,             // Type-specific details
+  metadata: Object,
   createdAt: Date
 }
 ```
 
-### 5.8 Settings Model (Singleton)
+### 5.9 Failed Payout Model
+
+```javascript
+{
+  address: String,
+  amount: Number,
+  currency: String,
+  reason: String,               // "insufficient_balance" | "tx_failed" | etc.
+  retryCount: Number,
+  lastRetry: Date,
+  resolved: Boolean,
+  resolvedTxHash: String,
+  createdAt: Date
+}
+```
+
+### 5.10 Wallet Model (Platform Wallets)
+
+```javascript
+{
+  address: String,
+  key: String,                  // AES encrypted private key
+  iv: String,                   // Initialization vector
+  role: String,                 // "admin" | "prize_pool" | "nft_store" | "weapon_store"
+  balance: Number,              // Cached balance
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### 5.11 Settings Model (Singleton)
 
 ```javascript
 {
@@ -496,33 +588,26 @@ Standardized across all endpoints to match frontend expectations:
     1: 2, 2: 4, 3: 6, 4: 8, 5: 10, 6: 12, 7: 14
   },
   levelUpCost: Number,          // 1 AVAX
-  mintPrice: Number,            // 2 AVAX (mainnet)
   maxPointsPerMatch: Number,    // 5000
   burnRate: Number,             // 0.5 (50%)
-  liquidityRate: Number,        // 0.5 (50%)
   teamRevenueSplit: Number,     // 0.25 (25%)
   awardPoolSplit: Number,       // 0.75 (75%)
-  normieUpgradeMultiplier: Number, // 1.2 (120% floor price)
   armoryClosedDuringCooldown: Boolean,
-  prizeCollectionWindowDays: Number, // 7
   contracts: {
     battleToken: String,
     chainboisNft: String,
-    weaponNft: String,
-    levelUp: String,
-    prizeDistribution: String,
-    pointsConversion: String
+    weaponNft: String
   },
   updatedAt: Date
 }
 ```
 
-### 5.9 Security Profile Model
+### 5.12 Security Profile Model
 
 ```javascript
 {
   address: String,
-  threatScore: Number,          // 0-100
+  threatScore: Number,
   status: String,               // "active" | "cooldown" | "temp_ban" | "perm_ban"
   violationLog: [{
     type: String,
@@ -530,48 +615,9 @@ Standardized across all endpoints to match frontend expectations:
     timestamp: Date
   }],
   dailyEarnings: Number,
-  sessionStartTimestamp: Date,
   banExpiresAt: Date,
-  blacklistedNfts: [Number],
   createdAt: Date,
   updatedAt: Date
-}
-```
-
-### 5.10 Airdrop Model
-
-```javascript
-{
-  type: String,                 // "nft_based" | "trait_based" | "token_based" | "nfd_based"
-  snapshotDate: Date,
-  status: String,               // "pending" | "processing" | "completed"
-  eligibleAddresses: [{
-    address: String,
-    amount: Number,
-    claimed: Boolean,
-    claimedAt: Date
-  }],
-  totalAmount: Number,
-  distributedAmount: Number,
-  traitFilter: Object,          // For trait-based airdrops
-  createdAt: Date
-}
-```
-
-### 5.11 Loot Box Model
-
-```javascript
-{
-  tier: String,                 // "bronze" | "silver" | "gold" | "epic" | "special"
-  cost: Number,
-  costCurrency: String,        // "BATTLE" | "CHAINBOI_MONEY"
-  probabilities: [{
-    reward: String,             // "weapon_base" | "weapon_epic" | "armor_1" | "battle_tokens" | etc.
-    probability: Number,        // 0.0 to 1.0
-    amount: Number              // For token rewards
-  }],
-  isActive: Boolean,
-  createdAt: Date
 }
 ```
 
@@ -579,160 +625,145 @@ Standardized across all endpoints to match frontend expectations:
 
 ## 6. API Endpoints
 
-### 6.1 Authentication
+### 6.1 Authentication (Firebase-based, following reference projects)
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/api/v1/auth/connect` | Connect wallet, create/find user | None |
-| POST | `/api/v1/auth/verify` | Verify wallet ownership (0-AVAX tx) | None |
-| POST | `/api/v1/auth/refresh` | Refresh access token | Refresh cookie |
-| POST | `/api/v1/auth/logout` | Invalidate tokens | JWT |
-| GET | `/api/v1/auth/me` | Get current user profile | JWT |
+| POST | `/api/v1/auth/create-user` | Create Firebase user (email/password) | None |
+| POST | `/api/v1/auth/login` | Login with Firebase token + wallet address | Firebase Token |
+| GET | `/api/v1/auth/me` | Get current user profile | Firebase Token |
+| POST | `/api/v1/auth/logout` | End session, clear Firebase flags | Firebase Token |
 
-### 6.2 Training Room
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/v1/training/nfts/:address` | Get all ChainBoi NFTs for wallet | JWT |
-| GET | `/api/v1/training/nft/:tokenId` | Get NFT details (level, traits, badge) | JWT |
-| POST | `/api/v1/training/level-up` | Initiate level-up transaction | JWT |
-| GET | `/api/v1/training/level-up/cost` | Get current level-up cost | JWT |
-| GET | `/api/v1/training/eligibility/:tokenId` | Tournament eligibility for NFT | JWT |
-
-### 6.3 Battleground / Tournaments
+### 6.2 Game Integration (Firebase sync - following pigeon-puffs cbController pattern)
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/api/v1/tournaments` | List all tournament tiers | Public |
+| POST | `/api/v1/game/verify-assets` | Verify wallet NFTs, write hasNFT/level/weapons to Firebase | Firebase Token |
+| POST | `/api/v1/game/set-avatar` | Set active NFT avatar, update Firebase | Firebase Token |
+| GET | `/api/v1/game/characters/:address` | Get unlocked characters based on NFT level | Firebase Token |
+| POST | `/api/v1/game/end-session` | Clear Firebase flags on game exit | Firebase Token |
+
+**Cron Jobs (not endpoints - run on PM2 instance 0):**
+- `syncNewUsersJob` (every 1 min) - poll Firebase for new game users, create MongoDB records
+- `syncScoresJob` (every 5 min) - sync scores from Firebase to MongoDB, update leaderboard
+
+### 6.3 Training Room
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/v1/training/nfts/:address` | Get all ChainBoi NFTs for wallet | Firebase Token |
+| GET | `/api/v1/training/nft/:tokenId` | Get NFT details (level, traits, badge) | Firebase Token |
+| POST | `/api/v1/training/level-up` | Initiate level-up (user pays AVAX, backend updates NFT) | Firebase Token |
+| GET | `/api/v1/training/level-up/cost` | Get current level-up cost | Firebase Token |
+| GET | `/api/v1/training/eligibility/:tokenId` | Tournament eligibility for NFT | Firebase Token |
+
+### 6.4 Battleground / Tournaments
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/v1/tournaments` | List all tournament tiers with status | Public |
 | GET | `/api/v1/tournaments/:level` | Get tournament details for a level | Public |
 | GET | `/api/v1/tournaments/:level/leaderboard` | Top 10 leaderboard | Public |
 | GET | `/api/v1/tournaments/:level/countdown` | Time remaining | Public |
 | GET | `/api/v1/tournaments/:level/winners` | Current/past winners | Public |
-| POST | `/api/v1/tournaments/:level/collect-prize` | Winner claims prize | JWT |
 | GET | `/api/v1/tournaments/history` | Historical tournament data | Public |
 
-### 6.4 Armory
+**Cron Jobs:**
+- `tournamentJob` (hourly) - manage tournament lifecycle (create, start, end, cooldown)
+- `leaderboardResetJob` (at tournament end) - calculate winners, auto-send prizes, Discord notification, reset leaderboard
+
+### 6.5 Armory (Buy from platform wallets)
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/api/v1/armory/weapons` | All weapons grouped by category | Public |
 | GET | `/api/v1/armory/weapons/:category` | Weapons in a category | Public |
-| GET | `/api/v1/armory/armor` | All armor tiers with pricing | Public |
-| GET | `/api/v1/armory/lootboxes` | Loot box tiers & probabilities | Public |
-| POST | `/api/v1/armory/purchase/weapon` | Buy weapon NFT with $BATTLE | JWT |
-| POST | `/api/v1/armory/purchase/armor` | Buy armor NFT | JWT |
-| POST | `/api/v1/armory/purchase/lootbox` | Buy and open loot box | JWT |
-| POST | `/api/v1/armory/convert/points-to-money` | Convert points to ChainBoi Money | JWT |
-| POST | `/api/v1/armory/convert/money-to-battle` | Convert ChainBoi Money to $BATTLE | JWT |
-| POST | `/api/v1/armory/convert/battle-to-avax` | Cash out $BATTLE for AVAX | JWT |
-| GET | `/api/v1/armory/balance/:address` | Get all balances (points, money, $BATTLE) | JWT |
+| GET | `/api/v1/armory/weapon/:weaponId` | Single weapon details + platform wallet address | Firebase Token |
+| POST | `/api/v1/armory/purchase/weapon` | Verify payment tx, send weapon NFT from platform wallet | Firebase Token |
+| GET | `/api/v1/armory/balance/:address` | Get points + $BATTLE balance | Firebase Token |
 
-### 6.5 Inventory
+**Purchase flow (following ghetto-market pattern):**
+1. Frontend calls `GET /armory/weapon/:id` → gets price + platform wallet address
+2. User signs payment tx (sends $BATTLE to platform wallet)
+3. Frontend calls `POST /armory/purchase/weapon` with `{ weaponId, txHash }`
+4. Backend verifies on-chain payment (correct amount, receiver, not stale)
+5. Backend transfers weapon NFT from platform wallet to user's wallet
+6. Backend syncs new weapon to Firebase so game sees it immediately
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/v1/inventory/:address` | All owned assets categorized | JWT |
-| GET | `/api/v1/inventory/:address/nfts` | ChainBoi NFTs only | JWT |
-| GET | `/api/v1/inventory/:address/weapons` | Weapon NFTs only | JWT |
-| GET | `/api/v1/inventory/:address/armor` | Armor only | JWT |
-| GET | `/api/v1/inventory/:address/history` | Transaction history | JWT |
-
-### 6.6 Minting
+### 6.6 Points & Conversion
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/api/v1/mint/status` | Remaining supply, price, mint state | Public |
-| POST | `/api/v1/mint/chainboi` | Mint a ChainBoi NFT | JWT |
-| GET | `/api/v1/mint/claim` | Claim page for hackathon judges | Public |
-| POST | `/api/v1/mint/claim` | Claim a testnet ChainBoi NFT | JWT |
+| GET | `/api/v1/points/:address` | Get points balance | Firebase Token |
+| POST | `/api/v1/points/convert` | Convert points → $BATTLE (direct, 1:1) | Firebase Token |
+| GET | `/api/v1/points/history/:address` | Points history | Firebase Token |
 
-### 6.7 Game Integration
+**No ChainBoi Money.** Points convert directly to $BATTLE tokens. If users want AVAX, they sell $BATTLE on a DEX themselves.
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/v1/game/verify-assets` | Verify wallet holdings for game | Game API Key |
-| GET | `/api/v1/game/points/:address` | Get current points balance | Game API Key |
-| POST | `/api/v1/game/session/start` | Start a game session | Game API Key |
-| POST | `/api/v1/game/session/end` | End session, report score | Game API Key |
-| POST | `/api/v1/game/sync-points` | Sync points from game to platform | Game API Key |
-| POST | `/api/v1/game/asset-sync` | Sync purchased assets to game | Game API Key |
-| GET | `/api/v1/game/characters/:address` | Get unlocked characters for NFT level | Game API Key |
-
-### 6.8 Points
+### 6.7 Inventory
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/api/v1/points/:address` | Get points breakdown | JWT |
-| POST | `/api/v1/points/convert` | Convert points to ChainBoi Money | JWT |
-| GET | `/api/v1/points/history/:address` | Points history | JWT |
+| GET | `/api/v1/inventory/:address` | All owned assets categorized | Firebase Token |
+| GET | `/api/v1/inventory/:address/nfts` | ChainBoi NFTs only | Firebase Token |
+| GET | `/api/v1/inventory/:address/weapons` | Weapon NFTs only | Firebase Token |
+| GET | `/api/v1/inventory/:address/history` | Transaction history | Firebase Token |
 
-### 6.9 Leaderboard
+### 6.8 Leaderboard
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/api/v1/leaderboard` | Global leaderboard | Public |
-| GET | `/api/v1/leaderboard/:period` | Period-filtered leaderboard | Public |
-| GET | `/api/v1/leaderboard/rank/:address` | Get specific user rank | JWT |
+| GET | `/api/v1/leaderboard/:period` | Period-filtered (30min, 1hour, 24hours, week, month, all) | Public |
+| GET | `/api/v1/leaderboard/rank/:address` | Get specific user rank | Firebase Token |
 
-### 6.10 Airdrops (Phase 2)
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/v1/airdrops/eligible/:address` | Check eligibility | JWT |
-| GET | `/api/v1/airdrops/history/:address` | Airdrop history | JWT |
-| POST | `/api/v1/airdrops/claim` | Claim pending airdrop | JWT |
-
-### 6.11 Health & Admin
+### 6.9 Health & Admin
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/api/v1/health` | Health check (DB, Redis, blockchain) | None |
+| GET | `/api/v1/health` | Health check (DB, Redis, Firebase, blockchain) | None |
 | GET | `/api/v1/settings` | Get public settings | None |
 
 ---
 
 ## 7. Smart Contracts
 
-### 7.1 Contracts Required (Testnet)
+### 7.1 Contracts Required (Testnet - Minimal)
 
 | Contract | Standard | Purpose |
 |----------|----------|---------|
-| **BattleToken** | ERC-20 | $BATTLE token with burn mechanism |
-| **ChainBoisNFT** | ERC-721 | ChainBoi NFTs with level metadata |
-| **WeaponNFT** | ERC-721 | Weapon NFTs with blueprint tiers |
-| **LevelUp** | Custom | Accepts AVAX, calls NFT level update |
-| **PrizeDistribution** | Custom | Tournament prize payouts |
-| **PointsConversion** | Custom | Points → $BATTLE minting |
+| **BattleToken** | ERC-20 | $BATTLE token with mint + burn |
+| **ChainBoisNFT** | ERC-721 | ChainBoi NFTs with on-chain level tracking |
+| **WeaponNFT** | ERC-721 | Weapon NFTs (pre-minted to platform wallets) |
+
+No LevelUp, PrizeDistribution, or PointsConversion contracts needed - the backend handles these operations using platform wallets.
 
 ### 7.2 BattleToken (ERC-20)
 
-- Standard ERC-20 with burn functionality
-- Owner can mint (for points conversion, prize distribution)
-- Burn mechanism: 50% burned, 50% to liquidity on purchases
-- Team allocation with time-lock (1 year)
+- Standard ERC-20 with burn + mint by owner
+- Owner mints for points conversion and prize distribution
+- 50% of spending burned, 50% to liquidity (tracked off-chain for hackathon)
 - Based on OpenZeppelin ERC20 + ERC20Burnable + Ownable
 
 ### 7.3 ChainBoisNFT (ERC-721)
 
 - 4,032 max supply (4,000 public + 32 reserved)
 - On-chain level tracking: `mapping(uint256 => uint8) public tokenLevel`
-- Normie flag: `mapping(uint256 => bool) public isNormie`
 - ERC-4906 support for metadata refresh events
-- `tokenURI()` points to our API: `https://api.chainbois.com/metadata/{tokenId}`
-- Owner functions: `setBaseURI`, `reserve`, `setNormie`
-- Level-up authorized by LevelUp contract only
+- `tokenURI()` points to our API for dynamic metadata
+- Owner functions: `setBaseURI`, `reserve`, `setLevel` (called by backend)
+- **Pre-minted** to platform wallet, transferred to users on purchase/claim
 
 ### 7.4 WeaponNFT (ERC-721)
 
 - Variable supply per weapon type
-- Blueprint tier metadata on-chain
-- Mythic level tracking for mythic-tier weapons
-- Authorized minter (Armory operations)
+- Blueprint tier stored on-chain
+- **Pre-minted** to platform wallets
+- Transferred to users when purchased with $BATTLE
 
 ### 7.5 Deployment Config (Hardhat)
 
 ```javascript
-// hardhat.config.js
 {
   solidity: {
     version: "0.8.24",
@@ -755,123 +786,133 @@ Standardized across all endpoints to match frontend expectations:
 
 ## 8. Implementation Phases
 
-### Phase 0: Foundation (Day 1-2)
+**CRITICAL: Frontend docs delivered after EACH phase. Start with game integration.**
+
+### Phase 0: Foundation (Day 1)
 
 **Scope:** Project scaffolding, database setup, core utilities
 
 **Deliverables:**
 - Express.js app with full middleware chain
-- MongoDB connection + base models (User, Settings)
-- Firebase Admin setup
+- MongoDB connection + all base models
+- Firebase Admin setup (main instance + chainbois game instance)
 - Redis connection
 - avaxUtils.js (Avalanche blockchain utilities)
-- contractUtils.js (smart contract interaction helpers)
-- formatUtils.js, cryptUtils.js
-- Error handling framework (AppError, catchAsync, globalErrorHandler)
-- Auth system (JWT + wallet verification)
-- Endpoint validation middleware
+- contractUtils.js, cloudinaryUtils.js, ipfsUtils.js
+- cryptUtils.js (AES encryption for wallet keys)
+- discordService.js (webhook notifications)
+- formatUtils.js, catchAsync.js, AppError.js
+- Auth middleware (Firebase decodeToken)
+- Anti-cheat middleware
+- Endpoint validation, IP blocking, rate limiting
 - Health endpoint
-- .env.example with all required vars
+- .env.example
 - PM2 ecosystem config
 
-### Phase 1: Smart Contracts (Day 2-3)
+**Frontend docs:** Environment setup, auth flow, request pattern
 
-**Scope:** Deploy testnet contracts
+### Phase 1: Game Integration + Auth (Day 2)
+
+**PRIORITY - Frontend needs this first**
+
+**Scope:** Firebase sync, auth, asset verification
 
 **Deliverables:**
-- BattleToken.sol (ERC-20)
-- ChainBoisNFT.sol (ERC-721 with levels)
-- WeaponNFT.sol (ERC-721)
-- LevelUp.sol
-- PrizeDistribution.sol
-- PointsConversion.sol
-- Deployment scripts for Fuji testnet
+- Auth controller (createUser, login with Firebase + wallet, logout)
+- Game controller (verify assets, set avatar, end session)
+- Cron: syncNewUsersJob (poll Firebase every 1 min)
+- Cron: syncScoresJob (sync scores every 5 min)
+- Firebase writes: hasNFT, level, weapons (game reads these)
+- Web2 player support (track progress in DB, no wallet needed)
+- Character unlock logic based on NFT level
+
+**Frontend docs:** Auth flow, game integration endpoints, WebSocket events
+
+### Phase 2: Smart Contracts + NFT Creation (Day 3)
+
+**Scope:** Deploy contracts, create/mint NFTs
+
+**Deliverables:**
+- BattleToken.sol, ChainBoisNFT.sol, WeaponNFT.sol
+- Deploy to Fuji testnet
 - Contract verification on Snowtrace
-- Contract addresses saved to Settings model
+- HashLips art generation (when traits are provided)
+- IPFS metadata upload (Pinata)
+- Cloudinary base image upload
+- Pre-mint NFTs to platform wallets
+- Pre-mint weapons to platform wallets
+- Contract addresses saved to Settings
 
-### Phase 2: NFT Art Generation & Minting (Day 3-4)
+**Frontend docs:** Contract addresses, how NFTs work
 
-**Scope:** Generate art, upload to IPFS, mint testnet NFTs
-
-**Deliverables:**
-- HashLips art engine configuration for ChainBois traits
-- Art generation script
-- Metadata generation with custom fields (level, badge, stats)
-- IPFS upload script (Pinata)
-- Cloudinary upload for base images
-- Mint controller + routes
-- Claim page endpoint for hackathon judges
-
-### Phase 3: Training Room (Day 4-5)
+### Phase 3: Training Room (Day 4)
 
 **Scope:** NFT display, leveling, badge system
 
 **Deliverables:**
 - Training room controller + routes
 - NFT query via Avalanche Data API
-- Level-up flow (frontend → API → contract → metadata update)
-- Badge overlay system via Cloudinary
+- Level-up flow: user pays AVAX → backend updates on-chain level + metadata
+- Badge overlay via Cloudinary URL transformations
 - Firebase sync for level updates
 - ERC-4906 metadata refresh trigger
 
-### Phase 4: Game Integration (Day 5-6)
+**Frontend docs:** Training room endpoints, level-up UX flow
 
-**Scope:** Game-to-API communication, anti-cheat
+### Phase 4: Battleground + Leaderboard (Day 5-6)
 
-**Deliverables:**
-- Game auth middleware (API key)
-- Asset verification endpoint
-- Game session start/end flow
-- Points sync (game → API)
-- Anti-cheat system
-- Character unlock logic based on NFT level
-- Security profile tracking
-
-### Phase 5: Battleground / Tournaments (Day 6-7)
-
-**Scope:** Tournament system, leaderboards, prizes
+**Scope:** Tournaments, leaderboards, auto prize distribution
 
 **Deliverables:**
-- Tournament lifecycle cron job (create, start, end, cooldown)
-- Leaderboard system with time-filtered queries
-- Real-time leaderboard via Socket.IO
-- Prize distribution flow
-- Prize collection endpoint
-- Tournament history
+- Tournament lifecycle cron job
+- Leaderboard with time-filtered MongoDB aggregation
+- Weekly leaderboard accumulation (highScore, totalScore, gamesPlayed)
+- Auto prize distribution at tournament end
+- Failed payout tracking + retry
+- Discord webhook: winner notifications
+- Discord webhook: low balance alerts
+- Leaderboard history
+- Socket.IO for real-time leaderboard updates
 
-### Phase 6: Armory (Day 7-8)
+**Frontend docs:** Tournament endpoints, leaderboard, real-time updates
 
-**Scope:** Weapon/armor marketplace, points conversion
+### Phase 5: Armory + Points (Day 7)
 
-**Deliverables:**
-- Weapon catalog with categories
-- Purchase flow (select → confirm → sign → receive NFT)
-- Armor tiers and purchasing
-- Points → ChainBoi Money conversion
-- ChainBoi Money → $BATTLE conversion
-- $BATTLE → AVAX cash-out
-- Balance tracking
-
-### Phase 7: Inventory (Day 8-9)
-
-**Scope:** Asset management, marketplace listing
+**Scope:** Weapon purchases from platform wallets, points → $BATTLE conversion
 
 **Deliverables:**
-- Inventory aggregation (NFTs, weapons, armor from wallet)
-- Category filtering and search
+- Weapon catalog by category
+- Purchase flow: get wallet → pay → verify → transfer NFT
+- Price calculated server-side only (security)
+- On-chain payment verification (correct amount, receiver, not stale)
+- Points → $BATTLE conversion (backend mints tokens)
+- Firebase sync for new weapons (game sees immediately)
+- Balance endpoint
+
+**Frontend docs:** Armory endpoints, purchase flow, points conversion
+
+### Phase 6: Inventory (Day 8)
+
+**Scope:** Asset display, transaction history
+
+**Deliverables:**
+- Inventory aggregation via Avalanche Data API (NFTs, weapons, tokens)
+- Category filtering
 - Transaction history
-- Marketplace listing (redirect to Joepegs or placeholder)
+- Links to Joepegs for secondary marketplace
 
-### Phase 8: Integration Testing & Documentation (Day 9-10)
+**Frontend docs:** Inventory endpoints
 
-**Scope:** End-to-end testing, frontend docs, Postman
+### Phase 7: Integration Testing + Polish (Day 8-9)
+
+**Scope:** End-to-end testing, demo prep
 
 **Deliverables:**
-- Comprehensive test suite (unit + integration)
+- Test suite (unit + integration)
 - Postman collection for all endpoints
-- Frontend integration documentation
+- Complete frontend integration docs
 - Manual testing guide
-- Demo script for hackathon video
+- Demo video script
 - Judge testing instructions
 - README.md for public repo
 
@@ -879,47 +920,49 @@ Standardized across all endpoints to match frontend expectations:
 
 ## 9. Security Architecture
 
-### 9.1 Authentication Flow
+### 9.1 Authentication (Firebase-based)
+
+Following the reference projects (ghetto-pigeons, pigeon-puffs, cec-api):
 
 ```
-Frontend:
-1. User clicks "Connect Wallet" (Thirdweb)
-2. Frontend sends POST /auth/connect { address }
-3. Backend creates/finds user, returns challenge nonce
-4. Frontend signs message with wallet
-5. Frontend sends POST /auth/verify { address, signature, nonce }
-6. Backend verifies signature, returns JWT access token + refresh token (httpOnly cookie)
-7. Subsequent requests include: Authorization: Bearer <jwt>, x-client-id: <clientId>
-
-Game Client:
-1. Game has embedded API key (rotatable)
-2. Game sends Authorization: Bearer <GAME_API_KEY>
-3. gameAuth middleware validates key
-4. Additional HMAC signature for score submissions (prevent tampering)
+1. User signs up via game or website (Firebase Auth: email/password)
+2. Firebase returns ID token
+3. Frontend/game includes token in Authorization: Bearer <firebaseIdToken>
+4. Backend middleware (decodeToken) calls admin.auth().verifyIdToken(token)
+5. On login, user also provides wallet address
+6. Backend verifies wallet, fetches NFTs, writes to Firebase for game
 ```
 
-### 9.2 Anti-Cheat System (Game → API)
+### 9.2 Anti-Cheat System
 
-Following the pigeon-puffs pattern:
-
-1. **Session validation**: Game must start a session before submitting scores
-2. **Score plausibility**: Max 5,000 points per match, check against time played
-3. **Velocity checks**: Flag abnormal scoring rates
-4. **Threat scoring**: Accumulate violations, escalate to cooldown → temp ban → perm ban
-5. **Daily earning limits**: Cap daily token earnings
-6. **NFT verification**: Re-verify ownership at session end
-7. **HMAC signatures**: Game signs score data with shared secret
+Following pigeon-puffs pattern:
+- Session validation
+- Score plausibility (max 5,000 per match)
+- Velocity checks
+- Threat scoring → cooldown → temp ban → perm ban
+- Daily earning limits
+- NFT re-verification at session end
 
 ### 9.3 Wallet Management Security
 
-The wallet management service (separate repo):
-- IP whitelisted (only ChainBois API server can reach it)
-- x-client-id header authentication
-- AES-encrypted private keys in MongoDB
-- IV generated per wallet
-- Keys decrypted only for signing, never exposed
-- No direct internet access
-- PM2 cluster mode
+Separate service:
+- IP whitelisted
+- x-client-id header auth
+- AES-encrypted private keys
+- IV per wallet
+- Keys decrypted only for signing
+- Failed payouts tracked and retried
+
+### 9.4 Armory Purchase Security (following ghetto-market pattern)
+
+- Price ALWAYS calculated server-side (never accepted from frontend)
+- On-chain payment verification:
+  - Correct sender
+  - Correct receiver (platform wallet)
+  - Correct amount
+  - Transaction not stale (within 50 seconds)
+- Supply validation
+- Armory closed during cooldown
 
 ---
 
@@ -927,72 +970,46 @@ The wallet management service (separate repo):
 
 ### 10.1 Avalanche Data API
 
-**Purpose:** Read wallet NFTs, token balances, transfer history without direct contract calls.
-
-**Key endpoints used:**
-- `listErc721` - Get ChainBoi NFTs owned by wallet
-- `listErc20` - Get $BATTLE balance
-- `listCollectibles` - Combined NFT query
-- `reindex` - Trigger metadata refresh after level-up
-
-**Auth:** `x-glacier-api-key` header (free tier sufficient for hackathon)
+Read wallet NFTs, token balances, transfer history.
 
 ### 10.2 Cloudinary
 
-**Purpose:** Dynamic NFT image manipulation (badge overlays on level-up).
-
-**Architecture:**
-1. Base NFT images stored on Cloudinary: `chainbois/base/{tokenId}.png`
-2. Badge images: `chainbois/badges/level_{n}.png`
-3. Dynamic URL construction: `https://res.cloudinary.com/{cloud}/image/upload/l_chainbois:badges:level_3,g_north_west,w_80,x_10,y_10/{tokenId}.png`
-4. No re-upload needed - transformation happens at CDN level
+Dynamic badge overlays on NFT images via URL transformations.
 
 ### 10.3 Pinata (IPFS)
 
-**Purpose:** Store NFT metadata JSON for ERC-721 tokenURI.
-
-**Operations:**
-- Upload individual metadata JSON files
-- Upload batch metadata
-- Pin/unpin content
-- Update metadata after level-up (re-pin with updated JSON)
+Store NFT metadata JSON.
 
 ### 10.4 Firebase Realtime Database
 
-**Purpose:** Real-time sync between game and platform.
+Game ↔ backend sync. Two patterns:
+- Backend writes: `hasNFT`, `level`, `weapons` (game reads)
+- Game writes: `score`, `username` (backend polls via cron)
 
-**Data structure:**
-```
-/users/{address}/
-  level: 3
-  hasNft: true
-  score: 15000
-  lastSync: timestamp
-```
+### 10.5 Discord Webhooks
 
-### 10.5 DexScreener API (Phase 2)
+- Leaderboard winner notifications (weekly)
+- Low pool balance alerts
+- Prize distribution confirmations
 
-**Purpose:** $BATTLE token price feed.
+### 10.6 Joepegs / External Marketplace
 
-**Endpoint:** `GET https://api.dexscreener.com/latest/dex/tokens/{battleTokenAddress}`
+Users can list/sell NFTs on Joepegs. We just link to it. No custom marketplace.
 
 ---
 
 ## 11. NFT Art Generation & Minting Pipeline
 
-### 11.1 Generation Process
+### 11.1 Process
 
-1. Receive trait layers (PNGs) in `/layers/` directory
-2. Configure HashLips art engine (`src/config.js`):
-   - Layer order, rarity weights
-   - 4,032 editions (4,000 + 32 reserved)
-3. Run `npm run build` to generate images + metadata
-4. Add custom metadata fields: level (0 = Trainee), badge, normie flag, stats
-5. Upload images to Cloudinary (for dynamic transformations)
-6. Upload images to IPFS via Pinata (for immutable backup)
-7. Update metadata `image` field to Cloudinary URL
-8. Upload metadata JSON to IPFS via Pinata
-9. Set contract `baseURI` to our API endpoint (for dynamic metadata)
+1. Receive trait layers (PNGs) - **waiting for ZIP from user**
+2. Configure HashLips art engine
+3. Generate 4,032 images + metadata
+4. Add custom metadata (level=0, badge=trainee, stats=0)
+5. Upload images to Cloudinary + IPFS
+6. Upload metadata to IPFS
+7. **Pre-mint all NFTs to platform wallets** (not a public mint page)
+8. Users buy from platform or marketplace (Joepegs)
 
 ### 11.2 Metadata Structure
 
@@ -1000,21 +1017,16 @@ The wallet management service (separate repo):
 {
   "name": "ChainBoi #1",
   "description": "A ChainBoi warrior on the Avalanche battlefield",
-  "image": "https://res.cloudinary.com/{cloud}/image/upload/l_chainbois:badges:trainee,g_nw,w_80,x_10,y_10/chainbois/base/1.png",
+  "image": "https://res.cloudinary.com/{cloud}/image/upload/l_chainbois:badges:trainee,g_nw,w_80/chainbois/base/1.png",
   "external_url": "https://chainbois.com/nft/1",
   "attributes": [
     { "trait_type": "Background", "value": "Urban" },
-    { "trait_type": "Body", "value": "Tactical" },
-    { "trait_type": "Head", "value": "Helmet" },
-    { "trait_type": "Eyes", "value": "Visor" },
     { "trait_type": "Level", "value": 0, "display_type": "number" },
-    { "trait_type": "Badge", "value": "Trainee" },
-    { "trait_type": "Player Type", "value": "Web3" }
+    { "trait_type": "Badge", "value": "Trainee" }
   ],
   "properties": {
     "level": 0,
     "badge": "trainee",
-    "isNormie": false,
     "kills": 0,
     "score": 0,
     "gamesPlayed": 0
@@ -1028,88 +1040,54 @@ The wallet management service (separate repo):
 
 ### 12.1 Level-Up Flow
 
-```
-1. User selects ChainBoi NFT in Training Room
-2. Frontend calls POST /api/v1/training/level-up { tokenId }
-3. Backend:
-   a. Verify ownership via Data API
-   b. Check current level (must be < 7)
-   c. Calculate cost (1 AVAX per level)
-   d. Call Wallet Management API to prepare transaction
-   e. Return unsigned transaction to frontend
-4. Frontend: User signs transaction with wallet
-5. Frontend: sends signed tx back to backend
-6. Backend:
-   a. Submit transaction to Avalanche
-   b. Wait for confirmation
-   c. Update NFT level in MongoDB
-   d. Update Firebase Realtime DB
-   e. Generate new Cloudinary URL with updated badge overlay
-   f. Update metadata on IPFS (re-pin via Pinata)
-   g. Call Avalanche Data API reindex for marketplace refresh
-   h. Emit ERC-4906 MetadataUpdate event from contract
-   i. Return success with new NFT data
-```
+1. User selects NFT in Training Room
+2. Frontend calls `POST /training/level-up { tokenId }`
+3. Backend verifies ownership, checks level < 7
+4. Backend prepares unsigned AVAX payment tx
+5. User signs and sends payment
+6. Backend verifies payment on-chain
+7. Backend calls contract `setLevel(tokenId, newLevel)`
+8. Backend updates MongoDB, Firebase, Cloudinary URL, IPFS metadata
+9. Emits ERC-4906 MetadataUpdate event
+10. Returns updated NFT data to frontend
 
 ### 12.2 Badge System
 
 | Level | Badge | Characters Unlocked | Tournament Access |
 |-------|-------|-------------------|------------------|
 | 0 (Trainee) | trainee.png | 4 basic + 4 basic weapons | None |
-| 1 | level_1.png | +4 characters | Level 1 (2 AVAX prize) |
-| 2 | level_2.png | +4 characters | Level 2 (4 AVAX prize) |
-| 3 | level_3.png | +4 characters | Level 3 (6 AVAX prize) |
-| 4 | level_4.png | +4 characters | Level 4 (8 AVAX prize) |
-| 5 | level_5.png | +4 characters | Level 5 (10 AVAX prize) |
-| 6 | level_6.png | +4 characters | Level 6 (12 AVAX prize) |
-| 7 | level_7.png | +4 (34 total) | Level 7 (14 AVAX prize) |
+| 1-7 | level_N.png | +4 characters each | Level N tournament |
 
 ---
 
 ## 13. Game Integration Architecture
 
-### 13.1 Unity → API Communication
+### 13.1 The Flow (following ghetto-pigeons/pigeon-puffs pattern)
 
 ```
-Unity Game                          ChainBois API
-    │                                    │
-    ├─ POST /game/verify-assets ────────►│ Verify wallet NFTs
-    │◄─── { characters: [...],           │ Return unlocked assets
-    │      weapons: [...] }              │
-    │                                    │
-    ├─ POST /game/session/start ────────►│ Create GameSession
-    │◄─── { sessionId }                 │ Start anti-cheat tracking
-    │                                    │
-    │  ... game plays ...                │
-    │                                    │
-    ├─ POST /game/session/end ──────────►│ Validate score, anti-cheat
-    │   { sessionId, score, kills,       │ Update points balance
-    │     hmacSignature }                │ Update Firebase
-    │◄─── { pointsEarned, totalPoints } │
-    │                                    │
-    ├─ POST /game/sync-points ──────────►│ Real-time points update
-    │   { address, points }              │ (during gameplay)
-    │                                    │
+1. User opens game → game uses Firebase Auth (email/password)
+2. Game writes user data to Firebase: { username, score: 0 }
+3. User visits website → connects wallet (Thirdweb)
+4. Frontend calls POST /auth/login with Firebase token + wallet address
+5. Backend: verify Firebase token, find/create MongoDB user, check NFTs on-chain
+6. Backend: write to Firebase { hasNFT: true, level: 3, weapons: [...] }
+7. Game reads Firebase → sees hasNFT=true → unlocks characters/weapons
+8. User plays game → game updates score in Firebase
+9. Backend cron (every 5 min) → reads Firebase scores → updates MongoDB leaderboard
+10. User exits game → backend clears Firebase flags
 ```
 
-### 13.2 Web2 vs Web3 Player Flow
+### 13.2 Web2 → Web3 Upgrade
 
-```
-Web2 Player:
-1. Game sends player info (no wallet)
-2. API creates Web2 user record
-3. Limited character access (4 basic)
-4. Points accumulate but cannot convert to $BATTLE
-5. When player buys ChainBoi NFT → upgrade to Web3
-6. Points reset to 0 on upgrade
+Simple approach (no Normie NFTs):
 
-Web3 Player:
-1. Wallet connected
-2. API verifies ChainBoi NFT ownership
-3. Character access based on NFT level
-4. Full tournament access (if level > 0)
-5. Points → ChainBoi Money → $BATTLE conversion available
-```
+1. Web2 player plays with limited access (4 characters, basic weapons)
+2. Progress tracked in MongoDB (points, scores, games played)
+3. When they buy a ChainBoi NFT and connect wallet:
+   - Their accumulated points become convertible to $BATTLE
+   - Their progress data is written to NFT metadata
+   - They get full character/weapon access based on NFT level
+4. No special "normie NFT" - just a playerType flag change
 
 ---
 
@@ -1121,120 +1099,73 @@ Web3 Player:
 NEXT_PUBLIC_BACKEND_BASE_URI=https://api.chainbois.com/api/v1
 NEXT_PUBLIC_CLIENT_ID=chainbois-frontend
 NEXT_PUBLIC_WEBSOCKET_URL=wss://api.chainbois.com
-NEXT_PUBLIC_THIRDWEB_CLIENT_ID=<your-thirdweb-client-id>
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=<thirdweb-client-id>
 NEXT_PUBLIC_NETWORK=fuji
 ```
 
-### 14.2 Authentication Flow
+### 14.2 Auth Flow (Firebase-based)
 
 ```javascript
-// 1. Connect wallet (Thirdweb handles this)
-// 2. After wallet connected, authenticate with backend:
+// 1. Firebase Auth (game or website creates user)
+// 2. Get Firebase ID token
+const firebaseToken = await firebase.auth().currentUser.getIdToken();
+
+// 3. Login with backend (after wallet connect)
 const { data } = await request({
-  url: '/auth/connect',
+  url: '/auth/login',
   method: 'POST',
-  data: { address: walletAddress }
+  data: { address: walletAddress },
+  headers: { Authorization: `Bearer ${firebaseToken}` }
 });
-// Returns: { nonce: "...", isNewUser: true/false }
-
-// 3. Sign message and verify
-const signature = await signMessage(nonce);
-const { data: authData } = await request({
-  url: '/auth/verify',
-  method: 'POST',
-  data: { address: walletAddress, signature, nonce }
-});
-// Returns: { accessToken: "...", user: {...} }
-// Refresh token set as httpOnly cookie automatically
+// Returns: { success: true, data: { user, assets, weapons } }
 ```
 
-### 14.3 Request Pattern
+### 14.3 Pagination
 
-All requests should use the existing `request()` utility with:
-- `Authorization: Bearer <accessToken>` header
-- `x-client-id: chainbois-frontend` header
-- `withCredentials: true` for cookie handling
+Backend returns: `{ [resourceName]: [...], total: N }` with `?page=N&limit=N`
 
-### 14.4 Pagination
+### 14.4 WebSocket Events
 
 ```javascript
-// Frontend already has fetchPaginatedData utility
-// Backend returns: { [resourceName]: [...], total: N }
-// Query params: ?page=1&limit=20
-```
-
-### 14.5 WebSocket Events (via Socket.IO)
-
-```javascript
-// Events the frontend should listen for:
 socket.on('leaderboard:update', (data) => { ... });
-socket.on('tournament:countdown', (data) => { ... });
+socket.on('tournament:status', (data) => { ... });
 socket.on('points:sync', (data) => { ... });
-socket.on('nft:levelup', (data) => { ... });
 ```
 
 ---
 
 ## 15. Rate Limits & Constraints
 
-### 15.1 Avalanche Data API
-
-| Tier | Requests/Min | Requests/Day |
-|------|-------------|-------------|
-| Free (no key) | ~300 | ~60,000 |
-| Free (with key) | ~400 | ~100,000 |
-
-Sufficient for hackathon. Monitor usage via dashboard.
-
-### 15.2 Our API Rate Limits
+### 15.1 Our API
 
 | Endpoint Type | Limit |
 |--------------|-------|
 | Public endpoints | 100 req/min per IP |
 | Authenticated endpoints | 500 req/min per user |
-| Game API endpoints | 1000 req/min per game instance |
-| Mint endpoint | 10 req/min per user |
+| Purchase endpoints | 10 req/min per user |
 
-### 15.3 Cloudinary (Free Tier)
+### 15.2 Avalanche Data API
 
-- 25,000 transformations/month
-- 25GB bandwidth
-- Sufficient for hackathon; monitor usage
+Free tier: ~300 req/min, ~60,000/day. Sufficient for hackathon.
 
-### 15.4 Blockchain Constraints
+### 15.3 Blockchain
 
-- Avalanche C-Chain block time: ~2 seconds
-- Gas costs on Fuji testnet: free (use faucet)
-- Transaction confirmation: 1-2 blocks (~2-4 seconds)
+- C-Chain block time: ~2 seconds
+- Gas on Fuji: free (faucet)
 
 ---
 
 ## 16. Open Questions & Decisions
 
-### 16.1 Needs Decision (Before Implementation)
-
-| # | Question | Options | Recommendation |
-|---|----------|---------|----------------|
-| 1 | Airdrop mechanism | Weekly snapshots vs staking-style | Weekly snapshots (simpler) |
-| 2 | $BATTLE burn percentage | TBD | 50% burn, 50% liquidity |
-| 3 | Points conversion priority | Tournament first vs accumulated first | Accumulated first (per docs) |
-| 4 | Web2→Web3 distinction | In-game or on-website? | On-website (simpler for hackathon) |
-| 5 | Level-up cost | Fixed or increasing? | Fixed 1 AVAX (per docs) |
-| 6 | Gas subsidization | Platform pays gas or user pays? | User pays (simpler for testnet) |
-| 7 | Token launch method | ERC-314 (APEX) vs standard ERC-20 | Standard ERC-20 for hackathon |
-| 8 | Loot box randomness | On-chain or off-chain? | Off-chain for hackathon |
-
-### 16.2 Deferred to Phase 2+
-
-- APEX integration (widget, staking, trading)
-- Eclipse capsule integration
-- Superverse token integration
-- Memecoin integrations
-- In-house secondary marketplace
-- Battlepass system
-- Normie NFT pool management
-- Agent pool buybacks
-- NFD airdrops
+| # | Question | Recommendation |
+|---|----------|----------------|
+| 1 | Level-up cost | Fixed 1 AVAX per level |
+| 2 | Gas for purchases | User pays |
+| 3 | Token launch method | Standard ERC-20 for hackathon |
+| 4 | Loot box randomness | Off-chain for hackathon, Phase 2 |
+| 5 | Armor system | Phase 2 |
+| 6 | Airdrop system | Phase 2 |
+| 7 | Battlepass | Phase 2 |
 
 ---
 
@@ -1254,47 +1185,17 @@ Sufficient for hackathon. Monitor usage via dashboard.
 
 ### 17.2 Tournament Prize Distribution
 
-| Level | Prize Pool (AVAX) | 1st | 2nd | 3rd ($BATTLE) |
-|-------|------------------|-----|-----|----------------|
-| 1 | 2 | 1 | 0.7 | equiv 0.3 |
-| 2 | 4 | 2 | 1.4 | equiv 0.6 |
-| 3 | 6 | 3 | 2.1 | equiv 0.9 |
-| 4 | 8 | 4 | 2.8 | equiv 1.2 |
-| 5 | 10 | 5 | 3.5 | equiv 1.5 |
-| 6 | 12 | 6 | 4.2 | equiv 1.8 |
-| 7 | 14 | 7 | 4.9 | equiv 2.1 |
+| Level | Total (AVAX) | 1st | 2nd | 3rd ($BATTLE) |
+|-------|-------------|-----|-----|----------------|
+| 1 | 2 | 1 | 0.7 | ~0.3 |
+| 2 | 4 | 2 | 1.4 | ~0.6 |
+| 3 | 6 | 3 | 2.1 | ~0.9 |
+| 4 | 8 | 4 | 2.8 | ~1.2 |
+| 5 | 10 | 5 | 3.5 | ~1.5 |
+| 6 | 12 | 6 | 4.2 | ~1.8 |
+| 7 | 14 | 7 | 4.9 | ~2.1 |
 
-Total weekly: 56 AVAX across all levels
-
-### 17.3 Mythic Upgrade Chip Costs
-
-| Mythic Level | Chips Required | Cumulative |
-|-------------|---------------|------------|
-| 0 → 1 | 150 | 150 |
-| 1 → 2 | 250 | 400 |
-| 2 → 3 | 500 | 900 |
-| 3 → 4 | 700 | 1,600 |
-| 4 → 5 | 900 | 2,500 |
-
-### 17.4 Chip Draw Probabilities
-
-| Chips | Probability |
-|-------|------------|
-| 10 | 50% |
-| 20 | 25% |
-| 30 | 15% |
-| 40 | 6% |
-| 60 | 3% |
-| 100 | 1% |
-
-### 17.5 Revenue Split
-
-| Source | Team (25%) | Award Pool (75%) |
-|--------|-----------|-----------------|
-| Level-up (1 AVAX) | 0.25 AVAX | 0.75 AVAX |
-| Weapon purchase | 25% of $BATTLE | 75% to burn/liquidity |
-
-### 17.6 Key Environment Variables
+### 17.3 Key Environment Variables
 
 ```env
 # Server
@@ -1304,12 +1205,6 @@ CORS_ORIGINS=http://localhost:3000
 
 # MongoDB
 MONGODB_URI=mongodb://localhost:27017/chainbois
-
-# JWT
-JWT_SECRET=<secret>
-JWT_LIFETIME=15m
-REFRESH_TOKEN_SECRET=<secret>
-REFRESH_TOKEN_LIFETIME=7d
 
 # Firebase
 FIREBASE_SERVICE_ACCOUNT=<path-or-json>
@@ -1328,9 +1223,6 @@ DEPLOYER_PRIVATE_KEY=<key>
 BATTLE_TOKEN_ADDRESS=
 CHAINBOIS_NFT_ADDRESS=
 WEAPON_NFT_ADDRESS=
-LEVEL_UP_ADDRESS=
-PRIZE_DISTRIBUTION_ADDRESS=
-POINTS_CONVERSION_ADDRESS=
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME=
@@ -1346,13 +1238,10 @@ PINATA_JWT=
 WALLET_MGT_API_URL=http://localhost:5001
 WALLET_MGT_CLIENT_ID=chainbois-main-api
 
-# Game
-GAME_API_KEY=<shared-secret>
-GAME_HMAC_SECRET=<hmac-secret>
+# Discord
+DISCORD_LEADERBOARD_WEBHOOK=
+DISCORD_ALERTS_WEBHOOK=
 
 # Client
 MAIN_API_CLIENT_ID=chainbois-frontend
-
-# PM2
-PM2_INSTANCES=max
 ```
