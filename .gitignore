@@ -137,3 +137,70 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# ============================================
+# ChainBois Project-Specific
+# ============================================
+
+# Reference projects (keep local, exclude from repo)
+reference-projects-from-algorand/
+reference-projects/
+
+# Documentation & research (keep local, exclude from repo)
+avalanche-docs/
+hashlips-docs/
+prompt.txt
+cumulative-chainbois-plans.txt
+
+# Internal planning docs (RE-ADD TO GITIGNORE BEFORE PRESENTATION)
+# docs/
+# docs/plans/
+# docs/reports/
+# docs/investigations/
+# *.plan.md
+# features.md
+
+# Generated art / traits
+traits/
+layers/
+build/
+art-output/
+
+# Hashlips
+hashlips_art_engine/
+
+# Wallet management (separate repo for security)
+wallet-mgt/
+
+# Database
+*.sqlite
+*.sqlite3
+data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets & keys
+*.pem
+*.key
+private/
+secrets/
+
+# Docker
+docker-compose.override.yml
+
+# Test artifacts
+__tests__/coverage/
+test-results/
+*.postman_collection.json
+
+# Uploaded files
+uploads/
+temp/
