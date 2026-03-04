@@ -67,6 +67,21 @@ module.exports = {
     "melee",
   ],
 
+  // Character unlock data per level
+  CHARACTERS_UNLOCK: {
+    0: ["Recruit_A", "Recruit_B", "Recruit_C", "Recruit_D"],
+    1: ["Soldier_A", "Soldier_B", "Soldier_C", "Soldier_D"],
+    2: ["Veteran_A", "Veteran_B", "Veteran_C", "Veteran_D"],
+    3: ["Elite_A", "Elite_B", "Elite_C", "Elite_D"],
+    4: ["Spec_Ops_A", "Spec_Ops_B", "Spec_Ops_C", "Spec_Ops_D"],
+    5: ["Commander_A", "Commander_B", "Commander_C", "Commander_D"],
+    6: ["General_A", "General_B", "General_C", "General_D"],
+    7: ["Legend_A", "Legend_B", "Legend_C", "Legend_D"],
+  },
+
+  // Base weapons available at level 0
+  BASE_WEAPONS_UNLOCK: ["Pistol", "Knife", "Shotgun", "SMG"],
+
   // Blueprint tiers
   BLUEPRINT_TIERS: ["base", "epic", "legendary", "mythic"],
 
@@ -90,7 +105,7 @@ module.exports = {
 
   // Security
   SECURITY: {
-    DAILY_EARNINGS_LIMIT: 5000,
+    DAILY_EARNINGS_LIMIT: 50000,
     THREAT_THRESHOLDS: {
       COOLDOWN: 100,
       TEMPORARY_BAN: 150,
@@ -111,7 +126,7 @@ module.exports = {
     USERS: "users",
   },
 
-  // Sync intervals (ms)
+  // Sync intervals (cron expressions)
   SYNC_NEW_USERS_INTERVAL: "*/1 * * * *", // Every 1 minute
   SYNC_SCORES_INTERVAL: "*/5 * * * *", // Every 5 minutes
 

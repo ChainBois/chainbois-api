@@ -7,11 +7,12 @@ router.get("/", (req, res) => {
   res.status(501).json({ success: false, message: "Not yet implemented" });
 });
 
-router.get("/:period", (req, res) => {
+// Static routes BEFORE parameterized routes
+router.get("/rank/:address", decodeToken, (req, res) => {
   res.status(501).json({ success: false, message: "Not yet implemented" });
 });
 
-router.get("/rank/:address", decodeToken, (req, res) => {
+router.get("/:period", (req, res) => {
   res.status(501).json({ success: false, message: "Not yet implemented" });
 });
 

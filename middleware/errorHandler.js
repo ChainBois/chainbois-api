@@ -6,7 +6,10 @@ const handleCastErrorDB = function (err) {
 };
 
 const handleDuplicateFieldsDB = function (err) {
-  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+  // Modern MongoDB driver uses err.message instead of err.errmsg
+  const source = err.errmsg || err.message || "";
+  const match = source.match(/(["'])(\\?.)*?\1/);
+  const value = match ? match[0] : "unknown";
   const message = `Duplicate field value: ${value}. Please use another value!`;
   return new AppError(message, 400);
 };

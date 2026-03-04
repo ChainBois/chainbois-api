@@ -8,7 +8,14 @@ const connectDB = async function () {
       ? process.env.MONGODB_URI_PROD
       : process.env.MONGODB_URI;
 
-  const conn = await mongoose.connect(uri);
+  if (!uri) {
+    throw new Error("MongoDB URI not configured. Set MONGODB_URI in .env");
+  }
+
+  const conn = await mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  });
   console.log(`MongoDB connected: ${conn.connection.host}`);
   return conn;
 };

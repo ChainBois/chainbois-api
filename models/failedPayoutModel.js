@@ -9,6 +9,7 @@ const failedPayoutSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
+      min: 0,
     },
     currency: {
       type: String,
@@ -22,6 +23,7 @@ const failedPayoutSchema = new mongoose.Schema(
     retryCount: {
       type: Number,
       default: 0,
+      min: 0,
     },
     lastRetry: {
       type: Date,
@@ -40,6 +42,12 @@ const failedPayoutSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Normalize address to lowercase before save
+failedPayoutSchema.pre("save", function (next) {
+  if (this.address) this.address = this.address.toLowerCase();
+  next();
+});
 
 failedPayoutSchema.index({ resolved: 1, retryCount: 1 });
 

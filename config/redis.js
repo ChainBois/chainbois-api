@@ -25,4 +25,11 @@ const getRedisClient = function () {
   return redisClient;
 };
 
-module.exports = { getRedisClient };
+const disconnectRedis = function () {
+  if (redisClient) {
+    redisClient.disconnect();
+    redisClient = null;
+  }
+};
+
+module.exports = { getRedisClient, disconnectRedis };

@@ -30,6 +30,35 @@ const healthRoutes = require("./routes/healthRoutes");
 
 const app = express();
 
+// Enable trust proxy for rate limiting behind reverse proxy
+app.set("trust proxy", 1);
+
+// Expose shutdown state for connection tracking (set by server.js)
+app.locals.isShuttingDown = false;
+app.locals.activeConnections = 0;
+
+// 0. Connection tracking and shutdown rejection (must be first)
+app.use((req, res, next) => {
+  if (app.locals.isShuttingDown) {
+    res.set("Connection", "close");
+    return res.status(503).json({
+      success: false,
+      message: "Server is shutting down",
+    });
+  }
+  app.locals.activeConnections++;
+  let decremented = false;
+  const decrement = () => {
+    if (!decremented) {
+      decremented = true;
+      app.locals.activeConnections = Math.max(0, app.locals.activeConnections - 1);
+    }
+  };
+  res.on("finish", decrement);
+  res.on("close", decrement);
+  next();
+});
+
 // 1. Security headers
 app.use(
   helmet({
@@ -60,7 +89,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(new AppError("Not allowed by CORS", 403));
       }
     },
     credentials: true,
@@ -74,9 +103,9 @@ app.use(
   })
 );
 
-// 4. Body parser
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+// 4. Body parser (1mb limit to prevent DoS)
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 // 5. Data sanitization
 app.use(mongoSanitize());

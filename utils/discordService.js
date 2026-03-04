@@ -6,6 +6,8 @@ const DISCORD_USERNAME = "ChainBois Alerts";
 const AVATAR_URL = ""; // Set to ChainBois avatar URL when available
 const COOLDOWN_PERIOD_HOURS = 24;
 
+// Use a Map with max size to prevent memory leaks
+const MAX_TRACKER_SIZE = 1000;
 const notificationTracker = new Map();
 
 const createNotificationKey = function (subject) {
@@ -89,6 +91,11 @@ const sendDiscordAlert = async function (options) {
       headers: { "Content-Type": "application/json" },
       timeout: 10000,
     });
+    // Evict oldest entries if tracker exceeds max size
+    if (notificationTracker.size >= MAX_TRACKER_SIZE) {
+      const oldestKey = notificationTracker.keys().next().value;
+      notificationTracker.delete(oldestKey);
+    }
     notificationTracker.set(notificationKey, now);
     return "sent";
   } catch (error) {

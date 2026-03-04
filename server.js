@@ -9,24 +9,7 @@ const Settings = require("./models/settingsModel");
 const PORT = process.env.PORT || 5000;
 
 let server;
-let isShuttingDown = false;
-let activeConnections = 0;
-
-// Track active connections
-app.use((req, res, next) => {
-  if (isShuttingDown) {
-    res.set("Connection", "close");
-    return res.status(503).json({
-      success: false,
-      message: "Server is shutting down",
-    });
-  }
-  activeConnections++;
-  res.on("finish", () => {
-    activeConnections--;
-  });
-  next();
-});
+let shutdownInProgress = false;
 
 const startServer = async function () {
   try {
@@ -39,8 +22,13 @@ const startServer = async function () {
     // Create default Settings if not exists
     const existingSettings = await Settings.findOne();
     if (!existingSettings) {
-      await Settings.create({});
-      console.log("Default settings created");
+      try {
+        await Settings.create({});
+        console.log("Default settings created");
+      } catch (e) {
+        if (e.code !== 11000) throw e;
+        // Ignore duplicate key error from race condition in cluster mode
+      }
     }
 
     // Start cron jobs only on primary PM2 instance
@@ -49,8 +37,14 @@ const startServer = async function () {
       process.env.NODE_APP_INSTANCE === "0";
 
     if (isPrimary) {
-      console.log("Primary instance - starting cron jobs");
-      // Cron jobs will be loaded in Phase 1
+      const cron = require("node-cron");
+      const { syncNewUsersJob } = require("./jobs/syncNewUsersJob");
+      const { syncScoresJob } = require("./jobs/syncScoresJob");
+      const { SYNC_NEW_USERS_INTERVAL, SYNC_SCORES_INTERVAL } = require("./config/constants");
+
+      cron.schedule(SYNC_NEW_USERS_INTERVAL, syncNewUsersJob);
+      cron.schedule(SYNC_SCORES_INTERVAL, syncScoresJob);
+      console.log("Cron jobs started: syncNewUsers, syncScores");
     }
 
     // Start server
@@ -65,27 +59,48 @@ const startServer = async function () {
 
 // Graceful shutdown
 const gracefulShutdown = function (signal) {
+  if (shutdownInProgress) return;
+  shutdownInProgress = true;
+
   console.log(`${signal} received. Starting graceful shutdown...`);
-  isShuttingDown = true;
+  app.locals.isShuttingDown = true;
 
   if (server) {
     server.close(() => {
       console.log("HTTP server closed");
 
       const mongoose = require("mongoose");
-      mongoose.disconnect().then(() => {
-        console.log("MongoDB disconnected");
-        process.exit(0);
-      });
+      const { disconnectRedis } = require("./config/redis");
+
+      // Disconnect Redis if connected
+      try {
+        disconnectRedis();
+        console.log("Redis disconnected");
+      } catch (e) {
+        // Redis may not have been initialized
+      }
+
+      mongoose.disconnect()
+        .then(() => {
+          console.log("MongoDB disconnected");
+          process.exit(0);
+        })
+        .catch((e) => {
+          console.error("MongoDB disconnect error:", e.message);
+          process.exit(1);
+        });
     });
 
     // Force shutdown after 10 seconds
-    setTimeout(() => {
+    const forceTimer = setTimeout(() => {
       console.error(
-        `Could not close connections in time (${activeConnections} active). Forcing shutdown.`
+        `Could not close connections in time (${app.locals.activeConnections} active). Forcing shutdown.`
       );
       process.exit(1);
     }, 10000);
+    forceTimer.unref();
+  } else {
+    process.exit(0);
   }
 };
 
@@ -101,7 +116,10 @@ process.on("message", (msg) => {
 
 // Unhandled rejections
 process.on("unhandledRejection", (err) => {
-  console.error("UNHANDLED REJECTION:", err.name, err.message);
+  const name = err && err.name ? err.name : "UnknownError";
+  const message = err && err.message ? err.message : String(err);
+  console.error("UNHANDLED REJECTION:", name, message);
+  if (shutdownInProgress) return;
   if (server) {
     server.close(() => process.exit(1));
   } else {

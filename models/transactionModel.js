@@ -25,11 +25,12 @@ const transactionSchema = new mongoose.Schema(
     amount: {
       type: Number,
       default: 0,
+      min: 0,
     },
     currency: {
       type: String,
-      enum: ["AVAX", "BATTLE"],
-      required: true,
+      enum: ["AVAX", "BATTLE", "NFT"],
+      default: "AVAX",
     },
     txHash: {
       type: String,

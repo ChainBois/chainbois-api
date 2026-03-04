@@ -5,22 +5,23 @@ const validPatterns = [
   // Auth
   /^\/api\/v1\/auth\/(create-user|login|me|logout)$/,
   // Game
-  /^\/api\/v1\/game\/(verify-assets|set-avatar|end-session)$/,
+  /^\/api\/v1\/game\/(verify-assets|set-avatar|info)$/,
   /^\/api\/v1\/game\/characters\/0x[a-fA-F0-9]{40}$/,
+  /^\/api\/v1\/game\/download\/(win|mac)$/,
   // Training
-  /^\/api\/v1\/training\/(nfts|nft|level-up|eligibility)/,
+  /^\/api\/v1\/training\/(nfts|nft|level-up|eligibility)(\/.*)?$/,
   // Tournaments
-  /^\/api\/v1\/tournaments/,
+  /^\/api\/v1\/tournaments(\/.*)?$/,
   // Armory
-  /^\/api\/v1\/armory/,
+  /^\/api\/v1\/armory(\/.*)?$/,
   // Points
-  /^\/api\/v1\/points/,
+  /^\/api\/v1\/points(\/.*)?$/,
   // Claim
-  /^\/api\/v1\/claim/,
+  /^\/api\/v1\/claim(\/.*)?$/,
   // Inventory
-  /^\/api\/v1\/inventory/,
+  /^\/api\/v1\/inventory(\/.*)?$/,
   // Leaderboard
-  /^\/api\/v1\/leaderboard/,
+  /^\/api\/v1\/leaderboard(\/.*)?$/,
   // Health & Settings
   /^\/api\/v1\/health$/,
   /^\/api\/v1\/settings$/,
@@ -34,10 +35,12 @@ const validateEndpoint = function (req, res, next) {
     return next();
   }
 
-  const isValid = validPatterns.some((pattern) => pattern.test(path));
+  // Strip trailing slash for consistent matching
+  const normalizedPath = path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
+  const isValid = validPatterns.some((pattern) => pattern.test(normalizedPath));
 
   if (!isValid) {
-    return next(new AppError("This endpoint does not exist", 403));
+    return next(new AppError("This endpoint does not exist", 404));
   }
 
   return next();

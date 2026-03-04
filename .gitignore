@@ -159,6 +159,14 @@ cumulative-chainbois-plans.txt
 # *.plan.md
 # features.md
 
+# Hardhat
+artifacts/
+cache/
+typechain-types/
+
+# NFT Generation (HashLips clone + layers + build output)
+nft-generation/
+
 # Generated art / traits
 traits/
 layers/
@@ -167,6 +175,9 @@ art-output/
 
 # Hashlips
 hashlips_art_engine/
+
+# Deployment artifacts (addresses, mint sessions)
+deployments/
 
 # Wallet management (separate repo for security)
 wallet-mgt/
@@ -191,6 +202,7 @@ Thumbs.db
 *.key
 private/
 secrets/
+config/*firebase-config*.json
 
 # Docker
 docker-compose.override.yml
@@ -199,6 +211,9 @@ docker-compose.override.yml
 __tests__/coverage/
 test-results/
 *.postman_collection.json
+
+# Game download files (large binaries)
+*.zip
 
 # Uploaded files
 uploads/

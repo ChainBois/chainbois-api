@@ -34,9 +34,9 @@ const chainboiNftSchema = new mongoose.Schema(
       default: "trainee",
     },
     inGameStats: {
-      kills: { type: Number, default: 0 },
-      score: { type: Number, default: 0 },
-      gamesPlayed: { type: Number, default: 0 },
+      kills: { type: Number, default: 0, min: 0 },
+      score: { type: Number, default: 0, min: 0 },
+      gamesPlayed: { type: Number, default: 0, min: 0 },
     },
     metadataUri: {
       type: String,
@@ -51,6 +51,20 @@ const chainboiNftSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Normalize addresses to lowercase before save
+chainboiNftSchema.pre("save", function (next) {
+  if (this.ownerAddress) this.ownerAddress = this.ownerAddress.toLowerCase();
+  if (this.contractAddress) this.contractAddress = this.contractAddress.toLowerCase();
+  next();
+});
+
+chainboiNftSchema.pre("findOneAndUpdate", function (next) {
+  const update = this.getUpdate();
+  if (update.ownerAddress) update.ownerAddress = update.ownerAddress.toLowerCase();
+  if (update.$set && update.$set.ownerAddress) update.$set.ownerAddress = update.$set.ownerAddress.toLowerCase();
+  next();
+});
 
 chainboiNftSchema.index({ ownerAddress: 1, level: 1 });
 

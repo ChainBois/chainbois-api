@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema(
     address: {
       type: String,
       default: null,
-      index: true,
     },
     playerType: {
       type: String,
@@ -34,10 +33,12 @@ const userSchema = new mongoose.Schema(
     pointsBalance: {
       type: Number,
       default: 0,
+      min: 0,
     },
     battleTokenBalance: {
       type: Number,
       default: 0,
+      min: 0,
     },
     hasNft: {
       type: Boolean,
@@ -56,18 +57,22 @@ const userSchema = new mongoose.Schema(
     score: {
       type: Number,
       default: 0,
+      min: 0,
     },
     highScore: {
       type: Number,
       default: 0,
+      min: 0,
     },
     gamesPlayed: {
       type: Number,
       default: 0,
+      min: 0,
     },
     totalKills: {
       type: Number,
       default: 0,
+      min: 0,
     },
     isVerified: {
       type: Boolean,
@@ -95,6 +100,21 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// Normalize address to lowercase before save
+userSchema.pre("save", function (next) {
+  if (this.address) this.address = this.address.toLowerCase();
+  next();
+});
+
+// Normalize address on update operations
+userSchema.pre("findOneAndUpdate", function (next) {
+  const update = this.getUpdate();
+  if (update.address) update.address = update.address.toLowerCase();
+  if (update.$set && update.$set.address) update.$set.address = update.$set.address.toLowerCase();
+  next();
+});
+
+userSchema.index({ address: 1 }, { unique: true, sparse: true });
 userSchema.index({ address: 1, playerType: 1 });
 userSchema.index({ score: -1 });
 

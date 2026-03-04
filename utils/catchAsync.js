@@ -1,5 +1,6 @@
 const sanitizeForLogging = (obj) => {
   if (!obj || typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map((item) => sanitizeForLogging(item));
 
   const sensitiveFields = [
     "password",

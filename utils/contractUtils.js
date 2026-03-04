@@ -4,44 +4,15 @@ const { withRetry } = require("./retryHelper");
 const dotenv = require("dotenv");
 dotenv.config();
 
-// --- ABI Fragments (minimal, expanded when contracts are deployed) ---
+// --- ABIs from compiled contracts ---
 
-const ERC20_ABI = [
-  "function balanceOf(address owner) view returns (uint256)",
-  "function transfer(address to, uint256 amount) returns (bool)",
-  "function approve(address spender, uint256 amount) returns (bool)",
-  "function allowance(address owner, address spender) view returns (uint256)",
-  "function totalSupply() view returns (uint256)",
-  "function mint(address to, uint256 amount)",
-  "function burn(uint256 amount)",
-  "event Transfer(address indexed from, address indexed to, uint256 value)",
-];
+const BattleTokenArtifact = require("../abis/BattleToken.json");
+const ChainBoisNFTArtifact = require("../abis/ChainBoisNFT.json");
+const WeaponNFTArtifact = require("../abis/WeaponNFT.json");
 
-const ERC721_ABI = [
-  "function balanceOf(address owner) view returns (uint256)",
-  "function ownerOf(uint256 tokenId) view returns (address)",
-  "function tokenURI(uint256 tokenId) view returns (string)",
-  "function transferFrom(address from, address to, uint256 tokenId)",
-  "function safeTransferFrom(address from, address to, uint256 tokenId)",
-  "function approve(address to, uint256 tokenId)",
-  "function totalSupply() view returns (uint256)",
-  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
-];
-
-const CHAINBOIS_NFT_ABI = [
-  ...ERC721_ABI,
-  "function tokenLevel(uint256 tokenId) view returns (uint8)",
-  "function setLevel(uint256 tokenId, uint8 level)",
-  "function mint(address to)",
-  "function reserve(address to, uint256 quantity)",
-  "function setBaseURI(string memory baseURI)",
-];
-
-const WEAPON_NFT_ABI = [
-  ...ERC721_ABI,
-  "function mint(address to, string memory uri)",
-  "function setBaseURI(string memory baseURI)",
-];
+const BATTLE_TOKEN_ABI = BattleTokenArtifact.abi;
+const CHAINBOIS_NFT_ABI = ChainBoisNFTArtifact.abi;
+const WEAPON_NFT_ABI = WeaponNFTArtifact.abi;
 
 /**
  * Get a read-only contract instance
@@ -72,9 +43,9 @@ const getBattleTokenContract = function (privateKey) {
   const address = process.env.BATTLE_TOKEN_ADDRESS;
   if (!address) throw new Error("BATTLE_TOKEN_ADDRESS not configured");
   if (privateKey) {
-    return getSignedContract(address, ERC20_ABI, privateKey);
+    return getSignedContract(address, BATTLE_TOKEN_ABI, privateKey);
   }
-  return getContract(address, ERC20_ABI);
+  return getContract(address, BATTLE_TOKEN_ABI);
 };
 
 const getBattleBalance = async function (walletAddress) {
@@ -86,21 +57,17 @@ const getBattleBalance = async function (walletAddress) {
 };
 
 const mintBattleTokens = async function (toAddress, amount, signerPrivateKey) {
-  return withRetry(async () => {
-    const contract = getBattleTokenContract(signerPrivateKey);
-    const tx = await contract.mint(toAddress, ethers.parseEther(amount));
-    const receipt = await tx.wait();
-    return receipt;
-  });
+  const contract = getBattleTokenContract(signerPrivateKey);
+  const tx = await contract.mint(toAddress, ethers.parseEther(String(amount)));
+  const receipt = await tx.wait();
+  return receipt;
 };
 
 const transferBattleTokens = async function (toAddress, amount, signerPrivateKey) {
-  return withRetry(async () => {
-    const contract = getBattleTokenContract(signerPrivateKey);
-    const tx = await contract.transfer(toAddress, ethers.parseEther(amount));
-    const receipt = await tx.wait();
-    return receipt;
-  });
+  const contract = getBattleTokenContract(signerPrivateKey);
+  const tx = await contract.transfer(toAddress, ethers.parseEther(String(amount)));
+  const receipt = await tx.wait();
+  return receipt;
 };
 
 // --- ChainBois NFT Operations ---
@@ -117,18 +84,16 @@ const getChainboisNftContract = function (privateKey) {
 const getNftLevel = async function (tokenId) {
   return withRetry(async () => {
     const contract = getChainboisNftContract();
-    const level = await contract.tokenLevel(tokenId);
+    const level = await contract.getLevel(tokenId);
     return Number(level);
   });
 };
 
 const setNftLevel = async function (tokenId, newLevel, signerPrivateKey) {
-  return withRetry(async () => {
-    const contract = getChainboisNftContract(signerPrivateKey);
-    const tx = await contract.setLevel(tokenId, newLevel);
-    const receipt = await tx.wait();
-    return receipt;
-  });
+  const contract = getChainboisNftContract(signerPrivateKey);
+  const tx = await contract.setLevel(tokenId, newLevel);
+  const receipt = await tx.wait();
+  return receipt;
 };
 
 const getNftOwner = async function (tokenId) {
@@ -140,20 +105,24 @@ const getNftOwner = async function (tokenId) {
 };
 
 const transferNft = async function (fromAddress, toAddress, tokenId, signerPrivateKey) {
-  return withRetry(async () => {
-    const contract = getChainboisNftContract(signerPrivateKey);
-    const tx = await contract.transferFrom(fromAddress, toAddress, tokenId);
-    const receipt = await tx.wait();
-    return receipt;
-  });
+  const contract = getChainboisNftContract(signerPrivateKey);
+  const tx = await contract.transferFrom(fromAddress, toAddress, tokenId);
+  const receipt = await tx.wait();
+  return receipt;
 };
 
 const mintChainboiNft = async function (toAddress, signerPrivateKey) {
+  const contract = getChainboisNftContract(signerPrivateKey);
+  const tx = await contract.mint(toAddress);
+  const receipt = await tx.wait();
+  return receipt;
+};
+
+const getChainboisTotalSupply = async function () {
   return withRetry(async () => {
-    const contract = getChainboisNftContract(signerPrivateKey);
-    const tx = await contract.mint(toAddress);
-    const receipt = await tx.wait();
-    return receipt;
+    const contract = getChainboisNftContract();
+    const supply = await contract.totalSupply();
+    return Number(supply);
   });
 };
 
@@ -168,18 +137,38 @@ const getWeaponNftContract = function (privateKey) {
   return getContract(address, WEAPON_NFT_ABI);
 };
 
-const transferWeaponNft = async function (fromAddress, toAddress, tokenId, signerPrivateKey) {
+const mintWeaponNft = async function (toAddress, weaponName, signerPrivateKey) {
+  const contract = getWeaponNftContract(signerPrivateKey);
+  const tx = await contract.mint(toAddress, weaponName);
+  const receipt = await tx.wait();
+  return receipt;
+};
+
+const getWeaponName = async function (tokenId) {
   return withRetry(async () => {
-    const contract = getWeaponNftContract(signerPrivateKey);
-    const tx = await contract.transferFrom(fromAddress, toAddress, tokenId);
-    const receipt = await tx.wait();
-    return receipt;
+    const contract = getWeaponNftContract();
+    const name = await contract.weaponName(tokenId);
+    return name;
+  });
+};
+
+const transferWeaponNft = async function (fromAddress, toAddress, tokenId, signerPrivateKey) {
+  const contract = getWeaponNftContract(signerPrivateKey);
+  const tx = await contract.transferFrom(fromAddress, toAddress, tokenId);
+  const receipt = await tx.wait();
+  return receipt;
+};
+
+const getWeaponTotalSupply = async function () {
+  return withRetry(async () => {
+    const contract = getWeaponNftContract();
+    const supply = await contract.totalSupply();
+    return Number(supply);
   });
 };
 
 module.exports = {
-  ERC20_ABI,
-  ERC721_ABI,
+  BATTLE_TOKEN_ABI,
   CHAINBOIS_NFT_ABI,
   WEAPON_NFT_ABI,
   getContract,
@@ -194,6 +183,10 @@ module.exports = {
   getNftOwner,
   transferNft,
   mintChainboiNft,
+  getChainboisTotalSupply,
   getWeaponNftContract,
+  mintWeaponNft,
+  getWeaponName,
   transferWeaponNft,
+  getWeaponTotalSupply,
 };

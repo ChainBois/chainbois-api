@@ -15,6 +15,7 @@ const securityProfileSchema = new mongoose.Schema(
     threatScore: {
       type: Number,
       default: 0,
+      min: 0,
     },
     status: {
       type: String,
@@ -31,6 +32,7 @@ const securityProfileSchema = new mongoose.Schema(
     dailyEarnings: {
       type: Number,
       default: 0,
+      min: 0,
     },
     dailyEarningsResetAt: {
       type: Date,

@@ -12,18 +12,19 @@ const leaderboardHistorySchema = new mongoose.Schema(
     },
     winners: [
       {
-        rank: Number,
+        rank: { type: Number, min: 1 },
         address: String,
         username: String,
-        highScore: Number,
-        prizeAmount: Number,
-        prizeCurrency: { type: String, enum: ["AVAX", "BATTLE"] },
+        highScore: { type: Number, min: 0 },
+        prizeAmount: { type: Number, min: 0 },
+        prizeCurrency: { type: String, enum: ["AVAX", "BATTLE", "NFT"] },
         txHash: { type: String, default: "" },
       },
     ],
     totalPayout: {
       type: Number,
       default: 0,
+      min: 0,
     },
   },
   {
@@ -31,7 +32,7 @@ const leaderboardHistorySchema = new mongoose.Schema(
   }
 );
 
-leaderboardHistorySchema.index({ weekNumber: -1, tournamentLevel: 1 });
+leaderboardHistorySchema.index({ weekNumber: -1, tournamentLevel: 1 }, { unique: true });
 
 const LeaderboardHistory = mongoose.model("LeaderboardHistory", leaderboardHistorySchema);
 module.exports = LeaderboardHistory;

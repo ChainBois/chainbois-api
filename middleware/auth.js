@@ -1,5 +1,5 @@
 const AppError = require("../utils/appError");
-const { admin } = require("../config/firebase");
+const { getFirebaseAuth } = require("../config/firebase");
 
 const decodeToken = async (req, res, next) => {
   if (
@@ -11,11 +11,12 @@ const decodeToken = async (req, res, next) => {
 
   const token = req.headers.authorization.split(" ")[1];
   try {
-    const decodeValue = await admin.auth().verifyIdToken(token);
+    const decodeValue = await getFirebaseAuth().verifyIdToken(token);
     if (decodeValue) {
       req.user = decodeValue;
       return next();
     }
+    return next(new AppError("Unable to verify token", 401));
   } catch (e) {
     if (e.code && e.code == "auth/id-token-revoked") {
       return next(new AppError("Token has been revoked", 401));

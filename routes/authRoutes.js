@@ -2,22 +2,11 @@ const express = require("express");
 const router = express.Router();
 const { decodeToken } = require("../middleware/auth");
 const { authLimiter } = require("../middleware/rateLimiter");
+const authController = require("../controllers/authController");
 
-// Placeholder - implemented in Phase 1
-router.post("/create-user", authLimiter, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.post("/login", authLimiter, decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/me", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.post("/logout", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
+router.post("/create-user", authLimiter, authController.createUser);
+router.post("/login", authLimiter, decodeToken, authController.login);
+router.get("/me", decodeToken, authController.me);
+router.post("/logout", decodeToken, authController.logout);
 
 module.exports = router;

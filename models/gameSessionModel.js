@@ -15,6 +15,7 @@ const gameSessionSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
     gameMode: {
       type: String,
@@ -31,14 +32,17 @@ const gameSessionSchema = new mongoose.Schema(
     score: {
       type: Number,
       default: 0,
+      min: 0,
     },
     kills: {
       type: Number,
       default: 0,
+      min: 0,
     },
     pointsEarned: {
       type: Number,
       default: 0,
+      min: 0,
     },
     verified: {
       type: Boolean,

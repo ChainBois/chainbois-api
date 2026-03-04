@@ -1,22 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const { decodeToken } = require("../middleware/auth");
+const gameController = require("../controllers/gameController");
+const downloadController = require("../controllers/downloadController");
 
-// Placeholder - implemented in Phase 1
-router.post("/verify-assets", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
+// Public endpoints (no auth)
+router.get("/download/:platform", downloadController.downloadGame);
+router.get("/info", downloadController.getGameInfo);
 
-router.post("/set-avatar", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/characters/:address", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.post("/end-session", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
+// Protected endpoints (require Firebase auth)
+router.post("/verify-assets", decodeToken, gameController.verifyAssets);
+router.post("/set-avatar", decodeToken, gameController.setAvatar);
+router.get("/characters/:address", decodeToken, gameController.getCharacters);
 
 module.exports = router;

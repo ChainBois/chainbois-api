@@ -8,10 +8,11 @@ dotenv.config();
 let provider;
 const getProvider = function () {
   if (!provider) {
-    provider = new ethers.JsonRpcProvider(
-      process.env.AVAX_RPC_URL,
-      parseInt(process.env.AVAX_CHAIN_ID)
-    );
+    const chainId = parseInt(process.env.AVAX_CHAIN_ID);
+    if (!process.env.AVAX_RPC_URL || isNaN(chainId)) {
+      throw new Error("AVAX_RPC_URL and AVAX_CHAIN_ID must be configured");
+    }
+    provider = new ethers.JsonRpcProvider(process.env.AVAX_RPC_URL, chainId);
   }
   return provider;
 };
@@ -150,7 +151,7 @@ const getTransaction = async function (txHash) {
  * @param {number} maxAgeSeconds - Max age of transaction (default 50s)
  * @returns {Promise<Object>} { valid: boolean, reason: string }
  */
-const verifyPayment = async function (txHash, expectedSender, expectedReceiver, expectedAmount, maxAgeSeconds = 50) {
+const verifyPayment = async function (txHash, expectedSender, expectedReceiver, expectedAmount, maxAgeSeconds = 300) {
   const receipt = await getTransactionReceipt(txHash);
   if (!receipt) {
     return { valid: false, reason: "Transaction not found" };
@@ -167,6 +168,9 @@ const verifyPayment = async function (txHash, expectedSender, expectedReceiver, 
   if (tx.from.toLowerCase() !== expectedSender.toLowerCase()) {
     return { valid: false, reason: "Incorrect sender" };
   }
+  if (!tx.to) {
+    return { valid: false, reason: "Transaction is a contract creation (no receiver)" };
+  }
   if (tx.to.toLowerCase() !== expectedReceiver.toLowerCase()) {
     return { valid: false, reason: "Incorrect receiver" };
   }
@@ -180,6 +184,9 @@ const verifyPayment = async function (txHash, expectedSender, expectedReceiver, 
   // Check staleness
   const p = getProvider();
   const block = await p.getBlock(receipt.blockNumber);
+  if (!block) {
+    return { valid: false, reason: "Block not found" };
+  }
   const now = Math.floor(Date.now() / 1000);
   if (now - block.timestamp > maxAgeSeconds) {
     return { valid: false, reason: "Transaction is too old" };

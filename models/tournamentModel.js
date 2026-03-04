@@ -28,6 +28,7 @@ const tournamentSchema = new mongoose.Schema(
     prizePool: {
       type: Number,
       required: true,
+      min: 0,
     },
     prizeDistribution: {
       first: { type: Number, default: 0 },

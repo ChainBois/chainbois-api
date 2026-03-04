@@ -6,6 +6,11 @@ router.get("/", (req, res) => {
   res.status(501).json({ success: false, message: "Not yet implemented" });
 });
 
+// Static routes BEFORE parameterized routes
+router.get("/history", (req, res) => {
+  res.status(501).json({ success: false, message: "Not yet implemented" });
+});
+
 router.get("/:level", (req, res) => {
   res.status(501).json({ success: false, message: "Not yet implemented" });
 });
@@ -19,10 +24,6 @@ router.get("/:level/countdown", (req, res) => {
 });
 
 router.get("/:level/winners", (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/history", (req, res) => {
   res.status(501).json({ success: false, message: "Not yet implemented" });
 });
 
