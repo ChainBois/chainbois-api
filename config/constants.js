@@ -175,9 +175,22 @@ module.exports = {
   SYNC_NEW_USERS_INTERVAL: "*/1 * * * *", // Every 1 minute
   SYNC_SCORES_INTERVAL: "*/5 * * * *", // Every 5 minutes
 
+  // Rank names by level (for NFT badge/metadata)
+  RANK_NAMES: {
+    0: "Trainee",
+    1: "Corporal",
+    2: "Sergeant",
+    3: "Captain",
+    4: "Major",
+    5: "Colonel",
+    6: "Major General",
+    7: "Field Marshal",
+  },
+
   // Wallet roles
   WALLET_ROLES: {
     ADMIN: "admin",
+    DEPLOYER: "deployer",
     PRIZE_POOL: "prize_pool",
     NFT_STORE: "nft_store",
     WEAPON_STORE: "weapon_store",

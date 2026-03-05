@@ -35,7 +35,6 @@ const transactionSchema = new mongoose.Schema(
     txHash: {
       type: String,
       default: "",
-      index: true,
     },
     status: {
       type: String,
@@ -53,6 +52,7 @@ const transactionSchema = new mongoose.Schema(
 );
 
 transactionSchema.index({ toAddress: 1, type: 1, createdAt: -1 });
+transactionSchema.index({ txHash: 1 }, { unique: true, sparse: true });
 
 const Transaction = mongoose.model("Transaction", transactionSchema);
 module.exports = Transaction;

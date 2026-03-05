@@ -1,0 +1,215 @@
+{
+  "info": {
+    "name": "ChainBois API - Phase 3: Training Room",
+    "description": "Training Room endpoints for NFT display, level-up, cost queries, and tournament eligibility.\n\nBase URL: https://your-api-domain.com/api/v1\n\nContracts (Fuji Testnet):\n- ChainBoisNFT: 0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5\n- Prize Pool: 0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://your-api-domain.com/api/v1"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "address",
+      "value": "0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0"
+    },
+    {
+      "key": "tokenId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "List NFTs by Address",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/training/nfts/{{address}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["training", "nfts", "{{address}}"]
+        },
+        "description": "List all ChainBoi NFTs owned by a wallet address. Returns level, rank, badge, and unlocked characters for each NFT."
+      },
+      "response": [
+        {
+          "name": "Success - NFTs Found",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 50,\n    \"nfts\": [\n      {\n        \"tokenId\": 1,\n        \"contractAddress\": \"0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5\",\n        \"level\": 0,\n        \"rank\": \"Trainee\",\n        \"badge\": \"trainee\",\n        \"imageUri\": \"\",\n        \"metadataUri\": \"\",\n        \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\"],\n        \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n      }\n    ]\n  }\n}"
+        },
+        {
+          "name": "No NFTs Found",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 0,\n    \"nfts\": []\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get NFT Detail",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/training/nft/{{tokenId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["training", "nft", "{{tokenId}}"]
+        },
+        "description": "Get full details for a single ChainBoi NFT including owner, traits, in-game stats, unlocked characters, and next level cost."
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"contractAddress\": \"0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5\",\n    \"owner\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n    \"level\": 0,\n    \"rank\": \"Trainee\",\n    \"badge\": \"trainee\",\n    \"traits\": [],\n    \"imageUri\": \"\",\n    \"metadataUri\": \"\",\n    \"inGameStats\": {\"kills\": 0, \"score\": 0, \"gamesPlayed\": 0},\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"],\n    \"nextLevelCost\": 1,\n    \"isMaxLevel\": false\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Level Up",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tokenId\": 1,\n  \"txHash\": \"0x0000000000000000000000000000000000000000000000000000000000000000\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/training/level-up",
+          "host": ["{{baseUrl}}"],
+          "path": ["training", "level-up"]
+        },
+        "description": "Level up a ChainBoi NFT. Requires:\n1. Send AVAX payment to prize pool (0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e)\n2. Submit the txHash here for verification\n\nRate limited: 10 requests per minute."
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"previousLevel\": 0,\n    \"newLevel\": 1,\n    \"rank\": \"Corporal\",\n    \"cost\": 1,\n    \"contractTxHash\": \"0xabc...\",\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\", \"Corporal_A\", \"Corporal_B\", \"Corporal_C\", \"Corporal_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n  }\n}"
+        },
+        {
+          "name": "Error - Replay",
+          "status": "Conflict",
+          "code": 409,
+          "body": "{\n  \"success\": false,\n  \"message\": \"This transaction has already been used\"\n}"
+        },
+        {
+          "name": "Error - Not Owner",
+          "status": "Forbidden",
+          "code": 403,
+          "body": "{\n  \"success\": false,\n  \"message\": \"You do not own this NFT\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Level-Up Cost (by Token ID)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/training/level-up/cost?tokenId={{tokenId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["training", "level-up", "cost"],
+          "query": [
+            {
+              "key": "tokenId",
+              "value": "{{tokenId}}"
+            }
+          ]
+        },
+        "description": "Get level-up cost for a specific NFT by reading its current level from the blockchain."
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"currentLevel\": 0,\n    \"nextLevel\": 1,\n    \"cost\": 1,\n    \"currency\": \"AVAX\",\n    \"isMaxLevel\": false,\n    \"rank\": \"Trainee\",\n    \"nextRank\": \"Corporal\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Level-Up Cost (Full Table)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/training/level-up/cost",
+          "host": ["{{baseUrl}}"],
+          "path": ["training", "level-up", "cost"]
+        },
+        "description": "Get the full level-up cost table for all 7 levels."
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"costs\": {\"1\": 1, \"2\": 1, \"3\": 2, \"4\": 2, \"5\": 3, \"6\": 3, \"7\": 5},\n    \"currency\": \"AVAX\",\n    \"maxLevel\": 7\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Tournament Eligibility",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/training/eligibility/{{tokenId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["training", "eligibility", "{{tokenId}}"]
+        },
+        "description": "Check which tournaments an NFT qualifies for based on its level. Level 0 (Trainee) NFTs cannot enter any tournaments."
+      },
+      "response": [
+        {
+          "name": "Success - Level 0",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"level\": 0,\n    \"rank\": \"Trainee\",\n    \"eligibleLevels\": [],\n    \"activeTournaments\": [],\n    \"upcomingTournaments\": []\n  }\n}"
+        }
+      ]
+    }
+  ]
+}

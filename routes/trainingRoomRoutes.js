@@ -1,26 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const { decodeToken } = require("../middleware/auth");
+const { purchaseLimiter } = require("../middleware/rateLimiter");
+const trainingController = require("../controllers/trainingController");
 
-// Placeholder - implemented in Phase 3
-router.get("/nfts/:address", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/nft/:tokenId", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.post("/level-up", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/level-up/cost", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/eligibility/:tokenId", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
+router.get("/nfts/:address", decodeToken, trainingController.getNfts);
+router.get("/nft/:tokenId", decodeToken, trainingController.getNftDetail);
+router.post("/level-up", decodeToken, purchaseLimiter, trainingController.levelUp);
+router.get("/level-up/cost", decodeToken, trainingController.getLevelUpCost);
+router.get("/eligibility/:tokenId", decodeToken, trainingController.getEligibility);
 
 module.exports = router;
