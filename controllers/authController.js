@@ -261,9 +261,37 @@ const logout = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * GET /api/v1/auth/check-user/:email
+ * Check if a user already exists in Firebase Auth (public, no auth required)
+ */
+const checkUser = catchAsync(async (req, res, next) => {
+  const { email } = req.params;
+
+  if (!email || !validator.isEmail(email)) {
+    return next(new AppError("Please provide a valid email address", 400));
+  }
+
+  let exists = false;
+  try {
+    await getFirebaseAuth().getUserByEmail(email);
+    exists = true;
+  } catch (e) {
+    if (e.code !== "auth/user-not-found") {
+      throw e;
+    }
+  }
+
+  res.status(200).json({
+    success: true,
+    data: { exists },
+  });
+});
+
 module.exports = {
   createUser,
   login,
   me,
   logout,
+  checkUser,
 };

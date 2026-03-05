@@ -44,10 +44,10 @@ Phase 1 implements the core authentication loop and game-to-backend integration:
 |  |  Routes  |  |  Routes   |  |  Routes  |  |             |               |
 |  |          |  |           |  |          |  | - Firebase   |               |
 |  | create   |  | verify    |  | /health  |  |   Auth       |               |
-|  | login    |  | set-      |  |          |  | - Rate       |               |
-|  | me       |  |  avatar   |  |          |  |   Limit      |               |
-|  | logout   |  | download  |  |          |  | - Anti-      |               |
-|  |          |  | info      |  |          |  |   Cheat      |               |
+|  | check    |  | set-      |  |          |  | - Rate       |               |
+|  | login    |  |  avatar   |  |          |  |   Limit      |               |
+|  | me       |  | download  |  |          |  | - Anti-      |               |
+|  | logout   |  | info      |  |          |  |   Cheat      |               |
 |  +----+-----+  +----+------+  +----------+  +-------------+               |
 |       |             |                                                      |
 |       v             v                                                      |
@@ -91,7 +91,40 @@ Phase 1 implements the core authentication loop and game-to-backend integration:
 
 ---
 
+## Blockchain Explorer (Snowtrace Fuji Testnet)
+
+| Contract/Wallet | Address | Explorer Link |
+|-----------------|---------|---------------|
+| BattleToken | `0xF16214F76f19bD1E6d3349fC199B250a8E441E8C` | [Snowtrace](https://testnet.snowtrace.io/address/0xF16214F76f19bD1E6d3349fC199B250a8E441E8C) |
+| ChainBoisNFT | `0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5` | [Snowtrace](https://testnet.snowtrace.io/address/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5) |
+| WeaponNFT | `0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28` | [Snowtrace](https://testnet.snowtrace.io/address/0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28) |
+| Deployer | `0x80dBC4C3c17eb35160AEeC41B1590D5F028079C0` | [Snowtrace](https://testnet.snowtrace.io/address/0x80dBC4C3c17eb35160AEeC41B1590D5F028079C0) |
+| NFT Store | `0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0` | [Snowtrace](https://testnet.snowtrace.io/address/0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0) |
+| Weapon Store | `0xD40e6631617B7557C28789bAc01648A74753739C` | [Snowtrace](https://testnet.snowtrace.io/address/0xD40e6631617B7557C28789bAc01648A74753739C) |
+| Prize Pool | `0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e` | [Snowtrace](https://testnet.snowtrace.io/address/0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e) |
+
+---
+
 ## Endpoint-by-Endpoint Flow
+
+### 0. GET /api/v1/auth/check-user/:email (Public)
+
+**Purpose**: Check if a user exists in Firebase Auth before showing signup form.
+
+```
+Frontend                              API                           Firebase
+   |                                   |                              |
+   |  GET /auth/check-user/a@b.com    |                              |
+   |---------------------------------->|                              |
+   |                                   |  Validate email format       |
+   |                                   |  firebase.getUserByEmail()   |
+   |                                   |----------------------------->|
+   |                                   |  <-- user record or error ---|
+   |                                   |                              |
+   |  <--- 200 { exists: true/false } |                              |
+```
+
+---
 
 ### 1. POST /api/v1/auth/create-user (Public)
 

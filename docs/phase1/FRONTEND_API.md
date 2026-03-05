@@ -273,7 +273,65 @@ This allows web2 users created by the game (via syncNewUsersJob) to be found and
 
 ---
 
+## Blockchain Explorer (Snowtrace)
+
+View all contracts and wallets on the Avalanche Fuji Testnet explorer:
+
+**Contracts:**
+| Contract | Address | Explorer |
+|----------|---------|----------|
+| BattleToken | `0xF16214F76f19bD1E6d3349fC199B250a8E441E8C` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xF16214F76f19bD1E6d3349fC199B250a8E441E8C) |
+| ChainBoisNFT | `0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5) |
+| WeaponNFT | `0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28) |
+
+**Platform Wallets:**
+| Wallet | Address | Explorer |
+|--------|---------|----------|
+| Deployer | `0x80dBC4C3c17eb35160AEeC41B1590D5F028079C0` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x80dBC4C3c17eb35160AEeC41B1590D5F028079C0) |
+| NFT Store (50 ChainBois) | `0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0) |
+| Weapon Store (13 weapons) | `0xD40e6631617B7557C28789bAc01648A74753739C` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xD40e6631617B7557C28789bAc01648A74753739C) |
+| Prize Pool | `0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e) |
+
+---
+
 ## 4. Auth Endpoints
+
+### GET /auth/check-user/:email
+
+Check if a user with a given email already exists in Firebase Auth.
+
+**Auth**: None (public endpoint)
+
+| Param | Type | Required | Validation |
+|-------|--------|----------|-------------------------------|
+| email | string | yes | Valid email format (URL param) |
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": { "exists": true }
+}
+```
+
+**Errors:**
+- `400`: "Please provide a valid email address"
+
+**Example:**
+```javascript
+const checkUserExists = async (email) => {
+  const { data } = await api.get(`/auth/check-user/${encodeURIComponent(email)}`);
+  return data.data.exists; // true or false
+};
+
+// Usage: check before showing signup form
+const exists = await checkUserExists("player@example.com");
+if (exists) {
+  alert("Account already exists. Please log in instead.");
+}
+```
+
+---
 
 ### POST /auth/create-user
 
@@ -663,24 +721,28 @@ Download the game build. Streams a zip file.
 **Auth**: None (public)
 
 | Param | Values |
-|----------|---------|
-| platform | win, mac |
+|----------|-------------|
+| platform | win, mac, apk |
 
 Returns binary stream with headers:
-- `Content-Disposition: attachment; filename="ChainBoisWin.zip"`
+- `Content-Disposition: attachment; filename="ChainBoisWin.zip"` (or ChainBoisMac.zip, ChainBois.apk)
 - `Content-Type: application/octet-stream`
 
 **Errors:**
-- `400`: "Invalid platform. Use 'win' or 'mac'."
+- `400`: "Invalid platform. Use 'win', 'mac', or 'apk'."
 - `404`: "Game file not available yet"
 
 **Example:**
 ```javascript
 // Direct link - open in new tab or use anchor tag
-const downloadUrl = `${API_BASE_URL}/game/download/win`;
+const downloadWin = `${API_BASE_URL}/game/download/win`;
+const downloadMac = `${API_BASE_URL}/game/download/mac`;
+const downloadApk = `${API_BASE_URL}/game/download/apk`;
 
 // HTML:
-// <a href="https://api.chainbois.com/api/v1/game/download/win">Download for Windows</a>
+// <a href="https://your-api-domain.com/api/v1/game/download/win">Download for Windows</a>
+// <a href="https://your-api-domain.com/api/v1/game/download/mac">Download for Mac</a>
+// <a href="https://your-api-domain.com/api/v1/game/download/apk">Download APK (Android)</a>
 ```
 
 ---
@@ -698,7 +760,7 @@ Get game download count and platform availability.
   "data": {
     "downloads": 150,
     "trailer": "https://youtube.com/...",
-    "platforms": { "win": true, "mac": false }
+    "platforms": { "win": true, "mac": false, "apk": true }
   }
 }
 ```
@@ -725,6 +787,9 @@ const DownloadSection = () => {
       )}
       {info?.platforms?.mac && (
         <a href={`${API_BASE_URL}/game/download/mac`}>Download for Mac</a>
+      )}
+      {info?.platforms?.apk && (
+        <a href={`${API_BASE_URL}/game/download/apk`}>Download APK (Android)</a>
       )}
       {info?.trailer && (
         <a href={info.trailer} target="_blank" rel="noopener noreferrer">Watch Trailer</a>
@@ -1110,6 +1175,7 @@ interface GameInfo {
   platforms: {
     win: boolean;
     mac: boolean;
+    apk: boolean;
   };
 }
 ```

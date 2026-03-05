@@ -29,10 +29,19 @@ describe("validateEndpoint", () => {
     }
   });
 
-  test("allows game endpoints", () => {
-    const { req, res, next } = createMocks("/api/v1/game/verify-assets");
+  test("allows check-user endpoint with email", () => {
+    const { req, res, next } = createMocks("/api/v1/auth/check-user/test@example.com");
     validateEndpoint(req, res, next);
     expect(next).toHaveBeenCalledWith();
+  });
+
+  test("allows game endpoints", () => {
+    const endpoints = ["/api/v1/game/verify-assets", "/api/v1/game/download/win", "/api/v1/game/download/mac", "/api/v1/game/download/apk"];
+    for (const ep of endpoints) {
+      const { req, res, next } = createMocks(ep);
+      validateEndpoint(req, res, next);
+      expect(next).toHaveBeenCalledWith();
+    }
   });
 
   test("allows game character endpoint with address", () => {
