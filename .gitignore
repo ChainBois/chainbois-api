@@ -224,3 +224,7 @@ helper.js
 raw-features.txt
 run_copy.js
 *.jpeg
+
+# NFT and weapon images (already on IPFS, too large for git)
+assets/nft-collection/images/
+assets/weapons/images/
