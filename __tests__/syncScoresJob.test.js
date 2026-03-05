@@ -21,6 +21,13 @@ jest.mock("../models/weeklyLeaderboardModel", () => ({
   findOneAndUpdate: (...args) => mockLbFindOneAndUpdate(...args),
 }));
 
+// Mock ScoreChange
+const mockScoreChangeCreate = jest.fn().mockResolvedValue({});
+
+jest.mock("../models/scoreChangeModel", () => ({
+  create: (...args) => mockScoreChangeCreate(...args),
+}));
+
 // Mock antiCheat
 const mockGetOrCreateSP = jest.fn();
 const mockCheckBanStatus = jest.fn();
@@ -124,6 +131,7 @@ describe("syncScoresJob", () => {
 
     // User.save called only for isBanned check, not for score update
     expect(mockLbFindOneAndUpdate).not.toHaveBeenCalled();
+    expect(mockScoreChangeCreate).not.toHaveBeenCalled();
   });
 
   test("processes valid score delta", async () => {
@@ -145,6 +153,14 @@ describe("syncScoresJob", () => {
     expect(mockSPSave).toHaveBeenCalled();
     expect(mockUserSave).toHaveBeenCalled();
     expect(mockLbFindOneAndUpdate).toHaveBeenCalled();
+    expect(mockScoreChangeCreate).toHaveBeenCalledWith({
+      uid,
+      address: "0xabc",
+      username: "player1",
+      score: 600,
+      previousScore: 100,
+      scoreChange: 500,
+    });
   });
 
   test("caps delta at MAX_POINTS_PER_MATCH", async () => {
@@ -163,6 +179,14 @@ describe("syncScoresJob", () => {
     // Threat score should be incremented for suspicious delta
     expect(sp.threatScore).toBe(5); // VELOCITY_EXPLOIT increment
     expect(sp.violationLog).toHaveLength(1);
+    // ScoreChange created with capped delta
+    expect(mockScoreChangeCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scoreChange: 5000,
+        score: 10000,
+        previousScore: 0,
+      })
+    );
   });
 
   test("skips when daily earnings disallowed", async () => {
@@ -179,6 +203,7 @@ describe("syncScoresJob", () => {
     expect(user.score).toBe(0); // Not updated
     expect(mockSPSave).toHaveBeenCalled(); // Still saves for daily reset
     expect(mockLbFindOneAndUpdate).not.toHaveBeenCalled();
+    expect(mockScoreChangeCreate).not.toHaveBeenCalled();
   });
 
   test("upserts weekly leaderboard with year and weekNumber", async () => {
@@ -239,6 +264,7 @@ describe("syncScoresJob", () => {
 
     expect(user.score).toBe(1000); // Unchanged
     expect(mockLbFindOneAndUpdate).not.toHaveBeenCalled();
+    expect(mockScoreChangeCreate).not.toHaveBeenCalled();
   });
 
   test("handles Firebase error gracefully", async () => {

@@ -1,5 +1,6 @@
 const User = require("../models/userModel");
 const WeeklyLeaderboard = require("../models/weeklyLeaderboardModel");
+const ScoreChange = require("../models/scoreChangeModel");
 const { getFirebaseDb } = require("../config/firebase");
 const {
   FIREBASE_PATHS,
@@ -149,6 +150,20 @@ const syncScoresJob = async function () {
           );
         } catch (e) {
           console.error(`Failed to update leaderboard for ${firebaseId}:`, e.message);
+        }
+
+        // Record granular score change for time-period leaderboard queries
+        try {
+          await ScoreChange.create({
+            uid: firebaseId,
+            address: user.address,
+            username: user.username,
+            score: firebaseScore,
+            previousScore,
+            scoreChange: cappedDelta,
+          });
+        } catch (e) {
+          console.error(`Failed to create score change for ${firebaseId}:`, e.message);
         }
 
         updatedCount++;

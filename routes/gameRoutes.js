@@ -11,6 +11,5 @@ router.get("/info", downloadController.getGameInfo);
 // Protected endpoints (require Firebase auth)
 router.post("/verify-assets", decodeToken, gameController.verifyAssets);
 router.post("/set-avatar", decodeToken, gameController.setAvatar);
-router.get("/characters/:address", decodeToken, gameController.getCharacters);
 
 module.exports = router;

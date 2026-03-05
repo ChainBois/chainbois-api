@@ -78,8 +78,6 @@ const verifyAssets = catchAsync(async (req, res, next) => {
     console.error("Failed to update Firebase:", e.message);
   }
 
-  const { characters, weapons: baseWeapons } = getUnlockedContent(assets.level, assets.hasNft);
-
   res.status(200).json({
     success: true,
     data: {
@@ -87,8 +85,6 @@ const verifyAssets = catchAsync(async (req, res, next) => {
       nftTokenId: assets.nftTokenId,
       level: assets.level,
       ownedWeaponNfts: assets.weapons,
-      characters,
-      baseWeapons,
     },
   });
 });
@@ -150,8 +146,6 @@ const setAvatar = catchAsync(async (req, res, next) => {
   }
   await user.save();
 
-  const { characters, weapons: baseWeapons } = getUnlockedContent(level, true);
-
   // Update Firebase
   try {
     const db = getFirebaseDb();
@@ -168,43 +162,6 @@ const setAvatar = catchAsync(async (req, res, next) => {
     data: {
       tokenId: parsedTokenId,
       level,
-      characters,
-      baseWeapons,
-    },
-  });
-});
-
-/**
- * GET /api/v1/game/characters/:address
- * Get unlocked characters for a given address
- * Protected: user can only query their own address
- */
-const getCharacters = catchAsync(async (req, res, next) => {
-  const { address } = req.params;
-
-  if (!ethers.isAddress(address)) {
-    return next(new AppError("Invalid wallet address", 400));
-  }
-
-  const normalizedAddress = address.toLowerCase();
-
-  // BOLA protection: ensure requesting user owns this address
-  const requestingUser = await User.findOne({ uid: req.user.uid });
-  if (!requestingUser) {
-    return next(new AppError("User not found", 404));
-  }
-  if (requestingUser.address !== normalizedAddress) {
-    return next(new AppError("You can only query your own address", 403));
-  }
-
-  const { characters, weapons: baseWeapons } = getUnlockedContent(requestingUser.level, requestingUser.hasNft);
-
-  res.status(200).json({
-    success: true,
-    data: {
-      level: requestingUser.level,
-      characters,
-      baseWeapons,
     },
   });
 });
@@ -212,6 +169,5 @@ const getCharacters = catchAsync(async (req, res, next) => {
 module.exports = {
   verifyAssets,
   setAvatar,
-  getCharacters,
   getUnlockedContent,
 };

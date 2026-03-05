@@ -134,8 +134,11 @@ const login = catchAsync(async (req, res, next) => {
     console.error("Failed to read Firebase user data:", e.message);
   }
 
-  // Find or create user in MongoDB
-  let user = await User.findOne({ uid });
+  // Find or create user in MongoDB (address-primary, uid fallback for web2→web3 upgrade)
+  let user = await User.findOne({ address: normalizedAddress });
+  if (!user) {
+    user = await User.findOne({ uid });
+  }
   const previousAddress = user ? user.address : null;
 
   if (!user) {

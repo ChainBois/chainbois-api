@@ -218,3 +218,9 @@ test-results/
 # Uploaded files
 uploads/
 temp/
+
+# Scratch/utility files
+helper.js
+raw-features.txt
+run_copy.js
+*.jpeg

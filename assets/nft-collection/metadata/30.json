@@ -1,0 +1,39 @@
+{
+  "name": "ChainBoi #30",
+  "description": "ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.",
+  "image": "ipfs://PLACEHOLDER_CID/30.png",
+  "dna": "c5263ed0d11dedff912adba60801b2ab62646328",
+  "edition": 30,
+  "date": 1772643349738,
+  "attributes": [
+    {
+      "trait_type": "01_Background",
+      "value": "Orchid_Haze"
+    },
+    {
+      "trait_type": "02_Skin",
+      "value": "Arctic_Frost"
+    },
+    {
+      "trait_type": "03_Weapon",
+      "value": "Golden_Trident"
+    },
+    {
+      "trait_type": "04_Suit",
+      "value": "Missile_Rack_Vest"
+    },
+    {
+      "trait_type": "05_Eyes",
+      "value": "Tactical_Goggles"
+    },
+    {
+      "trait_type": "06_Mouth",
+      "value": "Clenched_Fury"
+    },
+    {
+      "trait_type": "07_Helmet",
+      "value": "Venom_Assault"
+    }
+  ],
+  "compiler": "HashLips Art Engine"
+}

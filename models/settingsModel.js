@@ -13,7 +13,14 @@ const settingsSchema = new mongoose.Schema(
       of: Number,
       default: () => new Map([["1", 2], ["2", 4], ["3", 6], ["4", 8], ["5", 10], ["6", 12], ["7", 14]]),
     },
-    levelUpCost: { type: Number, default: 1, min: 0 },
+    levelUpCosts: {
+      type: Map,
+      of: Number,
+      default: () => new Map([
+        ["1", 1], ["2", 1], ["3", 2], ["4", 2], ["5", 3], ["6", 3], ["7", 5],
+      ]),
+    },
+    battleTokenDecimals: { type: Number, default: 6, min: 0, max: 18 },
     maxPointsPerMatch: { type: Number, default: 5000, min: 0 },
     burnRate: { type: Number, default: 0.5, min: 0, max: 1 },
     teamRevenueSplit: { type: Number, default: 0.25, min: 0, max: 1 },
