@@ -1,10 +1,11 @@
 # Phase 1 Integration Test Report
 
-**Date**: March 4, 2026
-**Result**: 47/47 PASSED (0 failed, 0 skipped)
-**Duration**: ~9.2 seconds total
-**Script**: `scripts/testPhase1.js`
-**Results JSON**: `test-results/phase1-integration.json`
+**Date**: March 5, 2026 (updated)
+**Result**: 19/19 Postman requests PASSED (0 failed) + 47/47 integration tests PASSED
+**Duration**: 4.7s (Postman/Newman) + ~9.2s (integration script)
+**Postman Collection**: `docs/phase1/POSTMAN_COLLECTION.json` (tested via Newman CLI)
+**Integration Script**: `scripts/testPhase1.js`
+**Unit Tests**: 208/208 passing (17 test suites)
 
 ---
 
@@ -17,7 +18,8 @@
 | **Firebase** | Project `chainbois`, RTDB `your-project-default-rtdb.firebaseio.com` |
 | **Network** | Avalanche Fuji Testnet (Chain ID 43113) |
 | **RPC** | `https://api.avax-test.network/ext/bc/C/rpc` |
-| **Unit Tests** | 207/207 passing (17 test suites) - no regressions |
+| **Unit Tests** | 208/208 passing (17 test suites) - includes new check-user/APK tests |
+| **Postman Runner** | Newman CLI v6 (Postman CLI runner) |
 
 ### Smart Contracts (Fuji)
 
@@ -36,14 +38,28 @@
 | deployer | `0x80dBC4C3c17eb35160AEeC41B1590D5F028079C0` | 0 NFTs (has AVAX) |
 | prize_pool | `0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e` | Empty |
 
-### Test User
+### Test Users
 
-| Field | Value |
-|-------|-------|
-| Email | `test_phase1_{timestamp}@chainbois.test` |
-| Password | `TestSoldier123!` |
-| Username | `IntegrationTestSoldier` |
-| Wallets tested | nft_store (web3, 50 NFTs), deployer (web2, 0 NFTs) |
+| Field | User 1 (Web3) | User 2 (Web2) |
+|-------|----------------|----------------|
+| Email | `goonerlabs@gmail.com` | `udohlove321@gmail.com` |
+| Password | `Cb!Goon3r2026` | `Cb!Ud0h2026` |
+| Username | `GoonerLabs` | `UdohLove` |
+| UID | `NQxwDUyW6UfhxPrW4UwjTIwVZQW2` | `PoAujDbudgfJrtjIkLAcVhh4iYD3` |
+| Wallet | nft_store (`0x469622d...`) | deployer (`0x80dBC4...`) |
+| Player Type | web3 (has NFT #1) | web2 (no NFTs) |
+
+**Remaining unused test emails**: `testuser1@example.com`, `testuser2@example.com`, `testuser3@example.com`
+
+### Pre/Post Test Database State
+
+| Collection | Pre-Test | Post-Test | Change |
+|------------|----------|-----------|--------|
+| users | 1 | 3 | +2 (GoonerLabs, UdohLove) |
+| securityprofiles | 1 | 3 | +2 (auto-created on login) |
+| settings | 1 | 1 | No change |
+| weeklyleaderboards | 0 | 0 | No change |
+| scorechanges | 0 | 0 | No change |
 
 ---
 
@@ -268,7 +284,46 @@ Step 3: Login back with nft_store (re-upgrade to web3)
 
 ---
 
-## 3. Test Results by Section
+## 3. Postman Collection Test (Newman)
+
+The Postman collection (`docs/phase1/POSTMAN_COLLECTION.json`) was tested directly via Newman CLI against the live API. This confirms the collection is importable and every request works.
+
+**Command**: `newman run docs/phase1/POSTMAN_COLLECTION.json --env-var "firebase_token=..." --env-var "test_uid=..."`
+
+### Results: 19/19 requests, 0 failures
+
+| # | Folder | Request | Method | Status | Time |
+|---|--------|---------|--------|--------|------|
+| 1 | Auth | Check User Exists | GET | 200 OK | 140ms |
+| 2 | Auth | Create User | POST | 201 Created | 687ms |
+| 3 | Auth | Login | POST | 200 OK | 1068ms |
+| 4 | Auth | Get Current User | GET | 200 OK | 99ms |
+| 5 | Auth | Logout | POST | 200 OK | 263ms |
+| 6 | Game | Verify Assets | POST | 200 OK | 614ms |
+| 7 | Game | Set Avatar | POST | 200 OK | 322ms |
+| 8 | Game | Download Game (Win) | GET | 404 Not Found | 8ms |
+| 9 | Game | Download Game (Mac) | GET | 404 Not Found | 7ms |
+| 10 | Game | Download Game (APK) | GET | 404 Not Found | 7ms |
+| 11 | Game | Get Game Info | GET | 200 OK | 98ms |
+| 12 | Leaderboard | All-Time | GET | 200 OK | 191ms |
+| 13 | Leaderboard | 24 Hours | GET | 200 OK | 99ms |
+| 14 | Leaderboard | Week | GET | 200 OK | 97ms |
+| 15 | Leaderboard | Pagination | GET | 200 OK | 192ms |
+| 16 | Leaderboard | User Rank (All-Time) | GET | 200 OK | 188ms |
+| 17 | Leaderboard | User Rank (Weekly) | GET | 200 OK | 284ms |
+| 18 | Health & Settings | Get Settings | GET | 200 OK | 97ms |
+| 19 | Health & Settings | Health Check | GET | 200 OK | 5ms |
+
+**Notes**:
+- Download endpoints return 404 as expected (game files not uploaded yet)
+- Average response time: 235ms (min 5ms, max 1068ms)
+- Login is slowest (1068ms) due to on-chain NFT lookup via Glacier API + contract call
+- All authenticated endpoints used a real Firebase ID token for `goonerlabs@gmail.com`
+- Test user (`testuser@chainbois.com`) created by Newman was cleaned up after the run
+
+---
+
+## 4. Integration Test Results by Section
 
 ### Section 1: Health & Settings (3/3 passed)
 
@@ -458,7 +513,7 @@ Step 3: Login back with nft_store (re-upgrade to web3)
 
 ---
 
-## 4. Edge Cases & Error Scenarios Summary
+## 5. Edge Cases & Error Scenarios Summary
 
 | Category | Test | Input | Status | Error Message |
 |----------|------|-------|--------|---------------|
@@ -475,7 +530,7 @@ Step 3: Login back with nft_store (re-upgrade to web3)
 | **Auth** | Invalid JWT | `"invalid.jwt.token"` | 401 | Unauthorized |
 | **Ownership** | Unowned NFT | `{ tokenId: 999 }` | 400 | "Failed to verify NFT ownership. Token may not exist." |
 | **Routing** | Unknown endpoint | `/nonexistent` | 404 | validateEndpoint rejection |
-| **Routing** | Invalid platform | `/download/linux` | 404 | validateEndpoint regex rejects (only win/mac) |
+| **Routing** | Invalid platform | `/download/linux` | 404 | validateEndpoint regex rejects (only win/mac/apk) |
 | **Leaderboard** | Invalid period | `/leaderboard/invalid` | 400 | "Invalid period. Valid periods: ..." |
 | **Security** | XSS in username | `<script>alert(1)</script>` | 201 | Tags stripped, user created safely |
 | **Security** | NoSQL injection | `{ "$gt": "" }` | 400 | Operators stripped by mongo-sanitize |
@@ -483,7 +538,7 @@ Step 3: Login back with nft_store (re-upgrade to web3)
 
 ---
 
-## 5. Rate Limiting
+## 6. Rate Limiting
 
 | Limiter | Scope | Limit | Window | Tested |
 |---------|-------|-------|--------|--------|
@@ -495,7 +550,7 @@ Step 3: Login back with nft_store (re-upgrade to web3)
 
 ---
 
-## 6. Test Cleanup
+## 7. Test Cleanup
 
 After all tests complete, the script cleans up all test data:
 
@@ -511,7 +566,7 @@ No test data remains in any database after script completion.
 
 ---
 
-## 7. Test Execution History
+## 8. Test Execution History
 
 | Round | Date | Result | Notes |
 |-------|------|--------|-------|
@@ -519,25 +574,30 @@ No test data remains in any database after script completion.
 | Round 2 | March 4, 2026 | 27/47 | 20 failures due to auth rate limiter exhaustion (20 req/15min). All auth-dependent tests cascaded. |
 | Round 3 | March 4, 2026 | **47/47** | Server restarted (resets in-memory rate limiter). All tests pass. |
 | Round 4 | March 5, 2026 | **47/47** | Tests run against live domain `https://your-api-domain.com` via HTTPS+SSL. All pass. |
+| Round 5 (Newman) | March 5, 2026 | **19/19** | Postman collection tested via Newman CLI. Real emails: goonerlabs@gmail.com, udohlove321@gmail.com. All 19 requests pass. |
 
 ---
 
-## 8. Endpoints Tested (Complete Coverage)
+## 9. Endpoints Tested (Complete Coverage)
 
-| # | Method | Path | Auth | Public | Phase |
-|---|--------|------|------|--------|-------|
-| 1 | GET | /health | No | Yes | 1 |
-| 2 | GET | /settings | No | Yes | 1 |
-| 3 | POST | /auth/create-user | No | Yes | 1 |
-| 4 | POST | /auth/login | Yes | No | 1 |
-| 5 | GET | /auth/me | Yes | No | 1 |
-| 6 | POST | /auth/logout | Yes | No | 1 |
-| 7 | POST | /game/verify-assets | Yes | No | 1 |
-| 8 | POST | /game/set-avatar | Yes | No | 1 |
-| 9 | GET | /game/download/:platform | No | Yes | 1 |
-| 10 | GET | /game/info | No | Yes | 1 |
-| 11 | GET | /leaderboard | No | Yes | 4 |
-| 12 | GET | /leaderboard/:period | No | Yes | 4 |
-| 13 | GET | /leaderboard/rank/:uid | Yes | No | 4 |
+| # | Method | Path | Auth | Public | Phase | Postman | Integration |
+|---|--------|------|------|--------|-------|---------|-------------|
+| 1 | GET | /health | No | Yes | 1 | Yes | Yes |
+| 2 | GET | /settings | No | Yes | 1 | Yes | Yes |
+| 3 | GET | /auth/check-user/:email | No | Yes | 1 | Yes | Yes |
+| 4 | POST | /auth/create-user | No | Yes | 1 | Yes | Yes |
+| 5 | POST | /auth/login | Yes | No | 1 | Yes | Yes |
+| 6 | GET | /auth/me | Yes | No | 1 | Yes | Yes |
+| 7 | POST | /auth/logout | Yes | No | 1 | Yes | Yes |
+| 8 | POST | /game/verify-assets | Yes | No | 1 | Yes | Yes |
+| 9 | POST | /game/set-avatar | Yes | No | 1 | Yes | Yes |
+| 10 | GET | /game/download/win | No | Yes | 1 | Yes | Yes |
+| 11 | GET | /game/download/mac | No | Yes | 1 | Yes | Yes |
+| 12 | GET | /game/download/apk | No | Yes | 1 | Yes | N/A (new) |
+| 13 | GET | /game/info | No | Yes | 1 | Yes | Yes |
+| 14 | GET | /leaderboard | No | Yes | 4 | Yes | Yes |
+| 15 | GET | /leaderboard/:period | No | Yes | 4 | Yes | Yes |
+| 16 | GET | /leaderboard/rank/:uid | Yes | No | 4 | Yes | Yes |
 
-**Total: 13 unique endpoints tested across Phase 1 + Phase 4 (Leaderboard)**
+**Total: 16 unique endpoints tested across Phase 1 + Phase 4 (Leaderboard)**
+**Postman collection: 19 requests (some endpoints tested with multiple scenarios)**
