@@ -6,7 +6,6 @@ const AppError = require("../utils/appError");
 
 const GAME_FILES = {
   win: "ChainBoisWin.zip",
-  mac: "ChainBoisMac.zip",
   apk: "ChainBois.apk",
 };
 
@@ -22,7 +21,7 @@ const downloadGame = catchAsync(async (req, res, next) => {
 
   const fileName = GAME_FILES[platform];
   if (!fileName) {
-    return next(new AppError("Invalid platform. Use 'win', 'mac', or 'apk'.", 400));
+    return next(new AppError("Invalid platform. Use 'win' or 'apk'.", 400));
   }
 
   const filePath = path.join(GAME_DIR, fileName);
@@ -74,7 +73,6 @@ const getGameInfo = catchAsync(async (req, res, next) => {
       trailer: settings ? settings.trailer : "",
       platforms: {
         win: fs.existsSync(path.join(GAME_DIR, GAME_FILES.win)),
-        mac: fs.existsSync(path.join(GAME_DIR, GAME_FILES.mac)),
         apk: fs.existsSync(path.join(GAME_DIR, GAME_FILES.apk)),
       },
     },

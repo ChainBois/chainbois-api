@@ -196,7 +196,7 @@ chainbois-api/
 | POST | `/auth/logout` | Token | Logout + revoke tokens |
 | POST | `/game/verify-assets` | Token | Re-check NFTs on-chain |
 | POST | `/game/set-avatar` | Token | Set active NFT avatar |
-| GET | `/game/download/:platform` | Public | Download game (win/mac/apk) |
+| GET | `/game/download/:platform` | Public | Download game (win/apk) |
 | GET | `/game/info` | Public | Game info + download count |
 | GET | `/health` | Public | API health check |
 | GET | `/settings` | Public | Game settings |

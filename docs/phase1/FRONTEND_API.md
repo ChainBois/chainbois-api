@@ -722,26 +722,24 @@ Download the game build. Streams a zip file.
 
 | Param | Values |
 |----------|-------------|
-| platform | win, mac, apk |
+| platform | win, apk |
 
 Returns binary stream with headers:
-- `Content-Disposition: attachment; filename="ChainBoisWin.zip"` (or ChainBoisMac.zip, ChainBois.apk)
+- `Content-Disposition: attachment; filename="ChainBoisWin.zip"` (or ChainBois.apk)
 - `Content-Type: application/octet-stream`
 
 **Errors:**
-- `400`: "Invalid platform. Use 'win', 'mac', or 'apk'."
+- `400`: "Invalid platform. Use 'win' or 'apk'."
 - `404`: "Game file not available yet"
 
 **Example:**
 ```javascript
 // Direct link - open in new tab or use anchor tag
 const downloadWin = `${API_BASE_URL}/game/download/win`;
-const downloadMac = `${API_BASE_URL}/game/download/mac`;
 const downloadApk = `${API_BASE_URL}/game/download/apk`;
 
 // HTML:
 // <a href="https://your-api-domain.com/api/v1/game/download/win">Download for Windows</a>
-// <a href="https://your-api-domain.com/api/v1/game/download/mac">Download for Mac</a>
 // <a href="https://your-api-domain.com/api/v1/game/download/apk">Download APK (Android)</a>
 ```
 
@@ -760,7 +758,7 @@ Get game download count and platform availability.
   "data": {
     "downloads": 150,
     "trailer": "https://youtube.com/...",
-    "platforms": { "win": true, "mac": false, "apk": true }
+    "platforms": { "win": true, "apk": true }
   }
 }
 ```
@@ -784,9 +782,6 @@ const DownloadSection = () => {
       <p>{info?.downloads || 0} downloads</p>
       {info?.platforms?.win && (
         <a href={`${API_BASE_URL}/game/download/win`}>Download for Windows</a>
-      )}
-      {info?.platforms?.mac && (
-        <a href={`${API_BASE_URL}/game/download/mac`}>Download for Mac</a>
       )}
       {info?.platforms?.apk && (
         <a href={`${API_BASE_URL}/game/download/apk`}>Download APK (Android)</a>
@@ -1174,7 +1169,6 @@ interface GameInfo {
   trailer: string;           // YouTube URL
   platforms: {
     win: boolean;
-    mac: boolean;
     apk: boolean;
   };
 }

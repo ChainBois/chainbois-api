@@ -302,8 +302,7 @@ The Postman collection (`docs/phase1/POSTMAN_COLLECTION.json`) was tested direct
 | 6 | Game | Verify Assets | POST | 200 OK | 614ms |
 | 7 | Game | Set Avatar | POST | 200 OK | 322ms |
 | 8 | Game | Download Game (Win) | GET | 404 Not Found | 8ms |
-| 9 | Game | Download Game (Mac) | GET | 404 Not Found | 7ms |
-| 10 | Game | Download Game (APK) | GET | 404 Not Found | 7ms |
+| 9 | Game | Download Game (APK) | GET | 404 Not Found | 7ms |
 | 11 | Game | Get Game Info | GET | 200 OK | 98ms |
 | 12 | Leaderboard | All-Time | GET | 200 OK | 191ms |
 | 13 | Leaderboard | 24 Hours | GET | 200 OK | 99ms |
@@ -530,7 +529,7 @@ The Postman collection (`docs/phase1/POSTMAN_COLLECTION.json`) was tested direct
 | **Auth** | Invalid JWT | `"invalid.jwt.token"` | 401 | Unauthorized |
 | **Ownership** | Unowned NFT | `{ tokenId: 999 }` | 400 | "Failed to verify NFT ownership. Token may not exist." |
 | **Routing** | Unknown endpoint | `/nonexistent` | 404 | validateEndpoint rejection |
-| **Routing** | Invalid platform | `/download/linux` | 404 | validateEndpoint regex rejects (only win/mac/apk) |
+| **Routing** | Invalid platform | `/download/linux` | 404 | validateEndpoint regex rejects (only win/apk) |
 | **Leaderboard** | Invalid period | `/leaderboard/invalid` | 400 | "Invalid period. Valid periods: ..." |
 | **Security** | XSS in username | `<script>alert(1)</script>` | 201 | Tags stripped, user created safely |
 | **Security** | NoSQL injection | `{ "$gt": "" }` | 400 | Operators stripped by mongo-sanitize |
@@ -592,12 +591,11 @@ No test data remains in any database after script completion.
 | 8 | POST | /game/verify-assets | Yes | No | 1 | Yes | Yes |
 | 9 | POST | /game/set-avatar | Yes | No | 1 | Yes | Yes |
 | 10 | GET | /game/download/win | No | Yes | 1 | Yes | Yes |
-| 11 | GET | /game/download/mac | No | Yes | 1 | Yes | Yes |
-| 12 | GET | /game/download/apk | No | Yes | 1 | Yes | N/A (new) |
+| 11 | GET | /game/download/apk | No | Yes | 1 | Yes | Yes |
 | 13 | GET | /game/info | No | Yes | 1 | Yes | Yes |
 | 14 | GET | /leaderboard | No | Yes | 4 | Yes | Yes |
 | 15 | GET | /leaderboard/:period | No | Yes | 4 | Yes | Yes |
 | 16 | GET | /leaderboard/rank/:uid | Yes | No | 4 | Yes | Yes |
 
-**Total: 16 unique endpoints tested across Phase 1 + Phase 4 (Leaderboard)**
+**Total: 15 unique endpoints tested across Phase 1 + Phase 4 (Leaderboard)**
 **Postman collection: 19 requests (some endpoints tested with multiple scenarios)**

@@ -256,18 +256,6 @@
           }
         },
         {
-          "name": "Download Game (Mac)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/game/download/mac",
-              "host": ["{{base_url}}"],
-              "path": ["game", "download", "mac"]
-            },
-            "description": "Download the macOS game build.\n\nNo auth required. Streams the zip file.\nCurrently returns 404 (game file not uploaded yet)."
-          }
-        },
-        {
           "name": "Download Game (APK)",
           "request": {
             "method": "GET",
@@ -295,7 +283,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"downloads\": 0,\n    \"trailer\": \"\",\n    \"platforms\": {\n      \"win\": false,\n      \"mac\": false,\n      \"apk\": false\n    }\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"downloads\": 0,\n    \"trailer\": \"\",\n    \"platforms\": {\n      \"win\": false,\n      \"apk\": false\n    }\n  }\n}"
             }
           ]
         }

@@ -36,7 +36,7 @@ describe("validateEndpoint", () => {
   });
 
   test("allows game endpoints", () => {
-    const endpoints = ["/api/v1/game/verify-assets", "/api/v1/game/download/win", "/api/v1/game/download/mac", "/api/v1/game/download/apk"];
+    const endpoints = ["/api/v1/game/verify-assets", "/api/v1/game/download/win", "/api/v1/game/download/apk"];
     for (const ep of endpoints) {
       const { req, res, next } = createMocks(ep);
       validateEndpoint(req, res, next);
