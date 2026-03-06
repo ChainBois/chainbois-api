@@ -240,11 +240,51 @@ module.exports = {
     fs.copyFileSync(path.join(hlBuildImages, f), path.join(buildImages, f));
   }
 
-  // Copy and verify JSON metadata
+  // Copy, clean, and verify JSON metadata
   const jsonFiles = fs.readdirSync(hlBuildJson).filter((f) => f !== "_metadata.json");
   for (const f of jsonFiles) {
     fs.copyFileSync(path.join(hlBuildJson, f), path.join(buildJson, f));
   }
+
+  // Post-process metadata: clean trait names and inject game fields
+  console.log("\nPost-processing metadata...");
+  for (const f of jsonFiles) {
+    const filePath = path.join(buildJson, f);
+    const metadata = JSON.parse(fs.readFileSync(filePath, "utf8"));
+
+    // Clean trait names (HashLips uses folder names like "01_Background")
+    if (Array.isArray(metadata.attributes)) {
+      metadata.attributes = metadata.attributes.map((attr) => ({
+        trait_type: attr.trait_type.replace(/^\d+_/, "").replace(/_/g, " "),
+        value: typeof attr.value === "string" ? attr.value.replace(/_/g, " ") : attr.value,
+      }));
+    }
+
+    // Inject game fields if HashLips didn't include them
+    if (!metadata.collection) metadata.collection = "ChainBois Genesis";
+    if (metadata.level === undefined) metadata.level = 0;
+    if (!metadata.badges) metadata.badges = [];
+    if (!metadata.inGameStats) metadata.inGameStats = { kills: 0, score: 0, gamesPlayed: 0 };
+
+    // Add game stats to attributes array so explorers can index them
+    const gameStatTypes = ["Level", "Rank", "Kills", "Score", "Games Played"];
+    metadata.attributes = metadata.attributes.filter(
+      (attr) => !gameStatTypes.includes(attr.trait_type)
+    );
+    metadata.attributes.push(
+      { trait_type: "Level", value: 0, display_type: "number", max_value: 7 },
+      { trait_type: "Rank", value: "Trainee" },
+      { trait_type: "Kills", value: 0, display_type: "number" },
+      { trait_type: "Score", value: 0, display_type: "number" },
+      { trait_type: "Games Played", value: 0, display_type: "number" }
+    );
+
+    // Remove compiler field
+    delete metadata.compiler;
+
+    fs.writeFileSync(filePath, JSON.stringify(metadata, null, 2));
+  }
+  console.log(`Post-processed ${jsonFiles.length} metadata files.`);
 
   const imageCount = fs.readdirSync(buildImages).length;
   const jsonCount = jsonFiles.length;

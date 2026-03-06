@@ -1,39 +1,71 @@
 {
   "name": "ChainBoi #40",
   "description": "ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.",
-  "image": "ipfs://PLACEHOLDER_CID/40.png",
+  "image": "ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/40.png",
+  "collection": "ChainBois Genesis",
+  "level": 0,
+  "badges": [],
+  "inGameStats": {
+    "kills": 0,
+    "score": 0,
+    "gamesPlayed": 0
+  },
   "dna": "1e9296209fc9113f77d7af91fc3ce59ebcf0aa79",
   "edition": 40,
   "date": 1772643369893,
   "attributes": [
     {
-      "trait_type": "01_Background",
-      "value": "Tropical_Warzone"
+      "trait_type": "Background",
+      "value": "Tropical Warzone"
     },
     {
-      "trait_type": "02_Skin",
-      "value": "Arctic_Frost"
+      "trait_type": "Skin",
+      "value": "Arctic Frost"
     },
     {
-      "trait_type": "03_Weapon",
-      "value": "Battle_Axe"
+      "trait_type": "Weapon",
+      "value": "Battle Axe"
     },
     {
-      "trait_type": "04_Suit",
-      "value": "Brigandine_Siege_Plate"
+      "trait_type": "Suit",
+      "value": "Brigandine Siege Plate"
     },
     {
-      "trait_type": "05_Eyes",
-      "value": "Phantom_Glare"
+      "trait_type": "Eyes",
+      "value": "Phantom Glare"
     },
     {
-      "trait_type": "06_Mouth",
-      "value": "Tactical_Smirk"
+      "trait_type": "Mouth",
+      "value": "Tactical Smirk"
     },
     {
-      "trait_type": "07_Helmet",
-      "value": "Buzz_Cut_Blonde"
+      "trait_type": "Helmet",
+      "value": "Buzz Cut Blonde"
+    },
+    {
+      "trait_type": "Level",
+      "value": 0,
+      "display_type": "number",
+      "max_value": 7
+    },
+    {
+      "trait_type": "Rank",
+      "value": "Trainee"
+    },
+    {
+      "trait_type": "Kills",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Score",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Games Played",
+      "value": 0,
+      "display_type": "number"
     }
-  ],
-  "compiler": "HashLips Art Engine"
+  ]
 }

@@ -1,39 +1,71 @@
 {
   "name": "ChainBoi #10",
   "description": "ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.",
-  "image": "ipfs://PLACEHOLDER_CID/10.png",
+  "image": "ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/10.png",
+  "collection": "ChainBois Genesis",
+  "level": 0,
+  "badges": [],
+  "inGameStats": {
+    "kills": 0,
+    "score": 0,
+    "gamesPlayed": 0
+  },
   "dna": "3f261dc8c1f0f042d10c3ca7f79c611a4bb6551b",
   "edition": 10,
   "date": 1772643302657,
   "attributes": [
     {
-      "trait_type": "01_Background",
-      "value": "Desert_Gold"
+      "trait_type": "Background",
+      "value": "Desert Gold"
     },
     {
-      "trait_type": "02_Skin",
-      "value": "Steel_Phantom"
+      "trait_type": "Skin",
+      "value": "Steel Phantom"
     },
     {
-      "trait_type": "03_Weapon",
-      "value": "Iron_Mace"
+      "trait_type": "Weapon",
+      "value": "Iron Mace"
     },
     {
-      "trait_type": "04_Suit",
-      "value": "Recon_Pauldron_Guards"
+      "trait_type": "Suit",
+      "value": "Recon Pauldron Guards"
     },
     {
-      "trait_type": "05_Eyes",
-      "value": "Phantom_Glare"
+      "trait_type": "Eyes",
+      "value": "Phantom Glare"
     },
     {
-      "trait_type": "06_Mouth",
-      "value": "Stoic_Frown"
+      "trait_type": "Mouth",
+      "value": "Stoic Frown"
     },
     {
-      "trait_type": "07_Helmet",
-      "value": "Regulation_Cut"
+      "trait_type": "Helmet",
+      "value": "Regulation Cut"
+    },
+    {
+      "trait_type": "Level",
+      "value": 0,
+      "display_type": "number",
+      "max_value": 7
+    },
+    {
+      "trait_type": "Rank",
+      "value": "Trainee"
+    },
+    {
+      "trait_type": "Kills",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Score",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Games Played",
+      "value": 0,
+      "display_type": "number"
     }
-  ],
-  "compiler": "HashLips Art Engine"
+  ]
 }

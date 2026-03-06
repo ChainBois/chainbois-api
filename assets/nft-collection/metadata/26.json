@@ -1,39 +1,71 @@
 {
   "name": "ChainBoi #26",
   "description": "ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.",
-  "image": "ipfs://PLACEHOLDER_CID/26.png",
+  "image": "ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/26.png",
+  "collection": "ChainBois Genesis",
+  "level": 0,
+  "badges": [],
+  "inGameStats": {
+    "kills": 0,
+    "score": 0,
+    "gamesPlayed": 0
+  },
   "dna": "7e4338530f7e91caeedfcd0780a03caf5f69eda0",
   "edition": 26,
   "date": 1772643339724,
   "attributes": [
     {
-      "trait_type": "01_Background",
-      "value": "Moonlit_Recon"
+      "trait_type": "Background",
+      "value": "Moonlit Recon"
     },
     {
-      "trait_type": "02_Skin",
-      "value": "Steel_Phantom"
+      "trait_type": "Skin",
+      "value": "Steel Phantom"
     },
     {
-      "trait_type": "03_Weapon",
-      "value": "Spiked_Warclub"
+      "trait_type": "Weapon",
+      "value": "Spiked Warclub"
     },
     {
-      "trait_type": "04_Suit",
-      "value": "Recon_Utility_Jacket"
+      "trait_type": "Suit",
+      "value": "Recon Utility Jacket"
     },
     {
-      "trait_type": "05_Eyes",
-      "value": "Crimson_Fury"
+      "trait_type": "Eyes",
+      "value": "Crimson Fury"
     },
     {
-      "trait_type": "06_Mouth",
-      "value": "Angry_Snarl"
+      "trait_type": "Mouth",
+      "value": "Angry Snarl"
     },
     {
-      "trait_type": "07_Helmet",
-      "value": "Covert_Balaclava"
+      "trait_type": "Helmet",
+      "value": "Covert Balaclava"
+    },
+    {
+      "trait_type": "Level",
+      "value": 0,
+      "display_type": "number",
+      "max_value": 7
+    },
+    {
+      "trait_type": "Rank",
+      "value": "Trainee"
+    },
+    {
+      "trait_type": "Kills",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Score",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Games Played",
+      "value": 0,
+      "display_type": "number"
     }
-  ],
-  "compiler": "HashLips Art Engine"
+  ]
 }

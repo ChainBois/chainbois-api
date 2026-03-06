@@ -23,6 +23,10 @@ const validPatterns = [
   /^\/api\/v1\/inventory(\/.*)?$/,
   // Leaderboard
   /^\/api\/v1\/leaderboard(\/.*)?$/,
+  // Metadata (public, for marketplaces)
+  /^\/api\/v1\/metadata\/\d+(\.json)?$/,
+  // Airdrop
+  /^\/api\/v1\/airdrop(\/.*)?$/,
   // Health & Settings
   /^\/api\/v1\/health$/,
   /^\/api\/v1\/settings$/,

@@ -1,39 +1,71 @@
 {
   "name": "ChainBoi #24",
   "description": "ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.",
-  "image": "ipfs://PLACEHOLDER_CID/24.png",
+  "image": "ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/24.png",
+  "collection": "ChainBois Genesis",
+  "level": 0,
+  "badges": [],
+  "inGameStats": {
+    "kills": 0,
+    "score": 0,
+    "gamesPlayed": 0
+  },
   "dna": "8587a6d1eb986b196b529ded03e8f2268921513b",
   "edition": 24,
   "date": 1772643336415,
   "attributes": [
     {
-      "trait_type": "01_Background",
-      "value": "Amber_Sunrise"
+      "trait_type": "Background",
+      "value": "Amber Sunrise"
     },
     {
-      "trait_type": "02_Skin",
-      "value": "Pale_Recruit"
+      "trait_type": "Skin",
+      "value": "Pale Recruit"
     },
     {
-      "trait_type": "03_Weapon",
-      "value": "Battle_Axe"
+      "trait_type": "Weapon",
+      "value": "Battle Axe"
     },
     {
-      "trait_type": "04_Suit",
-      "value": "Shadow_Ops_Stealth_Suit"
+      "trait_type": "Suit",
+      "value": "Shadow Ops Stealth Suit"
     },
     {
-      "trait_type": "05_Eyes",
-      "value": "Tactical_Goggles"
+      "trait_type": "Eyes",
+      "value": "Tactical Goggles"
     },
     {
-      "trait_type": "06_Mouth",
-      "value": "Stoic_Frown"
+      "trait_type": "Mouth",
+      "value": "Stoic Frown"
     },
     {
-      "trait_type": "07_Helmet",
-      "value": "Black_Afro"
+      "trait_type": "Helmet",
+      "value": "Black Afro"
+    },
+    {
+      "trait_type": "Level",
+      "value": 0,
+      "display_type": "number",
+      "max_value": 7
+    },
+    {
+      "trait_type": "Rank",
+      "value": "Trainee"
+    },
+    {
+      "trait_type": "Kills",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Score",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Games Played",
+      "value": 0,
+      "display_type": "number"
     }
-  ],
-  "compiler": "HashLips Art Engine"
+  ]
 }

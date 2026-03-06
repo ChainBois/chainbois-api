@@ -1,39 +1,71 @@
 {
   "name": "ChainBoi #35",
   "description": "ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.",
-  "image": "ipfs://PLACEHOLDER_CID/35.png",
+  "image": "ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/35.png",
+  "collection": "ChainBois Genesis",
+  "level": 0,
+  "badges": [],
+  "inGameStats": {
+    "kills": 0,
+    "score": 0,
+    "gamesPlayed": 0
+  },
   "dna": "3e19d6b27d9f622d7b3877f488762ebbc046de83",
   "edition": 35,
   "date": 1772643357745,
   "attributes": [
     {
-      "trait_type": "01_Background",
-      "value": "Amber_Sunrise"
+      "trait_type": "Background",
+      "value": "Amber Sunrise"
     },
     {
-      "trait_type": "02_Skin",
-      "value": "Pale_Recruit"
+      "trait_type": "Skin",
+      "value": "Pale Recruit"
     },
     {
-      "trait_type": "03_Weapon",
-      "value": "Battle_Axe"
+      "trait_type": "Weapon",
+      "value": "Battle Axe"
     },
     {
-      "trait_type": "04_Suit",
-      "value": "Guerrilla_Field_Jacket"
+      "trait_type": "Suit",
+      "value": "Guerrilla Field Jacket"
     },
     {
-      "trait_type": "05_Eyes",
-      "value": "Recon_Scout"
+      "trait_type": "Eyes",
+      "value": "Recon Scout"
     },
     {
-      "trait_type": "06_Mouth",
-      "value": "Battle_Cry"
+      "trait_type": "Mouth",
+      "value": "Battle Cry"
     },
     {
-      "trait_type": "07_Helmet",
-      "value": "Comb_Over"
+      "trait_type": "Helmet",
+      "value": "Comb Over"
+    },
+    {
+      "trait_type": "Level",
+      "value": 0,
+      "display_type": "number",
+      "max_value": 7
+    },
+    {
+      "trait_type": "Rank",
+      "value": "Trainee"
+    },
+    {
+      "trait_type": "Kills",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Score",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Games Played",
+      "value": 0,
+      "display_type": "number"
     }
-  ],
-  "compiler": "HashLips Art Engine"
+  ]
 }

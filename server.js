@@ -40,11 +40,13 @@ const startServer = async function () {
       const cron = require("node-cron");
       const { syncNewUsersJob } = require("./jobs/syncNewUsersJob");
       const { syncScoresJob } = require("./jobs/syncScoresJob");
+      const { traitAirdropJob } = require("./jobs/traitAirdropJob");
       const { SYNC_NEW_USERS_INTERVAL, SYNC_SCORES_INTERVAL } = require("./config/constants");
 
       cron.schedule(SYNC_NEW_USERS_INTERVAL, syncNewUsersJob);
       cron.schedule(SYNC_SCORES_INTERVAL, syncScoresJob);
-      console.log("Cron jobs started: syncNewUsers, syncScores");
+      cron.schedule("0 20 * * 3", traitAirdropJob); // Wednesdays 8 PM UTC
+      console.log("Cron jobs started: syncNewUsers, syncScores, traitAirdrop (Wed 8PM UTC)");
     }
 
     // Start server

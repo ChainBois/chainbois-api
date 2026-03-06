@@ -146,6 +146,17 @@ module.exports = {
     PRIZE_PAYOUT: "prize_payout",
     NFT_TRANSFER: "nft_transfer",
     NFT_CLAIM: "nft_claim",
+    TRAIT_AIRDROP: "trait_airdrop",
+    RARITY_AIRDROP: "rarity_airdrop",
+  },
+
+  // Rarity tier thresholds (percentile cutoffs)
+  RARITY_TIERS: {
+    LEGENDARY: 1,   // top 1%
+    EPIC: 5,        // top 1-5%
+    RARE: 20,       // top 5-20%
+    UNCOMMON: 50,   // top 20-50%
+    // COMMON: > 50%
   },
 
   // Security

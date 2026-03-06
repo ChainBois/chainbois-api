@@ -1,39 +1,71 @@
 {
   "name": "ChainBoi #25",
   "description": "ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.",
-  "image": "ipfs://PLACEHOLDER_CID/25.png",
+  "image": "ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/25.png",
+  "collection": "ChainBois Genesis",
+  "level": 0,
+  "badges": [],
+  "inGameStats": {
+    "kills": 0,
+    "score": 0,
+    "gamesPlayed": 0
+  },
   "dna": "229f5cfc7b2179a0d332207873bf06738daaf2e5",
   "edition": 25,
   "date": 1772643337891,
   "attributes": [
     {
-      "trait_type": "01_Background",
-      "value": "Sky_Blue"
+      "trait_type": "Background",
+      "value": "Sky Blue"
     },
     {
-      "trait_type": "02_Skin",
-      "value": "Pale_Recruit"
+      "trait_type": "Skin",
+      "value": "Pale Recruit"
     },
     {
-      "trait_type": "03_Weapon",
-      "value": "Nail_Bat"
+      "trait_type": "Weapon",
+      "value": "Nail Bat"
     },
     {
-      "trait_type": "04_Suit",
-      "value": "Multicam_Operator_Kit"
+      "trait_type": "Suit",
+      "value": "Multicam Operator Kit"
     },
     {
-      "trait_type": "05_Eyes",
-      "value": "Wary_Sergeant"
+      "trait_type": "Eyes",
+      "value": "Wary Sergeant"
     },
     {
-      "trait_type": "06_Mouth",
-      "value": "Clenched_Fury"
+      "trait_type": "Mouth",
+      "value": "Clenched Fury"
     },
     {
-      "trait_type": "07_Helmet",
-      "value": "Textured_Quiff"
+      "trait_type": "Helmet",
+      "value": "Textured Quiff"
+    },
+    {
+      "trait_type": "Level",
+      "value": 0,
+      "display_type": "number",
+      "max_value": 7
+    },
+    {
+      "trait_type": "Rank",
+      "value": "Trainee"
+    },
+    {
+      "trait_type": "Kills",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Score",
+      "value": 0,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Games Played",
+      "value": 0,
+      "display_type": "number"
     }
-  ],
-  "compiler": "HashLips Art Engine"
+  ]
 }

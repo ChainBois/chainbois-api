@@ -26,6 +26,8 @@ const pointsRoutes = require("./routes/pointsRoutes");
 const claimRoutes = require("./routes/claimRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
+const metadataRoutes = require("./routes/metadataRoutes");
+const airdropRoutes = require("./routes/airdropRoutes");
 const healthRoutes = require("./routes/healthRoutes");
 
 const app = express();
@@ -141,6 +143,8 @@ app.use("/api/v1/points", pointsRoutes);
 app.use("/api/v1/claim", claimRoutes);
 app.use("/api/v1/inventory", inventoryRoutes);
 app.use("/api/v1/leaderboard", leaderboardRoutes);
+app.use("/api/v1/metadata", metadataRoutes);
+app.use("/api/v1/airdrop", airdropRoutes);
 app.use("/api/v1", healthRoutes);
 
 // 13. 404 catch-all

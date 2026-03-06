@@ -11,6 +11,8 @@ const transactionSchema = new mongoose.Schema(
         "prize_payout",
         "nft_transfer",
         "nft_claim",
+        "trait_airdrop",
+        "rarity_airdrop",
       ],
       required: true,
     },

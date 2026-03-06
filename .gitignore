@@ -146,8 +146,6 @@ reference-projects-from-algorand/
 reference-projects/
 
 # Documentation & research (keep local, exclude from repo)
-avalanche-docs/
-hashlips-docs/
 prompt.txt
 cumulative-chainbois-plans.txt
 
