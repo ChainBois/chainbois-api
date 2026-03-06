@@ -42,17 +42,19 @@ const getTokenMetadata = catchAsync(async (req, res, next) => {
   let name = `ChainBoi #${tokenId}`;
   let description = "ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.";
 
+  // Dynamic traits we append ourselves — filter these from base traits to avoid duplicates
+  const dynamicTraitTypes = new Set(["Level", "Rank", "Kills", "Score", "Games Played"]);
+
   if (nft && nft.traits && nft.traits.length > 0) {
-    baseTraits = nft.traits.map((t) => ({
-      trait_type: t.trait_type,
-      value: t.value,
-    }));
+    baseTraits = nft.traits
+      .filter((t) => !dynamicTraitTypes.has(t.trait_type))
+      .map((t) => ({ trait_type: t.trait_type, value: t.value }));
   } else {
     // Try static metadata file
     const staticPath = path.join(METADATA_DIR, `${tokenId}.json`);
     if (fs.existsSync(staticPath)) {
       const staticData = JSON.parse(fs.readFileSync(staticPath, "utf8"));
-      baseTraits = staticData.attributes || [];
+      baseTraits = (staticData.attributes || []).filter((a) => !dynamicTraitTypes.has(a.trait_type));
       name = staticData.name || name;
       description = staticData.description || description;
     }
@@ -70,7 +72,7 @@ const getTokenMetadata = catchAsync(async (req, res, next) => {
   const attributes = [
     ...baseTraits,
     { trait_type: "Level", value: level, display_type: "number", max_value: 7 },
-    { trait_type: "Rank", value: RANK_NAMES[level] || "Trainee" },
+    { trait_type: "Rank", value: RANK_NAMES[level] || "Private" },
     { trait_type: "Kills", value: stats.kills || 0, display_type: "number" },
     { trait_type: "Games Played", value: stats.gamesPlayed || 0, display_type: "number" },
     { trait_type: "Score", value: stats.score || 0, display_type: "number" },

@@ -188,7 +188,7 @@ module.exports = {
 
   // Rank names by level (for NFT badge/metadata)
   RANK_NAMES: {
-    0: "Trainee",
+    0: "Private",
     1: "Corporal",
     2: "Sergeant",
     3: "Captain",

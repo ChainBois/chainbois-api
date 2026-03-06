@@ -40,7 +40,7 @@ Create them (or have your designer create them) and save to `assets/badges/`:
 
 ```
 assets/badges/
-  trainee.png
+  private.png
   corporal.png
   sergeant.png
   captain.png
@@ -226,11 +226,13 @@ curl -s https://your-api-domain.com/api/v1/airdrop/trait-history | python3 -m js
 
 ---
 
-## 4. Point Contract BaseURI to Dynamic Metadata Endpoint (Optional, Future)
+## 4. Point Contract BaseURI to Dynamic Metadata Endpoint [DONE]
 
-Currently the contract's baseURI points to IPFS (static metadata). The dynamic metadata endpoint at `/api/v1/metadata/:tokenId.json` serves real-time data including current level, stats, and badge images.
+The contract's baseURI has been switched from IPFS to the dynamic API endpoint. `tokenURI(1)` now returns `https://your-api-domain.com/api/v1/metadata/1.json`.
 
-When you're ready to make marketplaces show live data, update the contract baseURI:
+This was done via `setBaseURI()` which emitted `BatchMetadataUpdate(1, 50)` to signal explorers. Explorers (Glacier, Snowtrace) may take hours to refresh — see Explorer Guide for timing details.
+
+**How to re-run if needed:**
 
 ```bash
 # From the server, run:
@@ -285,14 +287,22 @@ After this, `tokenURI(1)` will return `https://your-api-domain.com/api/v1/metada
 - [x] Weekly trait airdrop cron job registered (Wed 8PM UTC)
 - [x] All 259 tests passing
 
+### Completed in Phase 3B [DONE]
+
+- [x] Set up Cloudinary account and added env vars
+- [x] Extracted 7 military medal badge PNGs (no badge for Private/level 0)
+- [x] Uploaded 50 NFT images + 7 badges to Cloudinary
+- [x] Verified Cloudinary badge overlay renders correctly (top-right placement)
+- [x] Redeployed ChainBoisNFT and WeaponNFT with EIP-4906 (MetadataUpdate events)
+- [x] Switched contract baseURI from IPFS to dynamic API endpoint
+- [x] Tested level-up end-to-end: token #1 leveled to 2 (Sergeant)
+- [x] Renamed rank 0 from "Trainee" to "Private" across all code, metadata, and docs
+- [x] Updated all 50 metadata JSONs with "Private" rank
+
 ### Remaining Manual Steps
 
-- [ ] Set up Cloudinary account and add env vars (Section 1, Steps 1.1-1.2)
-- [ ] Create or obtain 8 rank badge PNG images (Section 1, Step 1.3)
-- [ ] Upload NFT images + badges to Cloudinary (Section 1, Steps 1.4-1.5)
 - [ ] Trigger rarity calculation (Section 2, Step 2.1)
 - [ ] Create trait airdrop pool (Section 3, Step 3.1)
-- [ ] (Optional) Point baseURI to dynamic endpoint (Section 4)
 
 ---
 
@@ -318,7 +328,7 @@ const { ethers } = require('ethers');
 require('dotenv').config();
 const { abi } = require('./abis/ChainBoisNFT.json');
 const p = new ethers.JsonRpcProvider(process.env.AVAX_RPC_URL, parseInt(process.env.AVAX_CHAIN_ID));
-const c = new ethers.Contract('0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5', abi, p);
+const c = new ethers.Contract('0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3', abi, p);
 c.tokenURI(1).then(u => console.log('tokenURI:', u));
 "
 
@@ -326,10 +336,10 @@ c.tokenURI(1).then(u => console.log('tokenURI:', u));
 curl -s "https://gateway.pinata.cloud/ipfs/bafybeig26yewnliuazj3dvuy5d2mmip67i3bqemfxgbhkpt4xv55ojvrxm/1.json" | python3 -m json.tool
 
 # 3. Glacier API (may be stale - check metadataLastUpdatedTimestamp)
-curl -s "https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5/tokens/1" | python3 -m json.tool
+curl -s "https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3/tokens/1" | python3 -m json.tool
 
 # 4. Force Glacier refresh (may fail if cooldown active)
-curl -X POST "https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5/tokens/1:reindex"
+curl -X POST "https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3/tokens/1:reindex"
 ```
 
 ### If Glacier Still Shows Old Data
@@ -348,18 +358,18 @@ The reindex API returns `"Nft has been recently indexed"` with a 400 status duri
 - **IPFS Images**: https://gateway.pinata.cloud/ipfs/bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/1.png
 
 ### Explorers (May Be Cached)
-- **ChainBois contract on Snowtrace**: https://testnet.snowtrace.io/address/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5
-- **ChainBoi #1 on Snowtrace**: https://testnet.snowtrace.io/nft/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5/1?chainid=43113
-- **WeaponNFT contract on Snowtrace**: https://testnet.snowtrace.io/address/0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28
-- **Weapon #1 on Snowtrace**: https://testnet.snowtrace.io/nft/0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28/1?chainid=43113
+- **ChainBois contract on Snowtrace**: https://testnet.snowtrace.io/address/0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3
+- **ChainBoi #1 on Snowtrace**: https://testnet.snowtrace.io/nft/0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3/1?chainid=43113
+- **WeaponNFT contract on Snowtrace**: https://testnet.snowtrace.io/address/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d
+- **Weapon #1 on Snowtrace**: https://testnet.snowtrace.io/nft/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d/1?chainid=43113
 - **$BATTLE Token on Snowtrace**: https://testnet.snowtrace.io/token/0xF16214F76f19bD1E6d3349fC199B250a8E441E8C
 - **BaseURI Update Tx**: https://testnet.snowtrace.io/tx/0xddb792f7281d1bfc8be6df8831792e58e935d89912b48c08f4323a33f8119464
 
 ### Glacier API (JSON)
-- **ChainBoi #1**: https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5/tokens/1
-- **All ChainBois**: https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5/tokens
-- **Weapon #1**: https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28/tokens/1
-- **All Weapons**: https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28/tokens
+- **ChainBoi #1**: https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3/tokens/1
+- **All ChainBois**: https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3/tokens
+- **Weapon #1**: https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d/tokens/1
+- **All Weapons**: https://glacier-api.avax.network/v1/chains/43113/nfts/collections/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d/tokens
 
 ### Our API (Dynamic / Real-time)
 - **Dynamic Metadata**: https://your-api-domain.com/api/v1/metadata/1.json

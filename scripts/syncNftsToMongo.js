@@ -59,7 +59,7 @@ const main = async function () {
           contractAddress: process.env.CHAINBOIS_NFT_ADDRESS.toLowerCase(),
           ownerAddress: owner.toLowerCase(),
           level,
-          badge: (RANK_NAMES[level] || "trainee").toLowerCase().replace(/ /g, "_"),
+          badge: (RANK_NAMES[level] || "private").toLowerCase().replace(/ /g, "_"),
           traits: metadata.attributes,
           inGameStats: existing ? existing.inGameStats : { kills: 0, score: 0, gamesPlayed: 0 },
           metadataUri: metadata.image ? metadata.image.replace(/\/\d+\.png$/, `/${tokenId}.json`) : "",
@@ -74,7 +74,7 @@ const main = async function () {
         created++;
       }
 
-      process.stdout.write(`  Token #${tokenId}: owner=${owner.slice(0, 10)}..., level=${level}, rank=${RANK_NAMES[level] || "Trainee"}\n`);
+      process.stdout.write(`  Token #${tokenId}: owner=${owner.slice(0, 10)}..., level=${level}, rank=${RANK_NAMES[level] || "Private"}\n`);
     } catch (e) {
       console.error(`  Token #${tokenId}: ERROR - ${e.message}`);
       errors++;

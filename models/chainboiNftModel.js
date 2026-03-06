@@ -31,7 +31,7 @@ const chainboiNftSchema = new mongoose.Schema(
     ],
     badge: {
       type: String,
-      default: "trainee",
+      default: "private",
     },
     inGameStats: {
       kills: { type: Number, default: 0, min: 0 },

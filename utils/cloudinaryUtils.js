@@ -16,7 +16,7 @@ const getNftPublicId = function (tokenId) {
  * @returns {string}
  */
 const getBadgePublicId = function (level) {
-  const rank = (RANK_NAMES[level] || "trainee").toLowerCase().replace(/ /g, "_");
+  const rank = (RANK_NAMES[level] || "private").toLowerCase().replace(/ /g, "_");
   return `chainbois-badges/${rank}`;
 };
 
@@ -32,14 +32,14 @@ const getBadgeOverlayUrl = function (tokenId, level) {
 
   const baseId = getNftPublicId(tokenId);
 
-  // Level 0 (Trainee) has no badge overlay
+  // Private (level 0) has no badge overlay
   if (level === 0) {
     return `https://res.cloudinary.com/${cloudName}/image/upload/${baseId}.png`;
   }
 
   const badgeId = getBadgePublicId(level);
-  // Overlay badge in bottom-right corner, 150px wide, 90% opacity
-  return `https://res.cloudinary.com/${cloudName}/image/upload/l_${badgeId.replace(/\//g, ":")},g_south_east,w_150,o_90/${baseId}.png`;
+  // Overlay badge in top-right corner, 500px wide on 3000px image, 90% opacity
+  return `https://res.cloudinary.com/${cloudName}/image/upload/l_${badgeId.replace(/\//g, ":")},g_north_east,w_500,x_50,y_50,o_90/${baseId}.png`;
 };
 
 /**

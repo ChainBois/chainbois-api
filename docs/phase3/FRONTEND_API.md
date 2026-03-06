@@ -27,7 +27,7 @@ Authorization: Bearer <idToken>
     "nfts": [
       {
         "tokenId": 1,
-        "contractAddress": "0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5",
+        "contractAddress": "0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3",
         "level": 3,
         "rank": "Captain",
         "badge": "captain",
@@ -68,7 +68,7 @@ Authorization: Bearer <idToken>
   "success": true,
   "data": {
     "tokenId": 1,
-    "contractAddress": "0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5",
+    "contractAddress": "0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3",
     "owner": "0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0",
     "level": 3,
     "rank": "Captain",
@@ -260,24 +260,123 @@ Authorization: Bearer <idToken>
 }
 ```
 
-Level 0 (Trainee) NFTs are not eligible for any tournaments.
+Level 0 (Private) NFTs are not eligible for any tournaments.
 
 ---
 
 ## Rank Progression
 
-| Level | Rank | Cost (AVAX) | Characters Unlocked |
-|-------|------|-------------|---------------------|
-| 0 | Trainee | - | Private A-D |
-| 1 | Corporal | 1 | + Corporal A-D |
-| 2 | Sergeant | 1 | + Sergeant A-D |
-| 3 | Captain | 2 | + Captain A-D |
-| 4 | Major | 2 | + Major A-D |
-| 5 | Colonel | 3 | + Colonel A-D |
-| 6 | Major General | 3 | + Major General A-D |
-| 7 | Field Marshal | 5 | + Field Marshal A-D |
+| Level | Rank | Cost (AVAX) | Badge | Characters Unlocked |
+|-------|------|-------------|-------|---------------------|
+| 0 | Private | - | None | Private A-D |
+| 1 | Corporal | 0.001 | Corporal medal | + Corporal A-D |
+| 2 | Sergeant | 0.002 | Sergeant medal | + Sergeant A-D |
+| 3 | Captain | 0.003 | Captain medal | + Captain A-D |
+| 4 | Major | 0.004 | Major medal | + Major A-D |
+| 5 | Colonel | 0.005 | Colonel medal | + Colonel A-D |
+| 6 | Major General | 0.006 | Major General medal | + Major General A-D |
+| 7 | Field Marshal | 0.007 | Field Marshal medal | + Field Marshal A-D |
 
-**Total cost to max level: 17 AVAX**
+**Total cost to max level: 0.028 AVAX** (testnet — costs are configurable per-level in settings)
+
+Badge overlays appear in the top-right corner of the NFT image via Cloudinary URL transforms. Level 0 (Private) has no badge.
+
+---
+
+## Dynamic Metadata Endpoint
+
+This public endpoint serves real-time ERC-721 metadata for ChainBois NFTs. The on-chain `tokenURI()` points here, so explorers and marketplaces fetch live data automatically.
+
+### `GET /api/v1/metadata/:tokenId.json`
+
+**Auth:** None (public — marketplaces must access this)
+
+**Response:**
+```json
+{
+  "name": "ChainBoi #1",
+  "description": "ChainBois - Military-themed gaming NFTs on Avalanche...",
+  "image": "https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png",
+  "external_url": "https://chainbois.gg/nft/1",
+  "collection": "ChainBois Genesis",
+  "attributes": [
+    { "trait_type": "Background", "value": "Combat Red" },
+    { "trait_type": "Skin", "value": "Pale Recruit" },
+    { "trait_type": "Level", "value": 2, "display_type": "number", "max_value": 7 },
+    { "trait_type": "Rank", "value": "Sergeant" },
+    { "trait_type": "Kills", "value": 42, "display_type": "number" },
+    { "trait_type": "Games Played", "value": 15, "display_type": "number" },
+    { "trait_type": "Score", "value": 12500, "display_type": "number" }
+  ]
+}
+```
+
+**How it works:**
+- Level and rank are read from the on-chain contract (real-time)
+- Base traits (Background, Skin, etc.) come from MongoDB
+- Game stats (Kills, Score, Games Played) come from MongoDB (synced from Firebase)
+- Image URL includes a Cloudinary badge overlay for levels 1-7 (Private/level 0 has no badge)
+- Badge is placed in the **top-right corner** of the NFT image
+
+---
+
+## Airdrop & Rarity Endpoints
+
+### Public Endpoints (no auth)
+
+#### `GET /api/v1/airdrop/rarity`
+
+Paginated rarity leaderboard for all NFTs.
+
+**Query params:** `?page=1&limit=20`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "total": 50,
+    "page": 1,
+    "limit": 20,
+    "nfts": [
+      {
+        "tokenId": 42,
+        "rarityScore": 156.7,
+        "rank": 1,
+        "percentile": 2.0,
+        "rarityTier": "legendary",
+        "traitCount": 7
+      }
+    ]
+  }
+}
+```
+
+#### `GET /api/v1/airdrop/rarity/:tokenId`
+
+Rarity details for a single NFT.
+
+#### `GET /api/v1/airdrop/traits-pool`
+
+Active airdrop pool configuration and status.
+
+#### `GET /api/v1/airdrop/trait-history`
+
+History of past trait-based airdrop distributions.
+
+### Admin Endpoints (requires auth + admin role)
+
+#### `POST /api/v1/airdrop/traits-pool`
+
+Create or configure an airdrop pool.
+
+#### `POST /api/v1/airdrop/calculate-rarity`
+
+Trigger rarity score recalculation for all NFTs.
+
+#### `POST /api/v1/airdrop/distribute`
+
+Manually trigger a trait-based airdrop distribution.
 
 ---
 
@@ -286,7 +385,9 @@ Level 0 (Trainee) NFTs are not eligible for any tournaments.
 | Wallet | Address | Purpose |
 |--------|---------|---------|
 | Prize Pool | `0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e` | Level-up payments go here |
-| ChainBoisNFT | `0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5` | NFT contract |
+| ChainBoisNFT | `0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3` | NFT contract (EIP-4906) |
+| WeaponNFT | `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d` | Weapon NFT contract |
+| BattleToken | `0xF16214F76f19bD1E6d3349fC199B250a8E441E8C` | $BATTLE ERC-20 token |
 
 ---
 

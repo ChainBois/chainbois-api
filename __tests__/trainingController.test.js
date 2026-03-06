@@ -155,7 +155,7 @@ describe("getNfts", () => {
     expect(data.nfts[0].characters.length).toBeGreaterThan(0);
     expect(data.nfts[1].tokenId).toBe(5);
     expect(data.nfts[1].level).toBe(0);
-    expect(data.nfts[1].rank).toBe("Trainee");
+    expect(data.nfts[1].rank).toBe("Private");
   });
 
   test("handles getNftLevel failure gracefully", async () => {

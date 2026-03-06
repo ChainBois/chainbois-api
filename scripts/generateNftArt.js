@@ -273,7 +273,7 @@ module.exports = {
     );
     metadata.attributes.push(
       { trait_type: "Level", value: 0, display_type: "number", max_value: 7 },
-      { trait_type: "Rank", value: "Trainee" },
+      { trait_type: "Rank", value: "Private" },
       { trait_type: "Kills", value: 0, display_type: "number" },
       { trait_type: "Score", value: 0, display_type: "number" },
       { trait_type: "Games Played", value: 0, display_type: "number" }

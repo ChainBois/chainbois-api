@@ -405,7 +405,7 @@ chainbois-api/
   tokenId: Number,
   contractAddress: String,
   ownerAddress: String,
-  level: Number,                // 0=Trainee, 1-7
+  level: Number,                // 0=Private, 1-7
   traits: [{
     trait_type: String,
     value: String
@@ -1014,7 +1014,7 @@ Users can list/sell NFTs on Joepegs. We just link to it. No custom marketplace.
 1. Receive trait layers (PNGs) - **waiting for ZIP from user**
 2. Configure HashLips art engine
 3. Generate 4,032 images + metadata
-4. Add custom metadata (level=0, badge=trainee, stats=0)
+4. Add custom metadata (level=0, badge=private, stats=0)
 5. Upload images to Cloudinary + IPFS
 6. Upload metadata to IPFS
 7. **Pre-mint all NFTs to platform wallets** (not a public mint page)
@@ -1026,16 +1026,16 @@ Users can list/sell NFTs on Joepegs. We just link to it. No custom marketplace.
 {
   "name": "ChainBoi #1",
   "description": "A ChainBoi warrior on the Avalanche battlefield",
-  "image": "https://res.cloudinary.com/{cloud}/image/upload/l_chainbois:badges:trainee,g_nw,w_80/chainbois/base/1.png",
+  "image": "https://res.cloudinary.com/{cloud}/image/upload/l_chainbois:badges:private,g_nw,w_80/chainbois/base/1.png",
   "external_url": "https://chainbois.com/nft/1",
   "attributes": [
     { "trait_type": "Background", "value": "Urban" },
     { "trait_type": "Level", "value": 0, "display_type": "number" },
-    { "trait_type": "Badge", "value": "Trainee" }
+    { "trait_type": "Badge", "value": "Private" }
   ],
   "properties": {
     "level": 0,
-    "badge": "trainee",
+    "badge": "private",
     "kills": 0,
     "score": 0,
     "gamesPlayed": 0
@@ -1064,7 +1064,7 @@ Users can list/sell NFTs on Joepegs. We just link to it. No custom marketplace.
 
 | Level | Badge | Characters Unlocked | Tournament Access |
 |-------|-------|-------------------|------------------|
-| 0 (Trainee) | trainee.png | 4 basic + 4 basic weapons | None |
+| 0 (Private) | private.png | 4 basic + 4 basic weapons | None |
 | 1-7 | level_N.png | +4 characters each | Level N tournament |
 
 ---

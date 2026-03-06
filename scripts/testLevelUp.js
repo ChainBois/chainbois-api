@@ -158,7 +158,7 @@ const main = async function () {
     // Step 5: Trigger Glacier reindex
     console.log("  [5/5] Triggering Glacier reindex...");
     try {
-      await reindexNftMetadata(process.env.CHAINBOIS_NFT_ADDRESS, tokenId);
+      await reindexNftMetadata(process.env.CHAINBOIS_NFT_ADDRESS, String(tokenId));
       console.log("         Reindex triggered");
     } catch (e) {
       console.log(`         Reindex: ${e.message || "failed (may be rate-limited)"}`);

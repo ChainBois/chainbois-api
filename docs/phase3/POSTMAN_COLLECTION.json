@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "ChainBois API - Phase 3: Training Room",
-    "description": "Training Room endpoints for NFT display, level-up, cost queries, and tournament eligibility.\n\nBase URL: https://your-api-domain.com/api/v1\n\nContracts (Fuji Testnet):\n- ChainBoisNFT: 0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5\n- Prize Pool: 0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
+    "name": "ChainBois API - Phase 3: Training Room, Metadata & Airdrop",
+    "description": "Phase 3 endpoints: Training Room (NFT display, level-up, costs, eligibility), Dynamic Metadata (ERC-721 live metadata), and Airdrop/Rarity system.\n\nBase URL: https://your-api-domain.com/api/v1\n\nContracts (Fuji Testnet):\n- ChainBoisNFT: 0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3\n- WeaponNFT: 0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\n- BattleToken: 0xF16214F76f19bD1E6d3349fC199B250a8E441E8C\n- Prize Pool: 0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -24,190 +24,384 @@
   ],
   "item": [
     {
-      "name": "List NFTs by Address",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{authToken}}"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/training/nfts/{{address}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["training", "nfts", "{{address}}"]
-        },
-        "description": "List all ChainBoi NFTs owned by a wallet address. Returns level, rank, badge, and unlocked characters for each NFT."
-      },
-      "response": [
+      "name": "Training Room",
+      "item": [
         {
-          "name": "Success - NFTs Found",
-          "status": "OK",
-          "code": 200,
-          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 50,\n    \"nfts\": [\n      {\n        \"tokenId\": 1,\n        \"contractAddress\": \"0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5\",\n        \"level\": 0,\n        \"rank\": \"Trainee\",\n        \"badge\": \"trainee\",\n        \"imageUri\": \"\",\n        \"metadataUri\": \"\",\n        \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\"],\n        \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n      }\n    ]\n  }\n}"
-        },
-        {
-          "name": "No NFTs Found",
-          "status": "OK",
-          "code": 200,
-          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 0,\n    \"nfts\": []\n  }\n}"
-        }
-      ]
-    },
-    {
-      "name": "Get NFT Detail",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{authToken}}"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/training/nft/{{tokenId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["training", "nft", "{{tokenId}}"]
-        },
-        "description": "Get full details for a single ChainBoi NFT including owner, traits, in-game stats, unlocked characters, and next level cost."
-      },
-      "response": [
-        {
-          "name": "Success",
-          "status": "OK",
-          "code": 200,
-          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"contractAddress\": \"0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5\",\n    \"owner\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n    \"level\": 0,\n    \"rank\": \"Trainee\",\n    \"badge\": \"trainee\",\n    \"traits\": [],\n    \"imageUri\": \"\",\n    \"metadataUri\": \"\",\n    \"inGameStats\": {\"kills\": 0, \"score\": 0, \"gamesPlayed\": 0},\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"],\n    \"nextLevelCost\": 1,\n    \"isMaxLevel\": false\n  }\n}"
-        }
-      ]
-    },
-    {
-      "name": "Level Up",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{authToken}}"
+          "name": "List NFTs by Address",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/training/nfts/{{address}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["training", "nfts", "{{address}}"]
+            },
+            "description": "List all ChainBoi NFTs owned by a wallet address. Returns level, rank, badge, and unlocked characters for each NFT."
           },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"tokenId\": 1,\n  \"txHash\": \"0x0000000000000000000000000000000000000000000000000000000000000000\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/training/level-up",
-          "host": ["{{baseUrl}}"],
-          "path": ["training", "level-up"]
-        },
-        "description": "Level up a ChainBoi NFT. Requires:\n1. Send AVAX payment to prize pool (0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e)\n2. Submit the txHash here for verification\n\nRate limited: 10 requests per minute."
-      },
-      "response": [
-        {
-          "name": "Success",
-          "status": "OK",
-          "code": 200,
-          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"previousLevel\": 0,\n    \"newLevel\": 1,\n    \"rank\": \"Corporal\",\n    \"cost\": 1,\n    \"contractTxHash\": \"0xabc...\",\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\", \"Corporal_A\", \"Corporal_B\", \"Corporal_C\", \"Corporal_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n  }\n}"
-        },
-        {
-          "name": "Error - Replay",
-          "status": "Conflict",
-          "code": 409,
-          "body": "{\n  \"success\": false,\n  \"message\": \"This transaction has already been used\"\n}"
-        },
-        {
-          "name": "Error - Not Owner",
-          "status": "Forbidden",
-          "code": 403,
-          "body": "{\n  \"success\": false,\n  \"message\": \"You do not own this NFT\"\n}"
-        }
-      ]
-    },
-    {
-      "name": "Level-Up Cost (by Token ID)",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{authToken}}"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/training/level-up/cost?tokenId={{tokenId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["training", "level-up", "cost"],
-          "query": [
+          "response": [
             {
-              "key": "tokenId",
-              "value": "{{tokenId}}"
+              "name": "Success - NFTs Found",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 50,\n    \"nfts\": [\n      {\n        \"tokenId\": 1,\n        \"contractAddress\": \"0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3\",\n        \"level\": 0,\n        \"rank\": \"Private\",\n        \"badge\": \"private\",\n        \"imageUri\": \"\",\n        \"metadataUri\": \"\",\n        \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\"],\n        \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "No NFTs Found",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 0,\n    \"nfts\": []\n  }\n}"
             }
           ]
         },
-        "description": "Get level-up cost for a specific NFT by reading its current level from the blockchain."
-      },
-      "response": [
         {
-          "name": "Success",
-          "status": "OK",
-          "code": 200,
-          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"currentLevel\": 0,\n    \"nextLevel\": 1,\n    \"cost\": 1,\n    \"currency\": \"AVAX\",\n    \"isMaxLevel\": false,\n    \"rank\": \"Trainee\",\n    \"nextRank\": \"Corporal\"\n  }\n}"
+          "name": "Get NFT Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/training/nft/{{tokenId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["training", "nft", "{{tokenId}}"]
+            },
+            "description": "Get full details for a single ChainBoi NFT including owner, traits, in-game stats, unlocked characters, and next level cost."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"contractAddress\": \"0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3\",\n    \"owner\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n    \"level\": 2,\n    \"rank\": \"Sergeant\",\n    \"badge\": \"sergeant\",\n    \"traits\": [{\"trait_type\": \"Background\", \"value\": \"Combat Red\"}],\n    \"imageUri\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png\",\n    \"metadataUri\": \"\",\n    \"inGameStats\": {\"kills\": 0, \"score\": 0, \"gamesPlayed\": 0},\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\", \"Corporal_A\", \"Corporal_B\", \"Corporal_C\", \"Corporal_D\", \"Sergeant_A\", \"Sergeant_B\", \"Sergeant_C\", \"Sergeant_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"],\n    \"nextLevelCost\": 0.003,\n    \"isMaxLevel\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Level Up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tokenId\": 1,\n  \"txHash\": \"0x0000000000000000000000000000000000000000000000000000000000000000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/training/level-up",
+              "host": ["{{baseUrl}}"],
+              "path": ["training", "level-up"]
+            },
+            "description": "Level up a ChainBoi NFT. Requires:\n1. Send AVAX payment to prize pool (0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e)\n2. Submit the txHash here for verification\n\nRate limited: 10 requests per minute."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"previousLevel\": 0,\n    \"newLevel\": 1,\n    \"rank\": \"Corporal\",\n    \"cost\": 0.001,\n    \"contractTxHash\": \"0xabc...\",\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\", \"Corporal_A\", \"Corporal_B\", \"Corporal_C\", \"Corporal_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n  }\n}"
+            },
+            {
+              "name": "Error - Replay",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"success\": false,\n  \"message\": \"This transaction has already been used\"\n}"
+            },
+            {
+              "name": "Error - Not Owner",
+              "status": "Forbidden",
+              "code": 403,
+              "body": "{\n  \"success\": false,\n  \"message\": \"You do not own this NFT\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Level-Up Cost (by Token ID)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/training/level-up/cost?tokenId={{tokenId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["training", "level-up", "cost"],
+              "query": [
+                {
+                  "key": "tokenId",
+                  "value": "{{tokenId}}"
+                }
+              ]
+            },
+            "description": "Get level-up cost for a specific NFT by reading its current level from the blockchain."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"currentLevel\": 0,\n    \"nextLevel\": 1,\n    \"cost\": 0.001,\n    \"currency\": \"AVAX\",\n    \"isMaxLevel\": false,\n    \"rank\": \"Private\",\n    \"nextRank\": \"Corporal\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Level-Up Cost (Full Table)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/training/level-up/cost",
+              "host": ["{{baseUrl}}"],
+              "path": ["training", "level-up", "cost"]
+            },
+            "description": "Get the full level-up cost table for all 7 levels."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"costs\": {\"1\": 0.001, \"2\": 0.002, \"3\": 0.003, \"4\": 0.004, \"5\": 0.005, \"6\": 0.006, \"7\": 0.007},\n    \"currency\": \"AVAX\",\n    \"maxLevel\": 7\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Tournament Eligibility",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/training/eligibility/{{tokenId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["training", "eligibility", "{{tokenId}}"]
+            },
+            "description": "Check which tournaments an NFT qualifies for based on its level. Level 0 (Private) NFTs cannot enter any tournaments."
+          },
+          "response": [
+            {
+              "name": "Success - Level 0",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"level\": 0,\n    \"rank\": \"Private\",\n    \"eligibleLevels\": [],\n    \"activeTournaments\": [],\n    \"upcomingTournaments\": []\n  }\n}"
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Level-Up Cost (Full Table)",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{authToken}}"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/training/level-up/cost",
-          "host": ["{{baseUrl}}"],
-          "path": ["training", "level-up", "cost"]
-        },
-        "description": "Get the full level-up cost table for all 7 levels."
-      },
-      "response": [
+      "name": "Dynamic Metadata",
+      "item": [
         {
-          "name": "Success",
-          "status": "OK",
-          "code": 200,
-          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"costs\": {\"1\": 1, \"2\": 1, \"3\": 2, \"4\": 2, \"5\": 3, \"6\": 3, \"7\": 5},\n    \"currency\": \"AVAX\",\n    \"maxLevel\": 7\n  }\n}"
+          "name": "Get Token Metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/metadata/{{tokenId}}.json",
+              "host": ["{{baseUrl}}"],
+              "path": ["metadata", "{{tokenId}}.json"]
+            },
+            "description": "Public ERC-721 metadata endpoint. No auth required. Returns real-time level, rank, stats, and Cloudinary badge-overlayed image URL. This is what the on-chain tokenURI() resolves to."
+          },
+          "response": [
+            {
+              "name": "Success - Level 2 (Sergeant)",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"name\": \"ChainBoi #1\",\n  \"description\": \"ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.\",\n  \"image\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png\",\n  \"external_url\": \"https://chainbois.gg/nft/1\",\n  \"collection\": \"ChainBois Genesis\",\n  \"attributes\": [\n    {\"trait_type\": \"Background\", \"value\": \"Combat Red\"},\n    {\"trait_type\": \"Skin\", \"value\": \"Pale Recruit\"},\n    {\"trait_type\": \"Weapon\", \"value\": \"War Bow\"},\n    {\"trait_type\": \"Suit\", \"value\": \"Covert Ops Carbon Suit\"},\n    {\"trait_type\": \"Eyes\", \"value\": \"Battle Hardened\"},\n    {\"trait_type\": \"Mouth\", \"value\": \"Viking Beard\"},\n    {\"trait_type\": \"Helmet\", \"value\": \"Cryo Enforcer\"},\n    {\"trait_type\": \"Level\", \"value\": 2, \"display_type\": \"number\", \"max_value\": 7},\n    {\"trait_type\": \"Rank\", \"value\": \"Sergeant\"},\n    {\"trait_type\": \"Kills\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Games Played\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Score\", \"value\": 0, \"display_type\": \"number\"}\n  ]\n}"
+            },
+            {
+              "name": "Success - Level 0 (Private, no badge)",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"name\": \"ChainBoi #2\",\n  \"description\": \"ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.\",\n  \"image\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/chainbois/2.png\",\n  \"external_url\": \"https://chainbois.gg/nft/2\",\n  \"collection\": \"ChainBois Genesis\",\n  \"attributes\": [\n    {\"trait_type\": \"Background\", \"value\": \"Tactical Green\"},\n    {\"trait_type\": \"Level\", \"value\": 0, \"display_type\": \"number\", \"max_value\": 7},\n    {\"trait_type\": \"Rank\", \"value\": \"Private\"},\n    {\"trait_type\": \"Kills\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Games Played\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Score\", \"value\": 0, \"display_type\": \"number\"}\n  ]\n}"
+            },
+            {
+              "name": "Error - Token Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Token does not exist\"\n}"
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Tournament Eligibility",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{authToken}}"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/training/eligibility/{{tokenId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["training", "eligibility", "{{tokenId}}"]
-        },
-        "description": "Check which tournaments an NFT qualifies for based on its level. Level 0 (Trainee) NFTs cannot enter any tournaments."
-      },
-      "response": [
+      "name": "Airdrop & Rarity (Public)",
+      "item": [
         {
-          "name": "Success - Level 0",
-          "status": "OK",
-          "code": 200,
-          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"level\": 0,\n    \"rank\": \"Trainee\",\n    \"eligibleLevels\": [],\n    \"activeTournaments\": [],\n    \"upcomingTournaments\": []\n  }\n}"
+          "name": "Rarity Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airdrop/rarity?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrop", "rarity"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Public paginated rarity leaderboard. No auth required."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"total\": 50,\n    \"page\": 1,\n    \"limit\": 20,\n    \"nfts\": [\n      {\n        \"tokenId\": 42,\n        \"rarityScore\": 156.7,\n        \"rank\": 1,\n        \"percentile\": 2.0,\n        \"rarityTier\": \"legendary\",\n        \"traitCount\": 7\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Rarity by Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airdrop/rarity/{{tokenId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrop", "rarity", "{{tokenId}}"]
+            },
+            "description": "Get rarity details for a single NFT. No auth required."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"rarityScore\": 98.5,\n    \"rank\": 15,\n    \"percentile\": 30.0,\n    \"rarityTier\": \"uncommon\",\n    \"traitCount\": 7,\n    \"traits\": {\"Background\": \"Combat Red\", \"Skin\": \"Pale Recruit\"}\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Traits Pool",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airdrop/traits-pool",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrop", "traits-pool"]
+            },
+            "description": "Get active airdrop pool configuration. No auth required."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"poolName\": \"ChainBois Weekly Airdrop\",\n    \"tokenAddress\": \"0xF16214F76f19bD1E6d3349fC199B250a8E441E8C\",\n    \"weeklyDistributionAmount\": 1000,\n    \"status\": \"active\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Trait Distribution History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airdrop/trait-history",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrop", "trait-history"]
+            },
+            "description": "Get history of past trait-based airdrop distributions. No auth required."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"history\": [\n      {\n        \"traitType\": \"Background\",\n        \"value\": \"Combat Red\",\n        \"dateChosen\": \"2026-03-01T20:00:00Z\",\n        \"weekNumber\": 9,\n        \"beneficiaryCount\": 12,\n        \"totalDistributed\": 1000\n      }\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Airdrop & Rarity (Admin)",
+      "item": [
+        {
+          "name": "Setup Traits Pool",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"poolName\": \"ChainBois Weekly Airdrop\",\n  \"tokenAddress\": \"0xF16214F76f19bD1E6d3349fC199B250a8E441E8C\",\n  \"weeklyDistributionAmount\": 1000,\n  \"walletRole\": \"rewards\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/airdrop/traits-pool",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrop", "traits-pool"]
+            },
+            "description": "Create or configure an airdrop pool. Admin auth required."
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Rarity",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/airdrop/calculate-rarity",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrop", "calculate-rarity"]
+            },
+            "description": "Trigger rarity score recalculation for all NFTs. Admin auth required."
+          },
+          "response": []
+        },
+        {
+          "name": "Manual Distribution",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/airdrop/distribute",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrop", "distribute"]
+            },
+            "description": "Manually trigger a trait-based airdrop distribution. Admin auth required."
+          },
+          "response": []
         }
       ]
     }
