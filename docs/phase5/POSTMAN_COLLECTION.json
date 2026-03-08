@@ -1,0 +1,137 @@
+{
+  "info": {
+    "name": "ChainBois API - Phase 5: Armory + Points",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://your-api-domain.com/api/v1"
+    },
+    {
+      "key": "userAddress",
+      "value": "0xYOUR_WALLET_ADDRESS"
+    }
+  ],
+  "item": [
+    {
+      "name": "Armory",
+      "item": [
+        {
+          "name": "List All Weapons",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/armory/weapons",
+            "description": "List available weapons grouped by category"
+          }
+        },
+        {
+          "name": "List Weapons by Category",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/armory/weapons/assault",
+            "description": "List weapons in a specific category"
+          }
+        },
+        {
+          "name": "Weapon Detail",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/armory/weapon/1",
+            "description": "Get weapon details + payment address"
+          }
+        },
+        {
+          "name": "List ChainBoi NFTs",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/armory/nfts",
+            "description": "List ChainBoi NFTs available for purchase"
+          }
+        },
+        {
+          "name": "ChainBoi NFT Detail",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/armory/nft/1",
+            "description": "Single NFT details + payment address"
+          }
+        },
+        {
+          "name": "Purchase Weapon",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/armory/purchase/weapon",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"{{userAddress}}\",\n  \"weaponName\": \"AR M4 MK18\",\n  \"txHash\": \"0xYOUR_PAYMENT_TX_HASH\"\n}"
+            },
+            "description": "Submit $BATTLE payment tx to purchase a weapon. Send $BATTLE to the paymentAddress first."
+          }
+        },
+        {
+          "name": "Purchase ChainBoi NFT",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/armory/purchase/nft",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"{{userAddress}}\",\n  \"txHash\": \"0xYOUR_PAYMENT_TX_HASH\",\n  \"tokenId\": 5\n}"
+            },
+            "description": "Submit AVAX payment tx to purchase a ChainBoi NFT. Send AVAX to the paymentAddress first. tokenId is optional."
+          }
+        },
+        {
+          "name": "Get Balance",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/armory/balance/{{userAddress}}",
+            "description": "Get points + $BATTLE balance for a wallet"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Points",
+      "item": [
+        {
+          "name": "Get Points Balance",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/points/{{userAddress}}",
+            "description": "Get points balance and conversion info"
+          }
+        },
+        {
+          "name": "Convert Points to $BATTLE",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/points/convert",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"{{userAddress}}\",\n  \"amount\": 100\n}"
+            },
+            "description": "Convert points to $BATTLE tokens (1:1 ratio)"
+          }
+        },
+        {
+          "name": "Points History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/points/history/{{userAddress}}?page=1&limit=20",
+            "description": "View points conversion and purchase history"
+          }
+        }
+      ]
+    }
+  ]
+}

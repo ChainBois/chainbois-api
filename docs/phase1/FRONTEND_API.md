@@ -430,7 +430,7 @@ Login with wallet address. Checks on-chain NFT ownership, creates or updates the
       "hasNft": true,
       "nftTokenId": 42,
       "isBanned": false,
-      "hasClaimed": false,
+
       "lastLogin": "2026-03-03T12:00:00.000Z"
     },
     "assets": {
@@ -532,7 +532,7 @@ Get current user's profile from the database (fast, no blockchain call).
       "hasNft": true,
       "nftTokenId": 42,
       "isBanned": false,
-      "hasClaimed": false,
+
       "lastLogin": "2026-03-03T12:00:00.000Z"
     }
   }
@@ -838,14 +838,13 @@ Get public game settings (costs, thresholds, schedule, etc.).
     },
     "prizePools": { "1": 2, "2": 4, "3": 6, "4": 8, "5": 10, "6": 12, "7": 14 },
     "levelUpCosts": { "1": 1, "2": 1, "3": 2, "4": 2, "5": 3, "6": 3, "7": 5 },
-    "battleTokenDecimals": 6,
+    "battleTokenDecimals": 18,
     "maxPointsPerMatch": 5000,
     "burnRate": 0.5,
     "teamRevenueSplit": 0.25,
     "awardPoolSplit": 0.75,
     "armoryClosedDuringCooldown": true,
-    "claimLimit": 1,
-    "claimEnabled": true,
+    "nftPrice": 0.001,
     "downloads": 150,
     "trailer": "https://youtube.com/..."
   }
@@ -1137,7 +1136,6 @@ interface UserObject {
   hasNft: boolean;
   nftTokenId: number | null;
   isBanned: boolean;
-  hasClaimed: boolean;
   lastLogin: string;        // ISO 8601 date
 }
 

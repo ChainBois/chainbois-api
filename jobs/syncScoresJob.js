@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const WeeklyLeaderboard = require("../models/weeklyLeaderboardModel");
 const ScoreChange = require("../models/scoreChangeModel");
+const Tournament = require("../models/tournamentModel");
 const { getFirebaseDb } = require("../config/firebase");
 const {
   FIREBASE_PATHS,
@@ -13,18 +14,7 @@ const {
   checkBanStatus,
   checkDailyEarnings,
 } = require("../middleware/antiCheat");
-
-/**
- * Get current week number (1-52) and year
- * @returns {{ weekNumber: number, year: number }}
- */
-const getWeekInfo = function () {
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const pastDaysOfYear = (now - startOfYear) / 86400000;
-  const weekNumber = Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
-  return { weekNumber, year: now.getFullYear() };
-};
+const { getWeekInfo } = require("../utils/weekUtils");
 
 /**
  * Sync scores from Firebase Realtime DB to MongoDB.
@@ -44,7 +34,18 @@ const syncScoresJob = async function () {
     }
 
     let updatedCount = 0;
-    const { weekNumber, year } = getWeekInfo();
+    const updatedLevels = new Set();
+
+    // Build level-to-tournament map from active tournaments
+    // This ensures scores land in the correct tournament's week bucket
+    const activeTournaments = await Tournament.find({ status: "active" }).lean();
+    const tournamentByLevel = {};
+    for (const t of activeTournaments) {
+      tournamentByLevel[t.level] = { weekNumber: t.weekNumber, year: t.year };
+    }
+
+    // Fallback: use calendar week for users with no active tournament
+    const calendarWeek = getWeekInfo();
 
     for (const [firebaseId, userData] of Object.entries(firebaseUsers)) {
       // Per-user error isolation - one failure doesn't abort the whole job
@@ -129,14 +130,18 @@ const syncScoresJob = async function () {
         user.lastScoreSync = new Date();
         await user.save();
 
-        // Upsert weekly leaderboard entry (includes year for cross-year safety)
+        // Upsert weekly leaderboard entry using tournament's week info
+        const userLevel = user.level || 0;
+        const tournamentWeek = tournamentByLevel[userLevel];
+        const weekInfo = tournamentWeek || calendarWeek;
+
         try {
           await WeeklyLeaderboard.findOneAndUpdate(
             {
               uid: firebaseId,
-              year,
-              weekNumber,
-              tournamentLevel: user.level || 0,
+              year: weekInfo.year,
+              weekNumber: weekInfo.weekNumber,
+              tournamentLevel: userLevel,
             },
             {
               $set: {
@@ -148,6 +153,10 @@ const syncScoresJob = async function () {
             },
             { upsert: true, new: true }
           );
+
+          if (tournamentWeek) {
+            updatedLevels.add(userLevel);
+          }
         } catch (e) {
           console.error(`Failed to update leaderboard for ${firebaseId}:`, e.message);
         }
@@ -175,6 +184,35 @@ const syncScoresJob = async function () {
 
     if (updatedCount > 0) {
       console.log(`Score sync complete: ${updatedCount} users updated`);
+
+      // Emit real-time leaderboard updates via Socket.IO
+      try {
+        const { getIO } = require("../config/socketio");
+        const io = getIO();
+        if (io && updatedLevels.size > 0) {
+          const ns = io.of("/tournaments");
+          for (const level of updatedLevels) {
+            const tw = tournamentByLevel[level];
+            if (!tw) continue;
+            const top10 = await WeeklyLeaderboard.find({
+              year: tw.year,
+              weekNumber: tw.weekNumber,
+              tournamentLevel: level,
+            })
+              .sort({ highScore: -1 })
+              .limit(10)
+              .select("uid username highScore totalScore gamesPlayed")
+              .lean();
+
+            ns.to(`level:${level}`).emit("leaderboard:update", {
+              level,
+              leaderboard: top10.map((e, i) => ({ rank: i + 1, ...e })),
+            });
+          }
+        }
+      } catch (e) {
+        // Socket.IO emission is non-fatal
+      }
     }
   } catch (error) {
     console.error("syncScoresJob error:", error.message);

@@ -1,26 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const { decodeToken } = require("../middleware/auth");
+const armoryController = require("../controllers/armoryController");
 
-// Placeholder - implemented in Phase 5
-router.get("/weapons", (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/weapons/:category", (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/weapon/:weaponId", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.post("/purchase/weapon", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/balance/:address", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
+// All public — user identified by wallet address
+router.get("/weapons", armoryController.listWeapons);
+router.get("/weapons/:category", armoryController.listWeaponsByCategory);
+router.get("/weapon/:weaponId", armoryController.getWeaponDetail);
+router.get("/nfts", armoryController.listNfts);
+router.get("/nft/:tokenId", armoryController.getNftDetail);
+router.post("/purchase/weapon", armoryController.purchaseWeapon);
+router.post("/purchase/nft", armoryController.purchaseNft);
+router.get("/balance/:address", armoryController.getBalance);
 
 module.exports = router;

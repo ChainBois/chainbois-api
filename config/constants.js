@@ -115,8 +115,19 @@ module.exports = {
     { gameId: 13, name: "UMP 45", category: "smg", supply: 75, description: "A lightweight, blowback-operated submachine gun with a cyclic rate of 600-750 rounds per minute." },
   ],
 
-  // Battle token decimals
-  BATTLE_TOKEN_DECIMALS: 6,
+  // Battle token decimals (OZ ERC20 default = 18, contract does not override)
+  BATTLE_TOKEN_DECIMALS: 18,
+
+  // Fixed $BATTLE prize amounts for 3rd place per tournament level
+  BATTLE_PRIZES_PER_LEVEL: {
+    1: 100,
+    2: 200,
+    3: 300,
+    4: 400,
+    5: 500,
+    6: 600,
+    7: 700,
+  },
 
   // ChainBois NFT constants
   CHAINBOIS_NFT: {
@@ -145,7 +156,7 @@ module.exports = {
     POINTS_CONVERSION: "points_conversion",
     PRIZE_PAYOUT: "prize_payout",
     NFT_TRANSFER: "nft_transfer",
-    NFT_CLAIM: "nft_claim",
+    NFT_PURCHASE: "nft_purchase",
     TRAIT_AIRDROP: "trait_airdrop",
     RARITY_AIRDROP: "rarity_airdrop",
   },
@@ -205,5 +216,7 @@ module.exports = {
     PRIZE_POOL: "prize_pool",
     NFT_STORE: "nft_store",
     WEAPON_STORE: "weapon_store",
+    REWARDS: "rewards",
+    TEST: "test",
   },
 };

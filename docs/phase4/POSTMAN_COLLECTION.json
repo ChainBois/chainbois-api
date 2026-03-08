@@ -1,141 +1,146 @@
 {
   "info": {
-    "name": "ChainBois API - Phase 4 (Leaderboard)",
-    "description": "Phase 4 endpoints: Leaderboard with time periods and user rank.\n\nSet the `base_url`, `firebase_token`, and `test_uid` variables before running.",
+    "name": "ChainBois API - Phase 4 (Battleground + Leaderboard)",
+    "description": "Tournament management, leaderboards, prize distribution, and real-time updates.\n\nAll tournament endpoints are public (no auth). Set `baseUrl` variable before running.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "base_url",
-      "value": "https://your-api-domain.com/api/v1",
-      "type": "string"
-    },
-    {
-      "key": "firebase_token",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "test_uid",
-      "value": "",
-      "type": "string"
-    }
+    { "key": "baseUrl", "value": "https://your-api-domain.com/api/v1" },
+    { "key": "idToken", "value": "" },
+    { "key": "testUid", "value": "" }
   ],
   "item": [
     {
-      "name": "Leaderboard",
+      "name": "Tournaments",
       "item": [
         {
-          "name": "Get Leaderboard (All-Time)",
+          "name": "List All Tournaments",
           "request": {
             "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/leaderboard",
-              "host": ["{{base_url}}"],
-              "path": ["leaderboard"]
-            },
-            "description": "Get the overall leaderboard (all-time scores).\n\nNo auth required. Supports query params: limit (default 100, max 500), page (default 1)."
-          },
-          "response": [
-            {
-              "name": "Success",
-              "status": "OK",
-              "code": 200,
-              "body": "{\n  \"success\": true,\n  \"period\": \"all\",\n  \"startDate\": null,\n  \"endDate\": null,\n  \"currentPage\": 1,\n  \"totalPages\": 1,\n  \"totalUsers\": 2,\n  \"leaderboard\": [\n    { \"uid\": \"abc123\", \"username\": \"Player1\", \"scoreGained\": 5000, \"currentScore\": 5000, \"rank\": 1 },\n    { \"uid\": \"def456\", \"username\": \"Player2\", \"scoreGained\": 3000, \"currentScore\": 3000, \"rank\": 2 }\n  ]\n}"
-            }
-          ]
+            "url": "{{baseUrl}}/tournaments",
+            "description": "Returns all 7 tournament levels with current status, prize pools, and player counts."
+          }
         },
         {
-          "name": "Get Leaderboard by Period (Week)",
+          "name": "Tournament Detail (Level 1)",
           "request": {
             "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/leaderboard/week",
-              "host": ["{{base_url}}"],
-              "path": ["leaderboard", "week"]
-            },
-            "description": "Get the leaderboard filtered by time period.\n\nNo auth required.\n\nValid periods: 30min, 1hour, 24hours, 2days, week, month, year, all.\n\nQuery params: limit (default 100, max 500), page (default 1), startDate, endDate (custom range, ISO 8601)."
-          },
-          "response": [
-            {
-              "name": "Success",
-              "status": "OK",
-              "code": 200,
-              "body": "{\n  \"success\": true,\n  \"period\": \"week\",\n  \"startDate\": \"2026-02-25T12:00:00.000Z\",\n  \"endDate\": \"2026-03-04T12:00:00.000Z\",\n  \"currentPage\": 1,\n  \"totalPages\": 1,\n  \"totalUsers\": 5,\n  \"leaderboard\": [\n    { \"uid\": \"abc123\", \"username\": \"Player1\", \"scoreGained\": 2500, \"currentScore\": 5000, \"rank\": 1 }\n  ]\n}"
-            }
-          ]
+            "url": "{{baseUrl}}/tournaments/1",
+            "description": "Full details for a tournament level including top 10 leaderboard."
+          }
         },
         {
-          "name": "Get Leaderboard by Period (24 Hours)",
+          "name": "Tournament Leaderboard (Level 1)",
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{base_url}}/leaderboard/24hours",
-              "host": ["{{base_url}}"],
-              "path": ["leaderboard", "24hours"]
-            },
-            "description": "Get leaderboard for the last 24 hours.\n\nNo auth required."
-          },
-          "response": [
-            {
-              "name": "Success",
-              "status": "OK",
-              "code": 200,
-              "body": "{\n  \"success\": true,\n  \"period\": \"24hours\",\n  \"startDate\": \"2026-03-03T12:00:00.000Z\",\n  \"endDate\": \"2026-03-04T12:00:00.000Z\",\n  \"currentPage\": 1,\n  \"totalPages\": 1,\n  \"totalUsers\": 10,\n  \"leaderboard\": [\n    { \"uid\": \"abc123\", \"username\": \"Player1\", \"scoreGained\": 1200, \"currentScore\": 5000, \"rank\": 1 }\n  ]\n}"
-            }
-          ]
-        },
-        {
-          "name": "Get User Rank",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{firebase_token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/leaderboard/rank/{{test_uid}}?period=all",
-              "host": ["{{base_url}}"],
-              "path": ["leaderboard", "rank", "{{test_uid}}"],
+              "raw": "{{baseUrl}}/tournaments/1/leaderboard?limit=20&page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments", "1", "leaderboard"],
               "query": [
-                { "key": "period", "value": "all" }
+                { "key": "limit", "value": "20" },
+                { "key": "page", "value": "1" }
               ]
             },
-            "description": "Get a specific user's rank on the leaderboard.\n\nRequires auth. Query param: period (default 'all').\n\nValid periods: 30min, 1hour, 24hours, 2days, week, month, year, all."
-          },
-          "response": [
-            {
-              "name": "Success",
-              "status": "OK",
-              "code": 200,
-              "body": "{\n  \"success\": true,\n  \"uid\": \"abc123\",\n  \"period\": \"all\",\n  \"rank\": 5,\n  \"scoreGained\": 5000,\n  \"currentScore\": 5000\n}"
-            }
-          ]
+            "description": "Paginated leaderboard for a tournament level."
+          }
         },
         {
-          "name": "Get User Rank (Weekly)",
+          "name": "Tournament Countdown (Level 1)",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{firebase_token}}" }
-            ],
+            "url": "{{baseUrl}}/tournaments/1/countdown",
+            "description": "Time remaining for the current tournament phase."
+          }
+        },
+        {
+          "name": "Tournament Winners (Level 1)",
+          "request": {
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/leaderboard/rank/{{test_uid}}?period=week",
-              "host": ["{{base_url}}"],
-              "path": ["leaderboard", "rank", "{{test_uid}}"],
+              "raw": "{{baseUrl}}/tournaments/1/winners?weeks=4",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments", "1", "winners"],
+              "query": [
+                { "key": "weeks", "value": "4" }
+              ]
+            },
+            "description": "Current and past winners for a tournament level."
+          }
+        },
+        {
+          "name": "Tournament History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tournaments/history?limit=20&page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments", "history"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "page", "value": "1" },
+                { "key": "level", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Paginated historical tournament data. Optional level filter."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Global Leaderboard",
+      "item": [
+        {
+          "name": "Global Leaderboard (All Time)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/leaderboard",
+            "description": "Global leaderboard across all players."
+          }
+        },
+        {
+          "name": "Global Leaderboard (This Week)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/leaderboard/week",
+            "description": "Time-filtered leaderboard. Periods: 30min, 1hour, 24hours, 2days, week, month, year, all"
+          }
+        },
+        {
+          "name": "Global Leaderboard (24 Hours)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/leaderboard/24hours"
+          }
+        },
+        {
+          "name": "User Rank (All Time)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/leaderboard/rank/{{testUid}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{idToken}}" }
+            ],
+            "description": "Get a specific user's rank. Requires auth."
+          }
+        },
+        {
+          "name": "User Rank (This Week)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leaderboard/rank/{{testUid}}?period=week",
+              "host": ["{{baseUrl}}"],
+              "path": ["leaderboard", "rank", "{{testUid}}"],
               "query": [
                 { "key": "period", "value": "week" }
               ]
             },
-            "description": "Get a specific user's weekly rank.\n\nRequires auth."
-          },
-          "response": [
-            {
-              "name": "Success",
-              "status": "OK",
-              "code": 200,
-              "body": "{\n  \"success\": true,\n  \"uid\": \"abc123\",\n  \"period\": \"week\",\n  \"rank\": 3,\n  \"scoreGained\": 2500,\n  \"currentScore\": 5000\n}"
-            }
-          ]
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{idToken}}" }
+            ],
+            "description": "Get a specific user's rank for a time period."
+          }
         }
       ]
     }

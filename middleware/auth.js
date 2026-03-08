@@ -18,9 +18,9 @@ const decodeToken = async (req, res, next) => {
     }
     return next(new AppError("Unable to verify token", 401));
   } catch (e) {
-    if (e.code && e.code == "auth/id-token-revoked") {
+    if (e.code && e.code === "auth/id-token-revoked") {
       return next(new AppError("Token has been revoked", 401));
-    } else if (e.code && e.code == "auth/id-token-expired") {
+    } else if (e.code && e.code === "auth/id-token-expired") {
       return next(new AppError("Token has expired", 401));
     } else {
       return next(new AppError("Internal Server Error", 500));

@@ -1,0 +1,50 @@
+{
+  "info": {
+    "name": "ChainBois API - Phase 6: Inventory",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://your-api-domain.com/api/v1"
+    },
+    {
+      "key": "userAddress",
+      "value": "0xYOUR_WALLET_ADDRESS"
+    }
+  ],
+  "item": [
+    {
+      "name": "Full Inventory",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/inventory/{{userAddress}}",
+        "description": "Get all owned assets: ChainBoi NFTs, weapons, balances"
+      }
+    },
+    {
+      "name": "ChainBoi NFTs Only",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/inventory/{{userAddress}}/nfts",
+        "description": "List only ChainBoi NFTs owned by this wallet"
+      }
+    },
+    {
+      "name": "Weapons Only",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/inventory/{{userAddress}}/weapons",
+        "description": "List only weapon NFTs owned by this wallet"
+      }
+    },
+    {
+      "name": "Transaction History",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/inventory/{{userAddress}}/history?page=1&limit=20",
+        "description": "View all transaction history for this wallet. Optional filter: ?type=weapon_purchase"
+      }
+    }
+  ]
+}

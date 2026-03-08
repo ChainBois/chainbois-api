@@ -82,10 +82,6 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    hasClaimed: {
-      type: Boolean,
-      default: false,
-    },
     lastLogin: {
       type: Date,
       default: null,

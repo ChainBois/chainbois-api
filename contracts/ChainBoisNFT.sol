@@ -48,6 +48,13 @@ contract ChainBoisNFT is ERC721, Ownable, IERC4906 {
         emit MetadataUpdate(tokenId);
     }
 
+    /// @notice Emit BatchMetadataUpdate without changing any state.
+    /// Useful for nudging indexers to re-fetch metadata after off-chain
+    /// changes (game stats, badge overlays, etc.)
+    function emitBatchMetadataUpdate(uint256 fromTokenId, uint256 toTokenId) external onlyOwner {
+        emit BatchMetadataUpdate(fromTokenId, toTokenId);
+    }
+
     function getLevel(uint256 tokenId) external view returns (uint8) {
         return nftLevel[tokenId];
     }

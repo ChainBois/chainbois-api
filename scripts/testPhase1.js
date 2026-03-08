@@ -306,7 +306,7 @@ const testGetProfile = async function () {
     const expectedFields = [
       "uid", "username", "address", "playerType", "pointsBalance",
       "battleTokenBalance", "level", "score", "highScore", "gamesPlayed",
-      "hasNft", "nftTokenId", "isBanned", "hasClaimed", "lastLogin",
+      "hasNft", "nftTokenId", "isBanned", "lastLogin",
     ];
     for (const field of expectedFields) {
       assert(field in user, `Missing field: ${field}`);

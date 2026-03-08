@@ -41,18 +41,30 @@ const startServer = async function () {
       const { syncNewUsersJob } = require("./jobs/syncNewUsersJob");
       const { syncScoresJob } = require("./jobs/syncScoresJob");
       const { traitAirdropJob } = require("./jobs/traitAirdropJob");
+      const { tournamentJob } = require("./jobs/tournamentJob");
+      const { failedPayoutJob } = require("./jobs/failedPayoutJob");
       const { SYNC_NEW_USERS_INTERVAL, SYNC_SCORES_INTERVAL } = require("./config/constants");
 
       cron.schedule(SYNC_NEW_USERS_INTERVAL, syncNewUsersJob);
       cron.schedule(SYNC_SCORES_INTERVAL, syncScoresJob);
       cron.schedule("0 20 * * 3", traitAirdropJob); // Wednesdays 8 PM UTC
-      console.log("Cron jobs started: syncNewUsers, syncScores, traitAirdrop (Wed 8PM UTC)");
+      cron.schedule("0 * * * *", tournamentJob); // Every hour
+      cron.schedule("0 */6 * * *", failedPayoutJob); // Every 6 hours
+      console.log("Cron jobs started: syncNewUsers, syncScores, traitAirdrop, tournament (hourly), failedPayout (6h)");
     }
 
     // Start server
     server = app.listen(PORT, () => {
       console.log(`ChainBois API running on port ${PORT} [${process.env.NODE_ENV}]`);
     });
+
+    // Initialize Socket.IO
+    const { initSocketIO } = require("./config/socketio");
+    const allowedOrigins = process.env.CORS_ORIGINS
+      ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
+      : ["http://localhost:3000"];
+    initSocketIO(server, allowedOrigins);
+    console.log("Socket.IO initialized");
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);
@@ -68,6 +80,16 @@ const gracefulShutdown = function (signal) {
   app.locals.isShuttingDown = true;
 
   if (server) {
+    // Close Socket.IO connections first
+    try {
+      const { getIO } = require("./config/socketio");
+      const io = getIO();
+      if (io) {
+        io.close();
+        console.log("Socket.IO closed");
+      }
+    } catch (e) { /* Socket.IO may not have been initialized */ }
+
     server.close(() => {
       console.log("HTTP server closed");
 

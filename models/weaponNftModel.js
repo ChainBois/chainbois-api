@@ -23,7 +23,7 @@ const weaponNftSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["assault", "smg", "lmg", "marksman", "handgun", "launcher", "melee"],
+      enum: ["assault", "smg", "lmg", "marksman", "handgun", "launcher", "shotgun", "melee"],
       required: true,
     },
     blueprintTier: {

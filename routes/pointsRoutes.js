@@ -1,20 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { decodeToken } = require("../middleware/auth");
+const pointsController = require("../controllers/pointsController");
 
-// Placeholder - implemented in Phase 5
-
-// Static routes BEFORE parameterized routes
-router.post("/convert", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/history/:address", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/:address", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
+// All public — user identified by wallet address
+router.post("/convert", pointsController.convertPoints);
+router.get("/history/:address", pointsController.getPointsHistory);
+router.get("/:address", pointsController.getPointsBalance);
 
 module.exports = router;

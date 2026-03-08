@@ -10,7 +10,7 @@ const transactionSchema = new mongoose.Schema(
         "points_conversion",
         "prize_payout",
         "nft_transfer",
-        "nft_claim",
+        "nft_purchase",
         "trait_airdrop",
         "rarity_airdrop",
       ],
@@ -52,6 +52,13 @@ const transactionSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Normalize addresses to lowercase before save
+transactionSchema.pre("save", function (next) {
+  if (this.fromAddress) this.fromAddress = this.fromAddress.toLowerCase();
+  if (this.toAddress) this.toAddress = this.toAddress.toLowerCase();
+  next();
+});
 
 transactionSchema.index({ toAddress: 1, type: 1, createdAt: -1 });
 transactionSchema.index({ txHash: 1 }, { unique: true, sparse: true });

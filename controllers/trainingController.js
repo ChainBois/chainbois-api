@@ -101,7 +101,12 @@ const getNftDetail = catchAsync(async (req, res, next) => {
     return next(new AppError("Token does not exist", 404));
   }
 
-  const level = await getNftLevel(parsedTokenId);
+  let level = 0;
+  try {
+    level = await getNftLevel(parsedTokenId);
+  } catch (e) {
+    return next(new AppError("Failed to get NFT level from contract", 500));
+  }
   const { characters, weapons } = getUnlockedContent(level, true);
   const localNft = await ChainboiNft.findOne({ tokenId: parsedTokenId });
 
@@ -203,7 +208,7 @@ const levelUp = catchAsync(async (req, res, next) => {
   }
   const cost = settings.levelUpCosts.get(String(newLevel));
   if (cost === undefined || cost === null) {
-    return next(new AppError(`Level-up cost not configured for level ${newLevel}`, 500));
+    return next(new AppError(`Level-up cost not configured for level ${newLevel}`, 503));
   }
 
   // 7. Get prize_pool wallet address (payment receiver)
@@ -295,8 +300,10 @@ const levelUp = catchAsync(async (req, res, next) => {
   try {
     const db = getFirebaseDb();
     await db.ref(`${FIREBASE_PATHS.USERS}/${req.user.uid}`).update({
+      hasNFT: true,
       level: newLevel,
       characters: characters,
+      weapons: weapons.length > 0 ? weapons : null,
     });
   } catch (e) {
     console.error("Failed to sync level-up to Firebase:", e.message);

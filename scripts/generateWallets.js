@@ -20,6 +20,7 @@ const PLATFORM_WALLETS = [
   { role: "nft_store" },
   { role: "weapon_store" },
   { role: "prize_pool" },
+  { role: "rewards" },
 ];
 
 const main = async function () {

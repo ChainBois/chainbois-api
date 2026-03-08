@@ -73,7 +73,7 @@ describe("constants", () => {
     expect(types).toContain("points_conversion");
     expect(types).toContain("prize_payout");
     expect(types).toContain("nft_transfer");
-    expect(types).toContain("nft_claim");
+    expect(types).toContain("nft_purchase");
   });
 
   test("POINTS_TO_BATTLE_RATIO is 1:1", () => {

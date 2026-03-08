@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const failedPayoutSchema = new mongoose.Schema(
   {
+    tournamentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tournament",
+      default: null,
+    },
     address: {
       type: String,
       required: true,

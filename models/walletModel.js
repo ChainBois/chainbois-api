@@ -20,7 +20,7 @@ const walletSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "prize_pool", "nft_store", "weapon_store", "deployer", "test"],
+      enum: ["admin", "prize_pool", "nft_store", "weapon_store", "deployer", "rewards", "test"],
       required: true,
     },
     balance: {

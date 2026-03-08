@@ -23,7 +23,6 @@ const trainingRoomRoutes = require("./routes/trainingRoomRoutes");
 const battlegroundRoutes = require("./routes/battlegroundRoutes");
 const armoryRoutes = require("./routes/armoryRoutes");
 const pointsRoutes = require("./routes/pointsRoutes");
-const claimRoutes = require("./routes/claimRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const metadataRoutes = require("./routes/metadataRoutes");
@@ -140,10 +139,19 @@ app.use("/api/v1/training", trainingRoomRoutes);
 app.use("/api/v1/tournaments", battlegroundRoutes);
 app.use("/api/v1/armory", armoryRoutes);
 app.use("/api/v1/points", pointsRoutes);
-app.use("/api/v1/claim", claimRoutes);
 app.use("/api/v1/inventory", inventoryRoutes);
 app.use("/api/v1/leaderboard", leaderboardRoutes);
-app.use("/api/v1/metadata", metadataRoutes);
+// Metadata route: override restrictive headers so external indexers
+// (Glacier, OpenSea, Thirdweb) can fetch NFT metadata
+app.use(
+  "/api/v1/metadata",
+  (req, res, next) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    next();
+  },
+  metadataRoutes
+);
 app.use("/api/v1/airdrop", airdropRoutes);
 app.use("/api/v1", healthRoutes);
 

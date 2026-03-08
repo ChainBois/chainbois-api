@@ -1,22 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { decodeToken } = require("../middleware/auth");
+const inventoryController = require("../controllers/inventoryController");
 
-// Placeholder - implemented in Phase 6
-router.get("/:address", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/:address/nfts", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/:address/weapons", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
-
-router.get("/:address/history", decodeToken, (req, res) => {
-  res.status(501).json({ success: false, message: "Not yet implemented" });
-});
+// All public — user identified by wallet address
+router.get("/:address", inventoryController.getInventory);
+router.get("/:address/nfts", inventoryController.getNfts);
+router.get("/:address/weapons", inventoryController.getWeapons);
+router.get("/:address/history", inventoryController.getHistory);
 
 module.exports = router;

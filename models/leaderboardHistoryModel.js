@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const leaderboardHistorySchema = new mongoose.Schema(
   {
+    year: {
+      type: Number,
+      required: true,
+    },
     weekNumber: {
       type: Number,
       required: true,
@@ -32,7 +36,7 @@ const leaderboardHistorySchema = new mongoose.Schema(
   }
 );
 
-leaderboardHistorySchema.index({ weekNumber: -1, tournamentLevel: 1 }, { unique: true });
+leaderboardHistorySchema.index({ year: 1, weekNumber: -1, tournamentLevel: 1 }, { unique: true });
 
 const LeaderboardHistory = mongoose.model("LeaderboardHistory", leaderboardHistorySchema);
 module.exports = LeaderboardHistory;

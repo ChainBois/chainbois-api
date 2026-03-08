@@ -35,7 +35,6 @@ const buildUserResponse = function (user) {
     hasNft: user.hasNft,
     nftTokenId: user.nftTokenId,
     isBanned: user.isBanned,
-    hasClaimed: user.hasClaimed,
     lastLogin: user.lastLogin,
   };
 };

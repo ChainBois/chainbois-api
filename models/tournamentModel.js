@@ -8,6 +8,14 @@ const tournamentSchema = new mongoose.Schema(
       min: 1,
       max: 7,
     },
+    weekNumber: {
+      type: Number,
+      required: true,
+    },
+    year: {
+      type: Number,
+      required: true,
+    },
     status: {
       type: String,
       enum: ["upcoming", "active", "cooldown", "completed"],
@@ -34,6 +42,7 @@ const tournamentSchema = new mongoose.Schema(
       first: { type: Number, default: 0 },
       second: { type: Number, default: 0 },
       third: { type: Number, default: 0 },
+      thirdBattle: { type: Number, default: 0 },
     },
     winners: [
       {
@@ -54,6 +63,7 @@ const tournamentSchema = new mongoose.Schema(
 
 tournamentSchema.index({ level: 1, status: 1 });
 tournamentSchema.index({ startTime: -1 });
+tournamentSchema.index({ year: 1, weekNumber: 1, level: 1 }, { unique: true });
 
 const Tournament = mongoose.model("Tournament", tournamentSchema);
 module.exports = Tournament;
