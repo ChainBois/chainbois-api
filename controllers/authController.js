@@ -7,6 +7,7 @@ const { getFirebaseAuth, getFirebaseDb } = require("../config/firebase");
 const { lookupNftAssets } = require("../utils/nftUtils");
 const { getOrCreateSecurityProfile, checkBanStatus } = require("../middleware/antiCheat");
 const { FIREBASE_PATHS, PLAYER_TYPE } = require("../config/constants");
+const PlatformMetrics = require("../models/platformMetricsModel");
 
 /**
  * Sanitize a string for safe storage
@@ -147,6 +148,7 @@ const login = catchAsync(async (req, res, next) => {
       playerType: PLAYER_TYPE.WEB2,
       username: firebaseUsername,
     });
+    await PlatformMetrics.incrementUsers("web3");
   } else {
     // Update address if changed (log address change for audit)
     if (user.address !== normalizedAddress) {
@@ -214,7 +216,7 @@ const login = catchAsync(async (req, res, next) => {
 
 /**
  * GET /api/v1/auth/me
- * Get current user profile
+ * Get user profile for authenticated user
  */
 const me = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ uid: req.user.uid });

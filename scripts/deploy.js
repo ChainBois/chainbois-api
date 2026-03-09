@@ -20,10 +20,11 @@ const main = async function () {
   const balance = await hre.ethers.provider.getBalance(deployer.address);
   console.log(`Deployer balance: ${hre.ethers.formatEther(balance)} AVAX\n`);
 
-  // 1. Deploy BattleToken
+  // 1. Deploy BattleToken (capped at 10M)
   console.log("Deploying BattleToken...");
+  const BATTLE_TOKEN_CAP = hre.ethers.parseEther("10000000"); // 10 million BATTLE
   const BattleToken = await hre.ethers.getContractFactory("BattleToken");
-  const battleToken = await BattleToken.deploy();
+  const battleToken = await BattleToken.deploy(BATTLE_TOKEN_CAP);
   await battleToken.waitForDeployment();
   const battleTokenAddress = await battleToken.getAddress();
   console.log(`  BattleToken deployed: ${battleTokenAddress}`);

@@ -300,18 +300,19 @@ describe("levelUp", () => {
     expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 400 }));
   });
 
+  test("returns 400 when user has no wallet address", async () => {
+    User.findOne.mockResolvedValue({ uid: "testuid123", address: null, save: jest.fn() });
+    Transaction.findOne.mockResolvedValue(null);
+    const { req, res, next } = createMocks({ body: { tokenId: 1, txHash: validTxHash } });
+    await callHandler(levelUp, req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 400 }));
+  });
+
   test("returns 404 when user not found", async () => {
     User.findOne.mockResolvedValue(null);
     const { req, res, next } = createMocks({ body: { tokenId: 1, txHash: validTxHash } });
     await callHandler(levelUp, req, res, next);
     expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 404 }));
-  });
-
-  test("returns 400 when user has no wallet address", async () => {
-    User.findOne.mockResolvedValue({ uid: "test", address: null });
-    const { req, res, next } = createMocks({ body: { tokenId: 1, txHash: validTxHash } });
-    await callHandler(levelUp, req, res, next);
-    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 400 }));
   });
 
   test("returns 409 for replay txHash", async () => {

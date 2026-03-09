@@ -13,6 +13,7 @@ const transactionSchema = new mongoose.Schema(
         "nft_purchase",
         "trait_airdrop",
         "rarity_airdrop",
+        "refund",
       ],
       required: true,
     },

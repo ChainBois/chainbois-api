@@ -4,7 +4,7 @@ const { decodeToken } = require("../middleware/auth");
 const gameController = require("../controllers/gameController");
 const downloadController = require("../controllers/downloadController");
 
-// Public endpoints (no auth)
+// Public endpoints
 router.get("/download/:platform", downloadController.downloadGame);
 router.get("/info", downloadController.getGameInfo);
 

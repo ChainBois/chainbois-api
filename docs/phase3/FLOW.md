@@ -21,8 +21,8 @@ Phase 3 implements the Training Room: NFT display, on-chain level-up with AVAX p
 |  7. Backend returns new level + unlocked content                  |
 +-----------------------------+------------------------------------+
                               |
-                     Firebase ID Token
-                     (Authorization: Bearer)
+                       Firebase ID Token
+                       (Authorization: Bearer)
                               |
                               v
 +------------------------------------------------------------------+
@@ -138,6 +138,53 @@ Marketplace/Explorer              API                     MongoDB + Chain
 ```
 
 This endpoint is PUBLIC (no auth) because marketplaces and explorers need to access it. The on-chain `tokenURI()` points to this endpoint.
+
+---
+
+## NFT Stats Pipeline (syncScoresJob → ChainboiNft → Metadata)
+
+Game stats flow from the Unity game to NFT metadata through a pipeline:
+
+```
+Unity Game        Firebase         syncScoresJob        MongoDB            Metadata API
+    |                |                  |                  |                    |
+    | Score: 5000    |                  |                  |                    |
+    |--------------->|                  |                  |                    |
+    |                | Cron (5 min)     |                  |                    |
+    |                |<-----------------|                  |                    |
+    |                |  Score: 5000     |                  |                    |
+    |                |----------------->|                  |                    |
+    |                |                  |                  |                    |
+    |                |                  | 1. Update User:  |                    |
+    |                |                  |    score, points |                    |
+    |                |                  |----------------->|                    |
+    |                |                  |                  |                    |
+    |                |                  | 2. If user has   |                    |
+    |                |                  |    wallet + NFT: |                    |
+    |                |                  |    ChainboiNft   |                    |
+    |                |                  |    .updateMany() |                    |
+    |                |                  |    inGameStats = |                    |
+    |                |                  |    { score, gp } |                    |
+    |                |                  |----------------->|                    |
+    |                |                  |                  |                    |
+    |                |                  |                  | 3. GET /metadata/5 |
+    |                |                  |                  |<-------------------|
+    |                |                  |                  | Returns live stats |
+    |                |                  |                  |------------------->|
+```
+
+The `syncScoresJob` (in `jobs/syncScoresJob.js` lines 135-148) propagates `score` and `gamesPlayed` from the User model to all ChainBoi NFTs owned by that user. This data feeds the dynamic metadata endpoint, which includes game stats as ERC-721 `attributes`:
+
+```json
+{
+  "attributes": [
+    { "trait_type": "Score", "value": 5000, "display_type": "number" },
+    { "trait_type": "Games Played", "value": 15, "display_type": "number" }
+  ]
+}
+```
+
+Marketplaces that reindex metadata (triggered by EIP-4906 `MetadataUpdate` events) will display live game stats on NFT listings.
 
 ---
 

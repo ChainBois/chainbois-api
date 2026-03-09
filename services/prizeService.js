@@ -156,6 +156,7 @@ const distributePrizes = async function (tournament) {
         txHash: receipt.hash,
         status: "confirmed",
         metadata: {
+          description: `Congratulations! Rank ${prize.rank} prize for Level ${tournament.level} Tournament Week ${tournament.weekNumber}: ${prize.amount} ${prize.currency}.`,
           tournamentId: tournament._id,
           tournamentLevel: tournament.level,
           rank: prize.rank,
@@ -297,6 +298,7 @@ const retryFailedPayouts = async function () {
         txHash: receipt.hash,
         status: "confirmed",
         metadata: {
+          description: `Prize payout retry: ${payout.amount} ${payout.currency} for tournament ${payout.tournamentId}.`,
           tournamentId: payout.tournamentId,
           retryOf: payout._id,
         },

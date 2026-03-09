@@ -10,16 +10,16 @@
       "value": "https://your-api-domain.com/api/v1"
     },
     {
-      "key": "authToken",
-      "value": ""
-    },
-    {
       "key": "address",
       "value": "0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0"
     },
     {
       "key": "tokenId",
       "value": "1"
+    },
+    {
+      "key": "authToken",
+      "value": ""
     }
   ],
   "item": [
@@ -90,12 +90,12 @@
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
               }
             ],
             "body": {
@@ -355,8 +355,8 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{authToken}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
             ],
             "body": {
               "mode": "raw",

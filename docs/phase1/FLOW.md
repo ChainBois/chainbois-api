@@ -76,9 +76,9 @@ Phase 1 implements the core authentication loop and game-to-backend integration:
 |                                          |         |                        |
 |  +------------------------+             |         v                        |
 |  |   Background Jobs       |<------------+                                  |
-|  |                         |  Polls Firebase every 1 min                    |
+|  |                         |  Polls Firebase daily (midnight)               |
 |  | - syncNewUsers          |  Detects unregistered players                  |
-|  |   (1 min cron)         |  Creates as WEB2 in MongoDB                    |
+|  |   (daily cron)         |  Creates as WEB2 in MongoDB                    |
 |  |                         |                                                |
 |  | - syncScores            |  Polls Firebase every 5 min                    |
 |  |   (5 min cron)         |  Updates score, highScore, points              |
@@ -220,22 +220,26 @@ This is the most complex endpoint. Full flow:
 
 ## Background Jobs
 
-### syncNewUsersJob (Every 1 Minute)
+### syncNewUsersJob (Daily at Midnight)
 
 **Purpose**: Auto-detect players who started playing via Unity but haven't connected a wallet yet.
 
-The game writes to Firebase via Firebase SDK. This cron job polls Firebase, detects new UIDs not in MongoDB, and creates WEB2 user records. This is how web2 players enter the system.
+The game writes to Firebase via Firebase SDK. This cron job polls Firebase, detects new UIDs not in MongoDB, and creates WEB2 user records. This is how web2 players enter the system. Also increments platform metrics (`PlatformMetrics.incrementUsers("web2")`) for each new user.
 
 ### syncScoresJob (Every 5 Minutes)
 
-**Purpose**: Pull game scores from Firebase into MongoDB.
+**Purpose**: Pull game scores from Firebase into MongoDB and propagate to NFT metadata.
 
 For each user with a score change:
 1. Calculate delta (Firebase score - MongoDB score)
 2. Validate via anti-cheat (cap at MAX_POINTS_PER_MATCH, daily earnings limit)
 3. Update user score, highScore, pointsBalance, gamesPlayed
-4. Upsert weekly leaderboard entry
-5. Create ScoreChange record (for time-period leaderboard queries)
+4. Sync in-game stats to ChainBoi NFTs (if user has wallet + NFT): `ChainboiNft.inGameStats.score` and `.gamesPlayed`
+5. Upsert weekly leaderboard entry
+6. Create ScoreChange record (for time-period leaderboard queries)
+7. Emit real-time leaderboard updates via Socket.IO (for active tournaments)
+
+**NFT stats sync**: When a user has `address` and `hasNft`, the sync job propagates their cumulative score and gamesPlayed to all ChainBoi NFTs they own. This feeds the dynamic metadata endpoint (`GET /api/v1/metadata/:tokenId.json`), so marketplaces and explorers see live game stats on NFTs.
 
 ---
 
@@ -411,8 +415,8 @@ __tests__/
 - [x] Character unlock system (army ranks: Private through Field Marshal)
 - [x] Weapon system (30 weapons across 7 categories)
 - [x] Firebase RTDB sync for Unity game
-- [x] Background job: sync new users (1 min)
-- [x] Background job: sync scores (5 min) with ScoreChange tracking
+- [x] Background job: sync new users (daily at midnight)
+- [x] Background job: sync scores (5 min) with ScoreChange tracking + NFT stats propagation
 - [x] Anti-cheat: velocity, session, daily cap, threat scoring, bans
 - [x] Rate limiting (auth: 20/15min, general: 10,000/1hr)
 - [x] 503 graceful degradation when contracts not configured

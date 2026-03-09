@@ -7,10 +7,11 @@ const Wallet = require("../models/walletModel");
 const Transaction = require("../models/transactionModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
-const { mintBattleTokens } = require("../utils/contractUtils");
+const { transferBattleTokens, getBattleBalance } = require("../utils/contractUtils");
 const { decrypt } = require("../utils/cryptUtils");
 const { processCollectionRarity, populateNftTraits, TRAIT_FIELDS } = require("../services/rarityService");
 const { WALLET_ROLES, TRANSACTION_TYPES } = require("../config/constants");
+const { getAdjustedAirdropAmount } = require("../services/tokenomicsService");
 
 /**
  * GET /api/v1/airdrop/rarity
@@ -247,19 +248,30 @@ const executeTraitAirdrop = async function () {
   }
 
   const totalEligibleNfts = Object.values(ownerNftCounts).reduce((a, b) => a + b, 0);
-  const amountPerNft = pool.weeklyDistributionAmount / totalEligibleNfts;
+  const amountPerNft = adjustedAmount / totalEligibleNfts;
 
-  // 5. Distribute $BATTLE
-  const deployerWallet = await Wallet.findOne({ role: WALLET_ROLES.DEPLOYER }).select("+key +iv");
-  if (!deployerWallet) {
-    return { success: false, message: "Deployer wallet not configured" };
+  // 5. Distribute $BATTLE from rewards wallet (fixed supply — transfer, not mint)
+  const rewardsWallet = await Wallet.findOne({ role: WALLET_ROLES.REWARDS }).select("+key +iv");
+  if (!rewardsWallet) {
+    return { success: false, message: "Rewards wallet not configured" };
   }
 
-  let deployerKey;
+  // Calculate dynamic airdrop amount based on rewards health
+  const rewardsBalance = await getBattleBalance(rewardsWallet.address);
+  const rewardsBalanceNum = parseFloat(rewardsBalance);
+  const adjustedAmount = getAdjustedAirdropAmount(pool.weeklyDistributionAmount, rewardsBalanceNum);
+
+  console.log(`[Airdrop] Base: ${pool.weeklyDistributionAmount} | Adjusted: ${adjustedAmount} | Rewards: ${rewardsBalanceNum.toLocaleString()}`);
+
+  if (rewardsBalanceNum < adjustedAmount) {
+    return { success: false, message: `Insufficient BATTLE balance: ${rewardsBalance} < ${adjustedAmount}` };
+  }
+
+  let rewardsKey;
   try {
-    deployerKey = await decrypt(deployerWallet.key, deployerWallet.iv);
+    rewardsKey = await decrypt(rewardsWallet.key, rewardsWallet.iv);
   } catch (e) {
-    return { success: false, message: "Failed to decrypt deployer key" };
+    return { success: false, message: "Failed to decrypt rewards wallet key" };
   }
 
   let totalDistributed = 0;
@@ -272,20 +284,21 @@ const executeTraitAirdrop = async function () {
     if (amount <= 0) continue;
 
     try {
-      const receipt = await mintBattleTokens(owner, amount, deployerKey);
+      const receipt = await transferBattleTokens(owner, amount, rewardsKey);
       totalDistributed += amount;
       distributions.push({ address: owner, nftCount, amount, txHash: receipt.hash });
 
       // Record transaction
       await Transaction.create({
         type: TRANSACTION_TYPES.TRAIT_AIRDROP,
-        fromAddress: deployerWallet.address,
+        fromAddress: rewardsWallet.address,
         toAddress: owner,
         amount,
         currency: "BATTLE",
         txHash: receipt.hash,
         status: "confirmed",
         metadata: {
+          description: `You received ${amount} BATTLE for holding ${nftCount} ChainBoi NFT(s) with the trait: ${traitField} = ${traitValue}.`,
           traitType: traitField,
           traitValue,
           nftCount,

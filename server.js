@@ -43,6 +43,10 @@ const startServer = async function () {
       const { traitAirdropJob } = require("./jobs/traitAirdropJob");
       const { tournamentJob } = require("./jobs/tournamentJob");
       const { failedPayoutJob } = require("./jobs/failedPayoutJob");
+      const { purchaseFailsafeJob } = require("./jobs/purchaseFailsafeJob");
+      const { tokenomicsJob } = require("./jobs/tokenomicsJob");
+      const { walletHealthJob } = require("./jobs/walletHealthJob");
+      const { platformAuditJob } = require("./jobs/platformAuditJob");
       const { SYNC_NEW_USERS_INTERVAL, SYNC_SCORES_INTERVAL } = require("./config/constants");
 
       cron.schedule(SYNC_NEW_USERS_INTERVAL, syncNewUsersJob);
@@ -50,7 +54,11 @@ const startServer = async function () {
       cron.schedule("0 20 * * 3", traitAirdropJob); // Wednesdays 8 PM UTC
       cron.schedule("0 * * * *", tournamentJob); // Every hour
       cron.schedule("0 */6 * * *", failedPayoutJob); // Every 6 hours
-      console.log("Cron jobs started: syncNewUsers, syncScores, traitAirdrop, tournament (hourly), failedPayout (6h)");
+      cron.schedule("*/5 * * * *", purchaseFailsafeJob); // Every 5 minutes
+      cron.schedule("0 */6 * * *", tokenomicsJob); // Every 6 hours
+      cron.schedule("0 * * * *", walletHealthJob); // Every hour
+      cron.schedule("0 3 * * *", platformAuditJob); // Daily 3 AM UTC
+      console.log("Cron jobs started: syncNewUsers, syncScores, traitAirdrop, tournament (hourly), failedPayout (6h), purchaseFailsafe (5m), tokenomics (6h), walletHealth (hourly), platformAudit (daily 3AM)");
     }
 
     // Start server

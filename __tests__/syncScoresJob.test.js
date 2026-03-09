@@ -28,6 +28,23 @@ jest.mock("../models/scoreChangeModel", () => ({
   create: (...args) => mockScoreChangeCreate(...args),
 }));
 
+// Mock Tournament model
+const mockTournamentFind = jest.fn();
+jest.mock("../models/tournamentModel", () => ({
+  find: (...args) => mockTournamentFind(...args),
+}));
+
+// Mock ChainboiNft model
+const mockNftUpdateMany = jest.fn().mockResolvedValue({ modifiedCount: 0 });
+jest.mock("../models/chainboiNftModel", () => ({
+  updateMany: (...args) => mockNftUpdateMany(...args),
+}));
+
+// Mock weekUtils
+jest.mock("../utils/weekUtils", () => ({
+  getWeekInfo: () => ({ weekNumber: 10, year: 2026 }),
+}));
+
 // Mock antiCheat
 const mockGetOrCreateSP = jest.fn();
 const mockCheckBanStatus = jest.fn();
@@ -51,6 +68,7 @@ const makeUser = (overrides = {}) => ({
   pointsBalance: 0,
   level: 0,
   isBanned: false,
+  hasNft: true,
   address: "0xabc",
   username: "player1",
   lastScoreSync: null,
@@ -73,6 +91,7 @@ describe("syncScoresJob", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTournamentFind.mockReturnValue({ lean: () => Promise.resolve([]) });
   });
 
   test("handles null Firebase snapshot", async () => {
@@ -270,5 +289,75 @@ describe("syncScoresJob", () => {
   test("handles Firebase error gracefully", async () => {
     mockOnce.mockRejectedValue(new Error("Firebase down"));
     await syncScoresJob(); // Should not throw
+  });
+
+  test("syncs in-game stats to ChainboiNft after score update", async () => {
+    const user = makeUser({ score: 100, gamesPlayed: 5, hasNft: true, address: "0xABC" });
+    const sp = makeSecurityProfile();
+    mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 600 } }) });
+    mockUserFindOne.mockResolvedValue(user);
+    mockGetOrCreateSP.mockResolvedValue(sp);
+    mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
+    mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 500 });
+
+    await syncScoresJob();
+
+    expect(mockNftUpdateMany).toHaveBeenCalledWith(
+      { ownerAddress: "0xabc" },
+      {
+        $set: {
+          "inGameStats.score": 600,
+          "inGameStats.gamesPlayed": 6,
+        },
+      }
+    );
+  });
+
+  test("skips NFT stats sync when user has no NFT", async () => {
+    const user = makeUser({ score: 0, hasNft: false });
+    const sp = makeSecurityProfile();
+    mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 500 } }) });
+    mockUserFindOne.mockResolvedValue(user);
+    mockGetOrCreateSP.mockResolvedValue(sp);
+    mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
+    mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 500 });
+
+    await syncScoresJob();
+
+    expect(mockNftUpdateMany).not.toHaveBeenCalled();
+  });
+
+  test("skips NFT stats sync when user has no address", async () => {
+    const user = makeUser({ score: 0, address: "", hasNft: true });
+    const sp = makeSecurityProfile();
+    mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 500 } }) });
+    mockUserFindOne.mockResolvedValue(user);
+    mockGetOrCreateSP.mockResolvedValue(sp);
+    mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
+    mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 500 });
+
+    await syncScoresJob();
+
+    expect(mockNftUpdateMany).not.toHaveBeenCalled();
+  });
+
+  test("NFT stats sync failure does not break score sync", async () => {
+    const user = makeUser({ score: 0, hasNft: true });
+    const sp = makeSecurityProfile();
+    mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 500 } }) });
+    mockUserFindOne.mockResolvedValue(user);
+    mockGetOrCreateSP.mockResolvedValue(sp);
+    mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
+    mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 500 });
+    mockNftUpdateMany.mockRejectedValueOnce(new Error("NFT DB error"));
+
+    await syncScoresJob();
+
+    // Score update should still have completed
+    expect(user.score).toBe(500);
+    expect(mockUserSave).toHaveBeenCalled();
+    // Leaderboard and score change should still be recorded
+    expect(mockLbFindOneAndUpdate).toHaveBeenCalled();
+    expect(mockScoreChangeCreate).toHaveBeenCalled();
   });
 });

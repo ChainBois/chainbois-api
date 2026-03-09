@@ -1,10 +1,11 @@
 const User = require("../models/userModel");
+const PlatformMetrics = require("../models/platformMetricsModel");
 const { getFirebaseDb } = require("../config/firebase");
 const { FIREBASE_PATHS, PLAYER_TYPE } = require("../config/constants");
 
 /**
  * Sync new users from Firebase Realtime DB to MongoDB.
- * Runs every 1 minute on primary PM2 instance.
+ * Runs daily at midnight UTC (detects web2 players for platform metrics: web2 vs web3 distinction).
  *
  * For users created via the Unity game (who register through Firebase directly),
  * this job creates corresponding MongoDB user records so they appear in the
@@ -66,6 +67,7 @@ const syncNewUsersJob = async function () {
         });
 
         syncCount++;
+        await PlatformMetrics.incrementUsers("web2");
         console.log(`New Web2 user synced: ${firebaseId}`);
       } catch (e) {
         // Duplicate key error means another instance beat us - skip

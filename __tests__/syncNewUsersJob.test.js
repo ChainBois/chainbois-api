@@ -20,6 +20,10 @@ jest.mock("../models/userModel", () => ({
   distinct: (...args) => mockDistinct(...args),
 }));
 
+jest.mock("../models/platformMetricsModel", () => ({
+  incrementUsers: jest.fn().mockResolvedValue(),
+}));
+
 const { syncNewUsersJob } = require("../jobs/syncNewUsersJob");
 
 describe("syncNewUsersJob", () => {

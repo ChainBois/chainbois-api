@@ -63,6 +63,21 @@ const mintBattleTokens = async function (toAddress, amount, signerPrivateKey) {
   return receipt;
 };
 
+const burnBattleTokens = async function (amount, signerPrivateKey) {
+  const contract = getBattleTokenContract(signerPrivateKey);
+  const tx = await contract.burn(ethers.parseEther(String(amount)));
+  const receipt = await tx.wait();
+  return receipt;
+};
+
+const getBattleTotalSupply = async function () {
+  return withRetry(async () => {
+    const contract = getBattleTokenContract();
+    const supply = await contract.totalSupply();
+    return ethers.formatEther(supply);
+  });
+};
+
 const transferBattleTokens = async function (toAddress, amount, signerPrivateKey) {
   const contract = getBattleTokenContract(signerPrivateKey);
   const tx = await contract.transfer(toAddress, ethers.parseEther(String(amount)));
@@ -159,6 +174,14 @@ const transferWeaponNft = async function (fromAddress, toAddress, tokenId, signe
   return receipt;
 };
 
+const getWeaponNftOwner = async function (tokenId) {
+  return withRetry(async () => {
+    const contract = getWeaponNftContract();
+    const owner = await contract.ownerOf(tokenId);
+    return owner;
+  });
+};
+
 const getWeaponTotalSupply = async function () {
   return withRetry(async () => {
     const contract = getWeaponNftContract();
@@ -175,7 +198,9 @@ module.exports = {
   getSignedContract,
   getBattleTokenContract,
   getBattleBalance,
+  getBattleTotalSupply,
   mintBattleTokens,
+  burnBattleTokens,
   transferBattleTokens,
   getChainboisNftContract,
   getNftLevel,
@@ -187,6 +212,7 @@ module.exports = {
   getWeaponNftContract,
   mintWeaponNft,
   getWeaponName,
+  getWeaponNftOwner,
   transferWeaponNft,
   getWeaponTotalSupply,
 };

@@ -32,6 +32,7 @@ const settingsSchema = new mongoose.Schema(
       weaponNft: { type: String, default: "" },
     },
     nftPrice: { type: Number, default: 0.001 },
+    dynamicTokenomics: { type: Boolean, default: true },
     downloads: { type: Number, default: 0, min: 0 },
     trailer: { type: String, default: "" },
   },

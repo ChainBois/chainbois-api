@@ -3,13 +3,15 @@ const WeaponNft = require("../models/weaponNftModel");
 const User = require("../models/userModel");
 const Wallet = require("../models/walletModel");
 const Transaction = require("../models/transactionModel");
+const PurchaseAttempt = require("../models/purchaseAttemptModel");
 const Settings = require("../models/settingsModel");
 const Tournament = require("../models/tournamentModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { transferNft, transferWeaponNft, getBattleBalance } = require("../utils/contractUtils");
-const { getProvider } = require("../utils/avaxUtils");
+const { getProvider, sendAvax, getAvaxBalance } = require("../utils/avaxUtils");
 const { decrypt } = require("../utils/cryptUtils");
+const { withRetry } = require("../utils/retryHelper");
 const { getFirebaseDb } = require("../config/firebase");
 const {
   WEAPON_CATEGORIES,
@@ -17,6 +19,7 @@ const {
   TRANSACTION_TYPES,
   WALLET_ROLES,
   FIREBASE_PATHS,
+  PURCHASE_FAILSAFE,
 } = require("../config/constants");
 const { ethers } = require("ethers");
 const BattleTokenABI = require("../abis/BattleToken.json").abi;
@@ -211,6 +214,7 @@ const getNftDetail = catchAsync(async (req, res, next) => {
 /**
  * POST /api/v1/armory/purchase/weapon
  * Verify $BATTLE payment tx, transfer weapon NFT (no auth — wallet identifies user)
+ * Includes failsafe: PurchaseAttempt tracking, retry, auto-refund.
  *
  * Body: { address: string, weaponName: string, txHash: string }
  */
@@ -251,13 +255,31 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
     return next(new AppError("Armory is temporarily unavailable", 503));
   }
 
-  // 5. Check txHash not already used
-  const existingTx = await Transaction.findOne({ txHash });
+  // 5. Replay protection — check Transaction AND PurchaseAttempt
+  const existingTx = await Transaction.findOne({
+    $or: [{ txHash }, { "metadata.paymentTxHash": txHash }],
+  });
   if (existingTx) {
     return next(new AppError("This transaction has already been used", 409));
   }
 
-  // 6. Atomically claim an available weapon (prevents race conditions)
+  const existingAttempt = await PurchaseAttempt.findOne({ paymentTxHash: txHash });
+  if (existingAttempt) {
+    if (existingAttempt.status === "completed") {
+      return next(new AppError("This payment has already been processed", 409));
+    }
+    if (existingAttempt.status === "refunded") {
+      return next(new AppError("This payment was refunded. Please submit a new payment.", 409));
+    }
+    if (["pending", "processing"].includes(existingAttempt.status)) {
+      return next(new AppError("This payment is being processed. Please wait.", 409));
+    }
+    if (existingAttempt.status === "needs_refund") {
+      return next(new AppError("This payment is pending refund. Please wait.", 409));
+    }
+  }
+
+  // 6. Atomically claim an available weapon (BEFORE verification — prevents double-sells)
   const weapon = await WeaponNft.findOneAndUpdate(
     {
       weaponName,
@@ -274,13 +296,14 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
   const provider = getProvider();
   const receipt = await provider.getTransactionReceipt(txHash);
   if (!receipt || receipt.status !== 1) {
-    // Rollback ownership claim
+    // Rollback — payment not valid, no PurchaseAttempt needed
     await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
     return next(new AppError("Transaction not found or failed on-chain", 400));
   }
 
   const battleInterface = new ethers.Interface(BattleTokenABI);
   let paymentVerified = false;
+  let actualPaymentAmount = String(weapon.price);
   const expectedAmount = ethers.parseEther(String(weapon.price));
 
   for (const log of receipt.logs) {
@@ -294,47 +317,81 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
         parsed.args.value >= expectedAmount
       ) {
         paymentVerified = true;
+        actualPaymentAmount = ethers.formatEther(parsed.args.value);
         break;
       }
     } catch { /* not a Transfer event */ }
   }
 
   if (!paymentVerified) {
-    // Rollback ownership claim
+    // Rollback — payment not valid, no PurchaseAttempt needed
     await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
     return next(new AppError("Payment not verified: must be a $BATTLE transfer to the weapon store wallet for the correct amount", 400));
   }
 
-  // 8. Transfer weapon NFT on-chain from weapon_store to user
+  // 8. Create PurchaseAttempt IMMEDIATELY after payment verification (crash safety)
+  let attempt;
+  try {
+    attempt = await PurchaseAttempt.create({
+      type: "weapon_purchase",
+      buyerAddress: normalizedAddress,
+      paymentTxHash: txHash,
+      paymentAmount: actualPaymentAmount,
+      paymentCurrency: "BATTLE",
+      storeWalletAddress: weaponStoreWallet.address,
+      weaponTokenId: weapon.tokenId,
+      weaponName: weapon.weaponName,
+      status: "processing",
+      processingStartedAt: new Date(),
+    });
+  } catch (e) {
+    // CRITICAL: Without PurchaseAttempt, failsafe cannot track this purchase.
+    // Rollback DB ownership and return error — user must retry.
+    console.error(`Failed to create PurchaseAttempt, rolling back: ${e.message}`);
+    await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
+    return next(new AppError("Purchase tracking failed. Please try again.", 500));
+  }
+
+  // 9. Transfer weapon NFT on-chain with retry
   let weaponStoreKey;
   try {
     weaponStoreKey = await decrypt(weaponStoreWallet.key, weaponStoreWallet.iv);
   } catch (e) {
-    // Rollback ownership claim
-    await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
-    return next(new AppError("Wallet decryption failed. Contact support.", 500));
+    // Do NOT rollback DB ownership — failsafe will handle it
+    attempt.status = "pending";
+    attempt.failureReason = "Wallet decryption failed";
+    await attempt.save();
+    return next(new AppError("Transfer in progress. If not received, it will be retried automatically.", 500));
   }
 
   let transferReceipt;
   try {
-    transferReceipt = await transferWeaponNft(
-      weaponStoreWallet.address,
-      normalizedAddress,
-      weapon.tokenId,
-      weaponStoreKey
+    transferReceipt = await withRetry(
+      () => transferWeaponNft(weaponStoreWallet.address, normalizedAddress, weapon.tokenId, weaponStoreKey),
+      PURCHASE_FAILSAFE.TRANSFER_MAX_RETRIES,
+      PURCHASE_FAILSAFE.TRANSFER_RETRY_DELAY_MS
     );
   } catch (e) {
-    // Rollback ownership claim
-    await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
-    return next(new AppError(`Weapon transfer failed: ${e.message}`, 500));
+    // Do NOT rollback DB ownership — failsafe will handle it
+    attempt.status = "pending";
+    attempt.failureReason = e.message;
+    await attempt.save();
+    return next(new AppError("Transfer in progress. If not received, it will be retried automatically.", 500));
   }
 
   if (!transferReceipt || !transferReceipt.hash) {
-    await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
-    return next(new AppError("Weapon transfer did not return a valid receipt", 500));
+    attempt.status = "pending";
+    attempt.failureReason = "Transfer did not return a valid receipt";
+    await attempt.save();
+    return next(new AppError("Transfer in progress. If not received, it will be retried automatically.", 500));
   }
 
-  // 9. Record transaction (non-fatal — asset already transferred on-chain)
+  // 10. Success — update PurchaseAttempt
+  attempt.status = "completed";
+  attempt.transferTxHash = transferReceipt.hash;
+  await attempt.save();
+
+  // 11. Record transaction (non-fatal)
   try {
     await Transaction.create({
       type: TRANSACTION_TYPES.WEAPON_PURCHASE,
@@ -345,6 +402,7 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
       txHash: transferReceipt.hash,
       status: "confirmed",
       metadata: {
+        description: `Weapon purchased: ${weapon.weaponName} (${weapon.category}).`,
         weaponName: weapon.weaponName,
         weaponTokenId: weapon.tokenId,
         category: weapon.category,
@@ -359,7 +417,7 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
     });
   }
 
-  // 10. Sync to Firebase so game sees the weapon
+  // 12. Sync to Firebase so game sees the weapon
   if (user.uid) {
     try {
       const db = getFirebaseDb();
@@ -392,6 +450,7 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
 /**
  * POST /api/v1/armory/purchase/nft
  * Verify AVAX payment tx, transfer ChainBoi NFT (no auth — wallet identifies user)
+ * Includes failsafe: PurchaseAttempt tracking, retry, auto-refund on sold-out.
  *
  * Body: { address: string, tokenId: number (optional — picks any if omitted), txHash: string }
  */
@@ -408,8 +467,8 @@ const purchaseNft = catchAsync(async (req, res, next) => {
 
   const normalizedAddress = address.toLowerCase();
 
-  // 1. Find or create user by wallet address
-  let user = await User.findOne({ address: normalizedAddress });
+  // 1. Find user by wallet address
+  const user = await User.findOne({ address: normalizedAddress });
   if (!user) {
     return next(new AppError("No account found for this wallet. Please login first.", 404));
   }
@@ -424,13 +483,31 @@ const purchaseNft = catchAsync(async (req, res, next) => {
   const settings = await Settings.findOne();
   const nftPrice = settings && settings.nftPrice != null ? settings.nftPrice : 0.001;
 
-  // 4. Check txHash not already used
-  const existingTx = await Transaction.findOne({ txHash });
+  // 4. Replay protection — check Transaction AND PurchaseAttempt
+  const existingTx = await Transaction.findOne({
+    $or: [{ txHash }, { "metadata.paymentTxHash": txHash }],
+  });
   if (existingTx) {
     return next(new AppError("This transaction has already been used", 409));
   }
 
-  // 5. Verify on-chain AVAX payment to nft_store BEFORE claiming NFT
+  const existingAttempt = await PurchaseAttempt.findOne({ paymentTxHash: txHash });
+  if (existingAttempt) {
+    if (existingAttempt.status === "completed") {
+      return next(new AppError("This payment has already been processed", 409));
+    }
+    if (existingAttempt.status === "refunded") {
+      return next(new AppError("This payment was refunded. Please submit a new payment.", 409));
+    }
+    if (["pending", "processing"].includes(existingAttempt.status)) {
+      return next(new AppError("This payment is being processed. Please wait.", 409));
+    }
+    if (existingAttempt.status === "needs_refund") {
+      return next(new AppError("This payment is pending refund. Please wait.", 409));
+    }
+  }
+
+  // 5. Verify on-chain AVAX payment to nft_store
   const provider = getProvider();
   const tx = await provider.getTransaction(txHash);
   if (!tx) {
@@ -442,7 +519,6 @@ const purchaseNft = catchAsync(async (req, res, next) => {
     return next(new AppError("Transaction failed on-chain", 400));
   }
 
-  // Verify: sender is buyer, recipient is nft_store, amount >= price
   if (tx.from.toLowerCase() !== normalizedAddress) {
     return next(new AppError("Transaction sender does not match your wallet", 400));
   }
@@ -455,7 +531,10 @@ const purchaseNft = catchAsync(async (req, res, next) => {
     return next(new AppError(`Insufficient payment. Expected at least ${nftPrice} AVAX`, 400));
   }
 
-  // 6. Atomically claim an available NFT (prevents race conditions)
+  // Capture actual payment amount (may be > price if user overpaid)
+  const actualPaymentAmount = ethers.formatEther(tx.value);
+
+  // 6. Atomically claim an available NFT
   const nftQuery = { ownerAddress: nftStoreWallet.address.toLowerCase() };
   if (requestedTokenId) {
     nftQuery.tokenId = requestedTokenId;
@@ -465,45 +544,139 @@ const purchaseNft = catchAsync(async (req, res, next) => {
     { ownerAddress: normalizedAddress },
     { new: true }
   );
+
   if (!availableNft) {
-    return next(new AppError("No NFTs available for purchase", 404));
+    // SOLD OUT — create PurchaseAttempt and attempt immediate refund
+    let attempt;
+    try {
+      attempt = await PurchaseAttempt.create({
+        type: "nft_purchase",
+        buyerAddress: normalizedAddress,
+        paymentTxHash: txHash,
+        paymentAmount: actualPaymentAmount,
+        paymentCurrency: "AVAX",
+        storeWalletAddress: nftStoreWallet.address,
+        status: "needs_refund",
+        failureReason: "No NFTs available for purchase (sold out)",
+      });
+    } catch (e) {
+      console.error(`Failed to create PurchaseAttempt for refund: ${e.message}`);
+    }
+
+    // Attempt immediate refund
+    try {
+      const nftStoreKey = await decrypt(nftStoreWallet.key, nftStoreWallet.iv);
+      const storeBalance = await getAvaxBalance(nftStoreWallet.address);
+      if (parseFloat(storeBalance) >= parseFloat(actualPaymentAmount) + 0.001) {
+        const refundReceipt = await sendAvax(nftStoreKey, normalizedAddress, actualPaymentAmount);
+        if (refundReceipt && refundReceipt.hash) {
+          if (attempt) {
+            attempt.status = "refunded";
+            attempt.refundTxHash = refundReceipt.hash;
+            await attempt.save();
+          }
+
+          try {
+            await Transaction.create({
+              type: TRANSACTION_TYPES.REFUND,
+              fromAddress: nftStoreWallet.address,
+              toAddress: normalizedAddress,
+              amount: parseFloat(actualPaymentAmount),
+              currency: "AVAX",
+              txHash: refundReceipt.hash,
+              status: "confirmed",
+              metadata: { description: `Refund: NFT sold out. ${actualPaymentAmount} AVAX returned.`, reason: "NFT sold out", paymentTxHash: txHash },
+            });
+          } catch (txErr) {
+            console.error(`Failed to record refund transaction: ${txErr.message}`);
+          }
+
+          return next(new AppError(
+            `No NFTs available. Your payment of ${actualPaymentAmount} AVAX has been refunded (tx: ${refundReceipt.hash})`,
+            404
+          ));
+        }
+      }
+    } catch (refundErr) {
+      console.error(`Immediate refund failed, failsafe will retry: ${refundErr.message}`);
+    }
+
+    return next(new AppError(
+      "No NFTs available for purchase. Your payment will be refunded automatically.",
+      404
+    ));
   }
 
-  // 7. Transfer NFT on-chain
+  // 7. Create PurchaseAttempt (AFTER claim, so we have tokenId)
+  let attempt;
+  try {
+    attempt = await PurchaseAttempt.create({
+      type: "nft_purchase",
+      buyerAddress: normalizedAddress,
+      paymentTxHash: txHash,
+      paymentAmount: actualPaymentAmount,
+      paymentCurrency: "AVAX",
+      storeWalletAddress: nftStoreWallet.address,
+      tokenId: availableNft.tokenId,
+      status: "processing",
+      processingStartedAt: new Date(),
+    });
+  } catch (e) {
+    // CRITICAL: Without PurchaseAttempt, failsafe cannot track this purchase.
+    // Rollback DB ownership and return error — user must retry.
+    console.error(`Failed to create PurchaseAttempt, rolling back: ${e.message}`);
+    await ChainboiNft.findOneAndUpdate(
+      { tokenId: availableNft.tokenId },
+      { ownerAddress: nftStoreWallet.address.toLowerCase() }
+    );
+    return next(new AppError("Purchase tracking failed. Please try again.", 500));
+  }
+
+  // 8. Transfer NFT on-chain with retry
   let nftStoreKey;
   try {
     nftStoreKey = await decrypt(nftStoreWallet.key, nftStoreWallet.iv);
   } catch (e) {
-    // Rollback ownership claim
-    await ChainboiNft.findByIdAndUpdate(availableNft._id, { ownerAddress: nftStoreWallet.address.toLowerCase() });
-    return next(new AppError("Wallet decryption failed. Contact support.", 500));
+    // Do NOT rollback DB ownership — failsafe will handle it
+    attempt.status = "pending";
+    attempt.failureReason = "Wallet decryption failed";
+    await attempt.save();
+    return next(new AppError("Transfer in progress. If not received, it will be retried automatically.", 500));
   }
 
   let transferReceipt;
   try {
-    transferReceipt = await transferNft(
-      nftStoreWallet.address,
-      normalizedAddress,
-      availableNft.tokenId,
-      nftStoreKey
+    transferReceipt = await withRetry(
+      () => transferNft(nftStoreWallet.address, normalizedAddress, availableNft.tokenId, nftStoreKey),
+      PURCHASE_FAILSAFE.TRANSFER_MAX_RETRIES,
+      PURCHASE_FAILSAFE.TRANSFER_RETRY_DELAY_MS
     );
   } catch (e) {
-    // Rollback ownership claim
-    await ChainboiNft.findByIdAndUpdate(availableNft._id, { ownerAddress: nftStoreWallet.address.toLowerCase() });
-    return next(new AppError(`NFT transfer failed: ${e.message}`, 500));
+    // Do NOT rollback DB ownership — failsafe will handle it
+    attempt.status = "pending";
+    attempt.failureReason = e.message;
+    await attempt.save();
+    return next(new AppError("Transfer in progress. If not received, it will be retried automatically.", 500));
   }
 
   if (!transferReceipt || !transferReceipt.hash) {
-    await ChainboiNft.findByIdAndUpdate(availableNft._id, { ownerAddress: nftStoreWallet.address.toLowerCase() });
-    return next(new AppError("NFT transfer did not return a valid receipt", 500));
+    attempt.status = "pending";
+    attempt.failureReason = "Transfer did not return a valid receipt";
+    await attempt.save();
+    return next(new AppError("Transfer in progress. If not received, it will be retried automatically.", 500));
   }
 
-  // 8. Update user
+  // 9. Success — update PurchaseAttempt
+  attempt.status = "completed";
+  attempt.transferTxHash = transferReceipt.hash;
+  await attempt.save();
+
+  // 10. Update user
   user.hasNft = true;
   user.nftTokenId = availableNft.tokenId;
   await user.save();
 
-  // 9. Record transaction (non-fatal — asset already transferred on-chain)
+  // 11. Record transaction (non-fatal)
   try {
     await Transaction.create({
       type: TRANSACTION_TYPES.NFT_PURCHASE,
@@ -514,6 +687,7 @@ const purchaseNft = catchAsync(async (req, res, next) => {
       txHash: transferReceipt.hash,
       status: "confirmed",
       metadata: {
+        description: `ChainBoi #${availableNft.tokenId} purchased successfully.`,
         tokenId: availableNft.tokenId,
         paymentTxHash: txHash,
       },
@@ -526,7 +700,7 @@ const purchaseNft = catchAsync(async (req, res, next) => {
     });
   }
 
-  // 10. Sync to Firebase so game sees the NFT
+  // 12. Sync to Firebase so game sees the NFT
   if (user.uid) {
     try {
       const db = getFirebaseDb();

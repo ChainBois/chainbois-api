@@ -716,21 +716,23 @@ const setActiveAvatar = async (tokenId) => {
 
 ### GET /game/download/:platform
 
-Download the game build. Streams a zip file.
+Download the game build. Streams a file directly to the browser.
 
 **Auth**: None (public)
 
-| Param | Values |
-|----------|-------------|
-| platform | win, apk |
+| Param | Values | File Served |
+|----------|-------------|-------------|
+| platform | `win` | `ChainBoisWin.zip` (~100-500MB) |
+| platform | `apk` | `ChainBois.apk` (~50-200MB) |
 
 Returns binary stream with headers:
 - `Content-Disposition: attachment; filename="ChainBoisWin.zip"` (or ChainBois.apk)
 - `Content-Type: application/octet-stream`
+- `Content-Length: <file size in bytes>`
 
 **Errors:**
 - `400`: "Invalid platform. Use 'win' or 'apk'."
-- `404`: "Game file not available yet"
+- `404`: "Game file not available yet" — file hasn't been uploaded to the server
 
 **Example:**
 ```javascript
@@ -742,6 +744,64 @@ const downloadApk = `${API_BASE_URL}/game/download/apk`;
 // <a href="https://your-api-domain.com/api/v1/game/download/win">Download for Windows</a>
 // <a href="https://your-api-domain.com/api/v1/game/download/apk">Download APK (Android)</a>
 ```
+
+#### Server Setup: Uploading Game Builds
+
+The game builds must be placed on the server before downloads work. The server expects these exact filenames in the project root (`/root/chainbois-api/`):
+
+| File | Expected Name | Notes |
+|------|---------------|-------|
+| Windows build | `ChainBoisWin.zip` | Must be a .zip (not raw .exe) |
+| Android build | `ChainBois.apk` | APK file as-is |
+
+**Step 1: Prepare the Windows build locally**
+
+The .exe must be zipped first — the server serves it as a .zip:
+
+```bash
+# From your local machine (WSL / Linux terminal):
+cd ~/Apostrophe
+zip ChainBoisWin.zip ChainBois.exe
+```
+
+**Step 2: Upload both files to the server via SCP**
+
+```bash
+# Upload the Windows zip:
+scp -i /home/goonerlabs/.ssh/id_rsa_puffs \
+  ~/Apostrophe/ChainBoisWin.zip \
+  root@167.71.160.74:/root/chainbois-api/ChainBoisWin.zip
+
+# Upload the APK:
+scp -i /home/goonerlabs/.ssh/id_rsa_puffs \
+  ~/Apostrophe/ChainBois.apk \
+  root@167.71.160.74:/root/chainbois-api/ChainBois.apk
+```
+
+**Step 3: Verify on the server**
+
+```bash
+# SSH into the server:
+ssh root@167.71.160.74 -i /home/goonerlabs/.ssh/id_rsa_puffs
+
+# Check the files exist and have size:
+ls -lh /root/chainbois-api/ChainBoisWin.zip /root/chainbois-api/ChainBois.apk
+
+# Verify via the API (no server restart needed):
+curl http://localhost:3000/api/v1/game/info
+# Expected: "platforms": { "win": true, "apk": true }
+
+# Test download (first few bytes):
+curl -I http://localhost:3000/api/v1/game/download/win
+# Should return: Content-Disposition: attachment; filename="ChainBoisWin.zip"
+
+curl -I http://localhost:3000/api/v1/game/download/apk
+# Should return: Content-Disposition: attachment; filename="ChainBois.apk"
+```
+
+**No server restart is needed** — the controller checks file existence per-request.
+
+**To update game builds later**, just SCP the new files with the same names. The old files get overwritten immediately.
 
 ---
 

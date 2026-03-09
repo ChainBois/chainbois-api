@@ -5,7 +5,7 @@ const airdropController = require("../controllers/airdropController");
 const User = require("../models/userModel");
 const AppError = require("../utils/appError");
 
-// Simple admin middleware
+// Admin middleware - uses req.user.uid from Firebase auth
 const requireAdmin = async (req, res, next) => {
   const user = await User.findOne({ uid: req.user.uid });
   if (!user || user.role !== "admin") {

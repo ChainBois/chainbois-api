@@ -111,8 +111,8 @@ Level up a ChainBoi NFT by paying AVAX. The frontend must first send the AVAX pa
 ### Request
 ```
 POST /training/level-up
-Authorization: Bearer <idToken>
 Content-Type: application/json
+Authorization: Bearer <idToken>
 
 {
   "tokenId": 1,

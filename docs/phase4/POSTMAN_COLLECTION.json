@@ -6,8 +6,8 @@
   },
   "variable": [
     { "key": "baseUrl", "value": "https://your-api-domain.com/api/v1" },
-    { "key": "idToken", "value": "" },
-    { "key": "testUid", "value": "" }
+    { "key": "testUid", "value": "" },
+    { "key": "idToken", "value": "" }
   ],
   "item": [
     {
@@ -139,7 +139,7 @@
             "header": [
               { "key": "Authorization", "value": "Bearer {{idToken}}" }
             ],
-            "description": "Get a specific user's rank for a time period."
+            "description": "Get a specific user's rank for a time period. Requires auth."
           }
         }
       ]

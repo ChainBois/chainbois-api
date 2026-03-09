@@ -2,6 +2,7 @@ const User = require("../models/userModel");
 const WeeklyLeaderboard = require("../models/weeklyLeaderboardModel");
 const ScoreChange = require("../models/scoreChangeModel");
 const Tournament = require("../models/tournamentModel");
+const ChainboiNft = require("../models/chainboiNftModel");
 const { getFirebaseDb } = require("../config/firebase");
 const {
   FIREBASE_PATHS,
@@ -129,6 +130,23 @@ const syncScoresJob = async function () {
         user.pointsBalance += cappedDelta;
         user.lastScoreSync = new Date();
         await user.save();
+
+        // Sync in-game stats to the user's ChainBoi NFTs
+        if (user.address && user.hasNft) {
+          try {
+            await ChainboiNft.updateMany(
+              { ownerAddress: user.address.toLowerCase() },
+              {
+                $set: {
+                  "inGameStats.score": user.score,
+                  "inGameStats.gamesPlayed": user.gamesPlayed,
+                },
+              }
+            );
+          } catch (nftErr) {
+            console.error(`Failed to sync NFT stats for ${firebaseId}:`, nftErr.message);
+          }
+        }
 
         // Upsert weekly leaderboard entry using tournament's week info
         const userLevel = user.level || 0;

@@ -159,6 +159,9 @@ module.exports = {
     NFT_PURCHASE: "nft_purchase",
     TRAIT_AIRDROP: "trait_airdrop",
     RARITY_AIRDROP: "rarity_airdrop",
+    REFUND: "refund",
+    TOKEN_BURN: "token_burn",
+    TOKEN_RECYCLE: "token_recycle",
   },
 
   // Rarity tier thresholds (percentile cutoffs)
@@ -194,7 +197,7 @@ module.exports = {
   },
 
   // Sync intervals (cron expressions)
-  SYNC_NEW_USERS_INTERVAL: "*/1 * * * *", // Every 1 minute
+  SYNC_NEW_USERS_INTERVAL: "0 0 * * *", // Runs daily at midnight UTC (web2 player detection for platform metrics)
   SYNC_SCORES_INTERVAL: "*/5 * * * *", // Every 5 minutes
 
   // Rank names by level (for NFT badge/metadata)
@@ -207,6 +210,54 @@ module.exports = {
     5: "Colonel",
     6: "Major General",
     7: "Field Marshal",
+  },
+
+  // Purchase failsafe system
+  PURCHASE_FAILSAFE: {
+    TRANSFER_MAX_RETRIES: 3,
+    TRANSFER_RETRY_DELAY_MS: 2000,
+    FAILSAFE_INTERVAL: "*/5 * * * *",
+    STUCK_THRESHOLD_MINUTES: 5,
+    PROCESSING_TIMEOUT_MINUTES: 15,
+    LOCK_TIMEOUT_MINUTES: 10,
+    REFUND_MAX_RETRIES: 10,
+  },
+
+  // Dynamic tokenomics
+  TOKENOMICS: {
+    TOTAL_SUPPLY: 10_000_000,
+    SWEEP_MIN_THRESHOLD: 10, // Minimum BATTLE in weapon_store to trigger sweep
+    HEALTH_TIERS: {
+      ABUNDANT:  { min: 75, multiplier: 1.0,  burnRate: 0.5 },
+      HEALTHY:   { min: 50, multiplier: 0.75, burnRate: 0.4 },
+      MODERATE:  { min: 30, multiplier: 0.5,  burnRate: 0.3 },
+      SCARCE:    { min: 15, multiplier: 0.3,  burnRate: 0.2 },
+      CRITICAL:  { min: 0,  multiplier: 0.15, burnRate: 0.1 },
+    },
+  },
+
+  // Wallet health monitoring thresholds
+  WALLET_HEALTH: {
+    GAS_THRESHOLDS: {
+      deployer:     { critical: 0.1, warning: 0.5 },
+      nft_store:    { critical: 0.05, warning: 0.2 },
+      weapon_store: { critical: 0.05, warning: 0.2 },
+      prize_pool:   { critical: 0.05, warning: 0.2 },
+      rewards:      { critical: 0.05, warning: 0.2 },
+    },
+    BATTLE_THRESHOLDS: {
+      critical: 10000,
+      warning: 50000,
+    },
+    NFT_THRESHOLDS: {
+      critical: 0,
+      warning: 5,
+    },
+    WEAPON_CATEGORY_THRESHOLDS: {
+      critical: 0,
+      warning: 2,
+    },
+    ALERT_COOLDOWN_HOURS: 6,
   },
 
   // Wallet roles

@@ -10,6 +10,7 @@ const {
   TRANSACTION_TYPES,
   WALLET_ROLES,
 } = require("../config/constants");
+const { getConversionAmount, getConversionRate } = require("../services/tokenomicsService");
 
 /**
  * GET /api/v1/points/:address
@@ -37,13 +38,21 @@ const getPointsBalance = catchAsync(async (req, res, next) => {
     console.error(`Failed to check rewards balance: ${e.message}`);
   }
 
+  const rewardsBalanceNum = parseFloat(availableBattle);
+  const conversionRate = getConversionRate(rewardsBalanceNum);
+  const maxBattle = Math.floor(rewardsBalanceNum);
+  const maxConvertible = Math.min(
+    user.pointsBalance,
+    conversionRate > 0 ? Math.floor(maxBattle / conversionRate) : 0
+  );
+
   res.status(200).json({
     success: true,
     data: {
       address,
       pointsBalance: user.pointsBalance,
-      conversionRate: 1, // 1 point = 1 $BATTLE
-      maxConvertible: Math.min(user.pointsBalance, Math.floor(parseFloat(availableBattle))),
+      conversionRate, // Dynamic: 1 point = conversionRate $BATTLE
+      maxConvertible,
     },
   });
 });
@@ -73,10 +82,11 @@ const convertPoints = catchAsync(async (req, res, next) => {
   }
 
   // 3. Atomically deduct points (prevents race conditions)
+  // Only deduct points here; battleTokenBalance updated after we know the effective amount
   const previousBalance = user.pointsBalance;
   const updated = await User.findOneAndUpdate(
     { _id: user._id, pointsBalance: { $gte: amount } },
-    { $inc: { pointsBalance: -amount, battleTokenBalance: amount } },
+    { $inc: { pointsBalance: -amount } },
     { new: true }
   );
   if (!updated) {
@@ -87,42 +97,48 @@ const convertPoints = catchAsync(async (req, res, next) => {
   const rewardsWallet = await Wallet.findOne({ role: WALLET_ROLES.REWARDS }).select("+key +iv");
   if (!rewardsWallet) {
     // Rollback points deduction
-    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount, battleTokenBalance: -amount } });
+    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount } });
     return next(new AppError("Conversion service temporarily unavailable", 503));
   }
 
-  // 5. Check rewards wallet has enough $BATTLE
+  // 5. Calculate dynamic conversion amount
   const rewardsBalance = await getBattleBalance(rewardsWallet.address);
-  if (parseFloat(rewardsBalance) < amount) {
+  const rewardsBalanceNum = parseFloat(rewardsBalance);
+  const effectiveBattle = getConversionAmount(amount, rewardsBalanceNum);
+
+  if (rewardsBalanceNum < effectiveBattle) {
     // Rollback points deduction
-    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount, battleTokenBalance: -amount } });
+    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount } });
     return next(new AppError("Insufficient $BATTLE in rewards pool. Try a smaller amount.", 503));
   }
 
-  // 6. Transfer $BATTLE from rewards wallet to user
+  // 6. Transfer $BATTLE from rewards wallet to user (dynamic amount)
   let rewardsKey;
   try {
     rewardsKey = await decrypt(rewardsWallet.key, rewardsWallet.iv);
   } catch (e) {
     // Rollback points deduction
-    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount, battleTokenBalance: -amount } });
+    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount } });
     return next(new AppError("Wallet decryption failed. Contact support.", 500));
   }
 
   let receipt;
   try {
-    receipt = await transferBattleTokens(normalizedAddress, amount, rewardsKey);
+    receipt = await transferBattleTokens(normalizedAddress, effectiveBattle, rewardsKey);
   } catch (e) {
     // Rollback points deduction
-    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount, battleTokenBalance: -amount } });
+    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount } });
     return next(new AppError(`Transfer failed: ${e.message}`, 500));
   }
 
   if (!receipt || !receipt.hash) {
     // Rollback points deduction
-    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount, battleTokenBalance: -amount } });
+    await User.findByIdAndUpdate(user._id, { $inc: { pointsBalance: amount } });
     return next(new AppError("Transfer did not return a valid receipt", 500));
   }
+
+  // 6b. Update battleTokenBalance now that we know the effective amount
+  await User.findByIdAndUpdate(user._id, { $inc: { battleTokenBalance: effectiveBattle } });
 
   // 7. Record transaction (non-fatal — tokens already transferred on-chain)
   try {
@@ -130,12 +146,15 @@ const convertPoints = catchAsync(async (req, res, next) => {
       type: TRANSACTION_TYPES.POINTS_CONVERSION,
       fromAddress: rewardsWallet.address,
       toAddress: normalizedAddress,
-      amount,
+      amount: effectiveBattle,
       currency: "BATTLE",
       txHash: receipt.hash,
       status: "confirmed",
       metadata: {
+        description: `Converted ${amount} points to ${effectiveBattle} BATTLE tokens (rate: ${getConversionRate(rewardsBalanceNum)}).`,
         pointsDeducted: amount,
+        battleReceived: effectiveBattle,
+        conversionRate: getConversionRate(rewardsBalanceNum),
         previousBalance,
         newBalance: updated.pointsBalance,
       },
@@ -151,9 +170,10 @@ const convertPoints = catchAsync(async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: {
-      message: `Converted ${amount} points to ${amount} $BATTLE`,
+      message: `Converted ${amount} points to ${effectiveBattle} $BATTLE`,
       pointsDeducted: amount,
-      battleTokensReceived: amount,
+      battleTokensReceived: effectiveBattle,
+      conversionRate: getConversionRate(rewardsBalanceNum),
       newPointsBalance: updated.pointsBalance,
       txHash: receipt.hash,
     },

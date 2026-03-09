@@ -27,6 +27,8 @@ const validPatterns = [
   /^\/api\/v1\/metadata\/\d+(\.json)?$/,
   // Airdrop
   /^\/api\/v1\/airdrop(\/.*)?$/,
+  // Metrics
+  /^\/api\/v1\/metrics\/(platform|compute)$/,
   // Health & Settings
   /^\/api\/v1\/health$/,
   /^\/api\/v1\/settings$/,

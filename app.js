@@ -28,6 +28,7 @@ const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const metadataRoutes = require("./routes/metadataRoutes");
 const airdropRoutes = require("./routes/airdropRoutes");
 const healthRoutes = require("./routes/healthRoutes");
+const metricsRoutes = require("./routes/metricsRoutes");
 
 const app = express();
 
@@ -153,6 +154,7 @@ app.use(
   metadataRoutes
 );
 app.use("/api/v1/airdrop", airdropRoutes);
+app.use("/api/v1/metrics", metricsRoutes);
 app.use("/api/v1", healthRoutes);
 
 // 13. 404 catch-all

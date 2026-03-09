@@ -19,7 +19,7 @@ const Wallet = require("../models/walletModel");
 const { createWallet, sendAvax, getAvaxBalance } = require("../utils/avaxUtils");
 const { encrypt, decrypt, validateCryptoEnv } = require("../utils/cryptUtils");
 const {
-  mintBattleTokens,
+  transferBattleTokens,
   transferNft,
   transferWeaponNft,
   getChainboisTotalSupply,
@@ -109,9 +109,11 @@ const main = async function () {
       console.log(`[${tw.name}] Already has ${balance} $BATTLE, skipping`);
       continue;
     }
-    console.log(`[${tw.name}] Minting ${BATTLE_PER_WALLET} $BATTLE...`);
-    await mintBattleTokens(tw.address, BATTLE_PER_WALLET, deployer.privateKey);
-    console.log(`[${tw.name}] Minted ${BATTLE_PER_WALLET} $BATTLE`);
+    console.log(`[${tw.name}] Transferring ${BATTLE_PER_WALLET} $BATTLE from rewards wallet...`);
+    const rewardsWallet = await Wallet.findOne({ role: "rewards" }).select("+key +iv");
+    const rewardsKey = await decrypt(rewardsWallet.key, rewardsWallet.iv);
+    await transferBattleTokens(tw.address, BATTLE_PER_WALLET, rewardsKey);
+    console.log(`[${tw.name}] Transferred ${BATTLE_PER_WALLET} $BATTLE`);
   }
 
   // Transfer 1 ChainBoi NFT to test_user_1

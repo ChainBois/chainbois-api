@@ -55,7 +55,9 @@ describe("constants", () => {
   });
 
   test("SYNC intervals are valid cron expressions", () => {
-    expect(constants.SYNC_NEW_USERS_INTERVAL).toMatch(/^\*\/\d+ \* \* \* \*$/);
+    // SYNC_NEW_USERS_INTERVAL: daily at midnight "0 0 * * *"
+    // SYNC_SCORES_INTERVAL: every N minutes "*/N * * * *"
+    expect(constants.SYNC_NEW_USERS_INTERVAL).toMatch(/^\d+\s+\d+\s+\*\s+\*\s+\*$/);
     expect(constants.SYNC_SCORES_INTERVAL).toMatch(/^\*\/\d+ \* \* \* \*$/);
   });
 

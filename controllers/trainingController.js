@@ -173,6 +173,7 @@ const levelUp = catchAsync(async (req, res, next) => {
   if (!user) {
     return next(new AppError("User not found", 404));
   }
+
   if (!user.address) {
     return next(new AppError("No wallet address linked. Please login first.", 400));
   }
@@ -240,6 +241,7 @@ const levelUp = catchAsync(async (req, res, next) => {
     txHash: txHash.toLowerCase(),
     status: "pending",
     metadata: {
+      description: `ChainBoi #${parsedTokenId} leveled up from ${RANK_NAMES[currentLevel] || "Private"} (Lv.${currentLevel}) to ${RANK_NAMES[newLevel] || "Private"} (Lv.${newLevel}).`,
       tokenId: parsedTokenId,
       fromLevel: currentLevel,
       toLevel: newLevel,
