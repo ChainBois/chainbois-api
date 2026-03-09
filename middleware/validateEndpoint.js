@@ -17,8 +17,6 @@ const validPatterns = [
   /^\/api\/v1\/armory(\/.*)?$/,
   // Points
   /^\/api\/v1\/points(\/.*)?$/,
-  // Claim
-  /^\/api\/v1\/claim(\/.*)?$/,
   // Inventory
   /^\/api\/v1\/inventory(\/.*)?$/,
   // Leaderboard
@@ -27,6 +25,8 @@ const validPatterns = [
   /^\/api\/v1\/metadata\/\d+(\.json)?$/,
   // Airdrop
   /^\/api\/v1\/airdrop(\/.*)?$/,
+  // Claim
+  /^\/api\/v1\/claim(\/.*)?$/,
   // Metrics
   /^\/api\/v1\/metrics\/(platform|compute)$/,
   // Health & Settings

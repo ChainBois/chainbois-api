@@ -18,8 +18,15 @@ const authLimiter = rateLimit({
   message: "Too many auth attempts. Please try again later.",
 });
 
+const claimLimiter = rateLimit({
+  max: 3,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  message: "Too many claim attempts. Please try again later.",
+});
+
 module.exports = {
   generalLimiter,
   purchaseLimiter,
   authLimiter,
+  claimLimiter,
 };

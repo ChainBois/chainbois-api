@@ -14,6 +14,8 @@ const transactionSchema = new mongoose.Schema(
         "trait_airdrop",
         "rarity_airdrop",
         "refund",
+        "token_burn",
+        "token_recycle",
       ],
       required: true,
     },

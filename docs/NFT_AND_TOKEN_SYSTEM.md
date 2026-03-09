@@ -31,19 +31,19 @@ Complete documentation of the NFT lifecycle, weapon system, $BATTLE token, metad
 │  │ ChainBoi │    │  Weapon  │    │ $BATTLE  │              │
 │  │   NFTs   │    │   NFTs   │    │  Token   │              │
 │  │ ERC-721  │    │ ERC-721  │    │ ERC-20   │              │
-│  │ 4032 max │    │ ~10-30   │    │ No cap   │              │
+│  │ 4032 max │    │ ~10-30   │    │ 10M cap  │              │
 │  └────┬─────┘    └────┬─────┘    └────┬─────┘              │
 │       │               │               │                     │
-│  Pre-minted to    Pre-minted to    Minted on demand         │
-│  nft_store        weapon_store     by deployer              │
-│  wallet           wallet           (prizes, test)           │
+│  Pre-minted to    Pre-minted to    Fixed supply in           │
+│  nft_store        weapon_store     rewards wallet            │
+│  wallet           wallet           (transfers only)          │
 │       │               │               │                     │
 │  Users buy ←─── Users buy ←─── Users earn via               │
 │  from platform   from platform   points conversion          │
 │  (Phase 3+)      (Phase 5+)     (Phase 5+)                 │
 │       │               │               │                     │
-│  Level 0-7        Named on-chain   1:1 points ratio         │
-│  stored on-chain  (AK-47, etc)    Burnable                  │
+│  Level 0-7        Named on-chain   Dynamic rate             │
+│  stored on-chain  (AK-47, etc)    Auto-burn (deflationary)  │
 │       │               │                                     │
 │  Unlocks chars    Premium weapons                           │
 │  in game          in game                                   │
@@ -54,9 +54,9 @@ Complete documentation of the NFT lifecycle, weapon system, $BATTLE token, metad
 
 | Token | Standard | Supply | Purpose |
 |-------|----------|--------|---------|
-| ChainBoi NFT | ERC-721 | 4,032 (mainnet) / 20 (testnet) | Character avatars with on-chain level |
+| ChainBoi NFT | ERC-721 | 4,032 (mainnet) / 50 (testnet) | Character avatars with on-chain level |
 | Weapon NFT | ERC-721 | ~10-30 (your choice) | Premium weapons for gameplay |
-| $BATTLE Token | ERC-20 | Unlimited (owner mints) | In-game currency, tournament prizes |
+| $BATTLE Token | ERC-20 (Capped) | 10,000,000 fixed (pre-minted to rewards wallet) | In-game currency, tournament prizes, airdrops |
 
 ---
 
@@ -232,48 +232,73 @@ Game:     Unity reads Firebase → player has AK-47
 
 ---
 
-## 4. $BATTLE Token (ERC-20)
+## 4. $BATTLE Token (ERC-20 Capped)
 
 ### Contract: `BattleToken.sol`
 
 - **Name**: "Battle Token"
 - **Symbol**: "BATTLE"
 - **Decimals**: 18 (standard)
-- **Max Supply**: None (deployer can mint as needed)
+- **Max Supply**: 10,000,000 (ERC20Capped — enforced on-chain, cannot be exceeded)
+- **Supply Model**: All 10M tokens pre-minted to the rewards wallet at deployment. No further minting occurs.
 
 ### Token Flow
 
 ```
 EARNING $BATTLE:
   Player earns points in-game (score synced via Firebase)
-  Player converts points → $BATTLE at 1:1 ratio (Phase 5)
-  Backend calls contract.mint(playerAddress, amount)
+  Player converts points → $BATTLE at DYNAMIC rate (based on rewards health)
+  Backend TRANSFERS from rewards wallet (not minted)
+  Rate examples: ABUNDANT tier = 1:1, SCARCE tier = 1:0.3
 
 SPENDING $BATTLE:
-  Level-up NFT: costs 1 AVAX (not $BATTLE) — paid to prize_pool
-  Weapon purchase: costs AVAX — paid to platform
-  (Future: $BATTLE could be used for other in-game items)
+  Level-up NFT: costs AVAX — paid to prize_pool wallet
+  Weapon purchase: costs $BATTLE — paid to weapon_store wallet
+
+WEAPON STORE SWEEP (every 6 hours):
+  weapon_store $BATTLE balance checked
+  If > 10 BATTLE: split by health tier
+    → X% permanently BURNED (supply decreases forever)
+    → Y% recycled back to rewards wallet
+  Burn/recycle ratio adjusts dynamically (50/50 at healthy → 10/90 at critical)
 
 TOURNAMENT PRIZES:
-  3rd place prize paid in $BATTLE (15% of pool)
-  Backend mints $BATTLE to winner's address
+  1st: 60% of pool (AVAX from level-ups)
+  2nd: 25% of pool (AVAX)
+  3rd: 15% of pool ($BATTLE from rewards wallet)
 
-BURNING:
-  Users can burn their own $BATTLE: contract.burn(amount)
-  Creates deflationary pressure over time
+AUTO-BURN:
+  Permanent on-chain burn via contract.burn(amount)
+  Total supply can NEVER increase — truly deflationary
+  Burn rate decreases as supply drops (asymptotic sustainability)
 ```
+
+### Dynamic Tokenomics (Health Tiers)
+
+| Tier | Rewards Health | Conversion Rate | Airdrop Multiplier | Burn Rate | Recycle Rate |
+|------|---------------|-----------------|--------------------|-----------|----|
+| ABUNDANT | ≥75% | 1 pt → 1 BATTLE | 100% | 50% | 50% |
+| HEALTHY | 50-75% | 1 pt → 0.75 BATTLE | 75% | 40% | 60% |
+| MODERATE | 30-50% | 1 pt → 0.5 BATTLE | 50% | 30% | 70% |
+| SCARCE | 15-30% | 1 pt → 0.3 BATTLE | 30% | 20% | 80% |
+| CRITICAL | <15% | 1 pt → 0.15 BATTLE | 15% | 10% | 90% |
+
+Health % = `rewardsBalance / 10,000,000 * 100`
 
 ### Key Functions
 
 ```javascript
-// Backend mints tokens for rewards/conversion
-mintBattleTokens(toAddress, amount, deployerPrivateKey)
+// Transfer from rewards wallet for conversions/prizes
+transferBattleTokens(toAddress, amount, signerPrivateKey)
 
-// Check a user's balance
+// Check a user's or wallet's balance
 getBattleBalance(walletAddress)  // returns "100.0" (formatted)
 
-// Transfer between wallets
-transferBattleTokens(toAddress, amount, signerPrivateKey)
+// Permanently burn tokens (weapon_store sweep)
+burnBattleTokens(amount, signerPrivateKey)
+
+// Check remaining total supply
+getBattleTotalSupply()  // returns formatted total
 ```
 
 ---
@@ -554,16 +579,18 @@ Level-up AVAX goes to the prize pool, funding tournament rewards.
 
 ```
 1. Player has 500 points (earned by playing)
-2. Frontend shows: "Convert 500 points to 500 $BATTLE"
+2. Frontend shows: "Convert 500 points → X $BATTLE" (dynamic rate)
 3. Player confirms
 4. Backend:
+   - Checks rewards wallet health tier
+   - Calculates effective BATTLE: 500 * multiplier (e.g. 500 * 0.75 = 375 at HEALTHY tier)
    - Deducts 500 from user.pointsBalance in MongoDB
-   - Calls contract.mint(userAddress, 500 * 10^18)  ← deployer mints
-5. 500 $BATTLE tokens now in user's wallet
+   - Transfers 375 $BATTLE from rewards wallet to user
+5. 375 $BATTLE tokens now in user's wallet
 6. Visible on-chain and in wallet apps
 ```
 
-Conversion rate: **1 point = 1 $BATTLE** (configurable in constants).
+Conversion rate: **Dynamic** — based on rewards wallet health tier. At ABUNDANT (≥75% of supply remaining): 1:1. At CRITICAL (<15%): 1:0.15. See Dynamic Tokenomics section above.
 
 ---
 

@@ -73,14 +73,24 @@ describe("validateEndpoint", () => {
     }
   });
 
-  test("allows armory, points, claim, inventory, leaderboard", () => {
+  test("allows claim endpoints", () => {
+    const endpoints = [
+      "/api/v1/claim/starter-pack",
+      "/api/v1/claim/check/0x1234567890abcdef1234567890abcdef12345678",
+    ];
+    for (const ep of endpoints) {
+      const { req, res, next } = createMocks(ep);
+      validateEndpoint(req, res, next);
+      expect(next).toHaveBeenCalledWith();
+    }
+  });
+
+  test("allows armory, points, inventory, leaderboard", () => {
     const endpoints = [
       "/api/v1/armory",
       "/api/v1/armory/weapons",
       "/api/v1/points",
       "/api/v1/points/convert",
-      "/api/v1/claim",
-      "/api/v1/claim/status",
       "/api/v1/inventory",
       "/api/v1/inventory/0x123/nfts",
       "/api/v1/leaderboard",

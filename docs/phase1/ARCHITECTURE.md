@@ -170,9 +170,9 @@ chainbois-api/
 
 | Contract | Address | Snowtrace |
 |----------|---------|-----------|
-| BattleToken | `0xF16214F76f19bD1E6d3349fC199B250a8E441E8C` | [View](https://testnet.snowtrace.io/address/0xF16214F76f19bD1E6d3349fC199B250a8E441E8C) |
-| ChainBoisNFT | `0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5` | [View](https://testnet.snowtrace.io/address/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5) |
-| WeaponNFT | `0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28` | [View](https://testnet.snowtrace.io/address/0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28) |
+| BattleToken | `0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0` | [View](https://testnet.snowtrace.io/address/0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0) |
+| ChainBoisNFT | `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b` | [View](https://testnet.snowtrace.io/address/0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b) |
+| WeaponNFT | `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d` | [View](https://testnet.snowtrace.io/address/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d) |
 
 ### Platform Wallets
 

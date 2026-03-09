@@ -29,6 +29,7 @@ const metadataRoutes = require("./routes/metadataRoutes");
 const airdropRoutes = require("./routes/airdropRoutes");
 const healthRoutes = require("./routes/healthRoutes");
 const metricsRoutes = require("./routes/metricsRoutes");
+const claimRoutes = require("./routes/claimRoutes");
 
 const app = express();
 
@@ -79,6 +80,16 @@ app.use(
 
 // 2. Cookie parser
 app.use(cookieParser());
+
+// 2b. Claim route — open CORS (Vercel-hosted faucet page)
+// Mounted BEFORE the restrictive global CORS so cross-origin requests are not rejected.
+// Includes its own JSON parser since this runs before the global body parser.
+app.use(
+  "/api/v1/claim",
+  cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type"] }),
+  express.json({ limit: "1mb" }),
+  claimRoutes
+);
 
 // 3. CORS
 const allowedOrigins = process.env.CORS_ORIGINS

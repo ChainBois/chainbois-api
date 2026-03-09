@@ -247,9 +247,6 @@ const executeTraitAirdrop = async function () {
     return { success: false, message: "No eligible holders found (all platform wallets)" };
   }
 
-  const totalEligibleNfts = Object.values(ownerNftCounts).reduce((a, b) => a + b, 0);
-  const amountPerNft = adjustedAmount / totalEligibleNfts;
-
   // 5. Distribute $BATTLE from rewards wallet (fixed supply — transfer, not mint)
   const rewardsWallet = await Wallet.findOne({ role: WALLET_ROLES.REWARDS }).select("+key +iv");
   if (!rewardsWallet) {
@@ -273,6 +270,9 @@ const executeTraitAirdrop = async function () {
   } catch (e) {
     return { success: false, message: "Failed to decrypt rewards wallet key" };
   }
+
+  const totalEligibleNfts = Object.values(ownerNftCounts).reduce((a, b) => a + b, 0);
+  const amountPerNft = adjustedAmount / totalEligibleNfts;
 
   let totalDistributed = 0;
   const distributions = [];
