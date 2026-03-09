@@ -226,6 +226,9 @@ run_copy.js
 # NFT and weapon images (already on IPFS, too large for git)
 assets/nft-collection/images/
 assets/weapons/images/
+
+# Badge images (already on Cloudinary, keep on server only)
+assets/badges/
 ghetto-pigeons.postman_collection.json
 
 postman-docs/
