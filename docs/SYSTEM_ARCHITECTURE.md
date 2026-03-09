@@ -379,7 +379,7 @@ All cron jobs run only on PM2 instance 0 (primary). Registered in `server.js`.
 | failedPayoutJob | `jobs/failedPayoutJob.js` | Every 6 hours | Retry failed tournament prize payouts |
 | traitAirdropJob | `jobs/traitAirdropJob.js` | Wed 8 PM UTC | Weekly trait-based $BATTLE airdrop to NFT holders |
 | tokenomicsJob | `jobs/tokenomicsJob.js` | Every 6 hours | Sweep weapon_store → burn + recycle $BATTLE |
-| walletHealthJob | `jobs/walletHealthJob.js` | Every hour | Monitor gas, balances, inventory, prize pool |
+| walletHealthJob | `jobs/walletHealthJob.js` | Every hour | Monitor gas, balances, inventory, prize pool + auto-fund |
 | platformAuditJob | `jobs/platformAuditJob.js` | Daily 3 AM UTC | Solvency, ownership sync, stuck purchases, failed payouts |
 
 ### Job Details
@@ -390,12 +390,13 @@ All cron jobs run only on PM2 instance 0 (primary). Registered in `server.js`.
 
 **tokenomicsJob**: Checks weapon_store $BATTLE balance. If above 10 BATTLE threshold: calculates current health tier, splits into burn portion (10-50%) and recycle portion (50-90%), executes on-chain burn, transfers recycle to rewards wallet, records BurnRecord + Transactions, sends Discord notification.
 
-**walletHealthJob**: Five checks per run:
+**walletHealthJob**: Five checks + auto-fund per run:
 1. Gas balance (AVAX) for all 5 platform wallets
 2. $BATTLE balance for rewards wallet
 3. NFT inventory for nft_store (how many unsold)
 4. Weapon inventory by category for weapon_store
 5. Prize pool funding vs active tournament obligations
+6. **Auto-fund**: If any wallet (nft_store, weapon_store, rewards) has low gas, the deployer automatically sends 0.5 AVAX to top it up. The deployer will not fund others if its own balance drops below 0.5 AVAX reserve — instead it sends a Discord alert requesting manual top-up. Each successful top-up and each failure is reported to Discord.
 
 Uses in-memory alert deduplication (6-hour cooldown per wallet+severity) to prevent Discord spam.
 

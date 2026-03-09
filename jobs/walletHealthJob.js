@@ -2,8 +2,9 @@ const Wallet = require("../models/walletModel");
 const ChainboiNft = require("../models/chainboiNftModel");
 const WeaponNft = require("../models/weaponNftModel");
 const Tournament = require("../models/tournamentModel");
-const { getAvaxBalance } = require("../utils/avaxUtils");
+const { getAvaxBalance, sendAvax } = require("../utils/avaxUtils");
 const { getBattleBalance } = require("../utils/contractUtils");
+const { decrypt } = require("../utils/cryptUtils");
 const { sendDiscordAlert } = require("../utils/discordService");
 const { getTokenomicsRates } = require("../services/tokenomicsService");
 const {
@@ -265,6 +266,114 @@ const checkPrizePoolFunding = async function (issues) {
 };
 
 /**
+ * Auto-fund wallets with low gas from the deployer wallet.
+ * Skips prize_pool (ignored per user request) and deployer itself.
+ * Sends Discord notifications for each top-up and when deployer balance is low.
+ */
+const autoFundWallets = async function (gasIssues) {
+  const config = WALLET_HEALTH.AUTO_FUND;
+  if (!config || !config.ENABLED) return;
+
+  // Only act on gas issues for wallets that have top-up amounts configured
+  const fundableIssues = gasIssues.filter(
+    (i) => i.type === "gas" && config.TOP_UP_AMOUNTS[i.wallet]
+  );
+
+  if (fundableIssues.length === 0) return;
+
+  // Load deployer wallet
+  const deployerWallet = await Wallet.findOne({ role: WALLET_ROLES.DEPLOYER }).select("+key +iv").lean();
+  if (!deployerWallet) {
+    console.error("[AutoFund] Deployer wallet not found");
+    return;
+  }
+
+  const deployerBalance = parseFloat(await getAvaxBalance(deployerWallet.address));
+  console.log(`[AutoFund] Deployer balance: ${deployerBalance} AVAX`);
+
+  // Check if deployer itself is too low
+  if (deployerBalance < config.DEPLOYER_MIN_RESERVE) {
+    console.log(`[AutoFund] Deployer balance ${deployerBalance} AVAX is below reserve ${config.DEPLOYER_MIN_RESERVE} AVAX — cannot auto-fund`);
+
+    const alertKey = "deployer_auto_fund_low";
+    if (shouldAlert(alertKey, "critical")) {
+      try {
+        await sendDiscordAlert({
+          subject: `Deployer AVAX too low to auto-fund other wallets: ${deployerBalance.toFixed(4)} AVAX (need > ${config.DEPLOYER_MIN_RESERVE})`,
+          status: "critical",
+          poolType: "auto_fund (deployer)",
+          walletAddress: deployerWallet.address,
+          currentBalance: deployerBalance,
+          requiredAmount: config.DEPLOYER_MIN_RESERVE,
+          unitName: "AVAX",
+        });
+        recordAlert(alertKey, "critical");
+      } catch { /* non-blocking */ }
+    }
+    return;
+  }
+
+  // Decrypt deployer key once
+  let deployerKey;
+  try {
+    deployerKey = await decrypt(deployerWallet.key, deployerWallet.iv);
+  } catch (e) {
+    console.error("[AutoFund] Failed to decrypt deployer key:", e.message);
+    return;
+  }
+
+  let runningBalance = deployerBalance;
+
+  for (const issue of fundableIssues) {
+    const topUpAmount = config.TOP_UP_AMOUNTS[issue.wallet];
+    const topUpFloat = parseFloat(topUpAmount);
+
+    // Check deployer can afford this top-up and still keep reserve
+    if (runningBalance - topUpFloat < config.DEPLOYER_MIN_RESERVE) {
+      console.log(`[AutoFund] Skipping ${issue.wallet} — deployer would drop below reserve`);
+      continue;
+    }
+
+    try {
+      console.log(`[AutoFund] Sending ${topUpAmount} AVAX to ${issue.wallet} (${issue.address})...`);
+      const receipt = await sendAvax(deployerKey, issue.address, topUpAmount);
+      runningBalance -= topUpFloat;
+
+      console.log(`[AutoFund] Funded ${issue.wallet} with ${topUpAmount} AVAX — tx: ${receipt.hash}`);
+
+      // Discord notification for successful top-up
+      try {
+        await sendDiscordAlert({
+          subject: `Auto-funded ${issue.wallet} with ${topUpAmount} AVAX (was ${issue.balance.toFixed(4)} AVAX)`,
+          status: "success",
+          poolType: `auto_fund (${issue.wallet})`,
+          walletAddress: issue.address,
+          currentBalance: issue.balance + topUpFloat,
+          requiredAmount: topUpFloat,
+          unitName: "AVAX",
+        });
+      } catch { /* non-blocking */ }
+    } catch (e) {
+      console.error(`[AutoFund] Failed to fund ${issue.wallet}:`, e.message);
+
+      try {
+        await sendDiscordAlert({
+          subject: `Auto-fund FAILED for ${issue.wallet}: ${e.message}`,
+          status: "critical",
+          poolType: `auto_fund (${issue.wallet})`,
+          walletAddress: issue.address,
+          currentBalance: issue.balance,
+          requiredAmount: topUpFloat,
+          unitName: "AVAX",
+        });
+      } catch { /* non-blocking */ }
+    }
+  }
+
+  console.log(`[AutoFund] Done. Deployer remaining: ~${runningBalance.toFixed(4)} AVAX`);
+};
+
+/**
  * Send consolidated Discord alert for health issues.
  */
 const sendHealthAlert = async function (issues) {
@@ -317,6 +426,13 @@ const walletHealthJob = async function () {
     for (const issue of issues) {
       console.log(`  [${issue.severity.toUpperCase()}] ${issue.message}`);
     }
+
+    // Auto-fund wallets with low gas before sending alerts
+    const gasIssues = issues.filter((i) => i.type === "gas");
+    if (gasIssues.length > 0) {
+      await autoFundWallets(gasIssues);
+    }
+
     await sendHealthAlert(issues);
   }
 };

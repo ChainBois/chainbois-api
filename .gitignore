@@ -149,13 +149,30 @@ reference-projects/
 prompt.txt
 cumulative-chainbois-plans.txt
 
-# Internal planning docs (RE-ADD TO GITIGNORE BEFORE PRESENTATION)
-# docs/
-# docs/plans/
-# docs/reports/
-# docs/investigations/
-# *.plan.md
-# features.md
+# Internal planning docs
+docs/plans/
+docs/PHASE2_MANUAL_STEPS.md
+docs/EXPLORER_GUIDE.md
+docs/METADATA_PROOF_GUIDE.md
+docs/phase1/FRONTEND_HANDOFF.md
+docs/phase1/TEST_REPORT.md
+docs/phase3/MANUAL_STEPS.md
+docs/phase3/METADATA_FIXES.md
+docs/phase4/PLAN.md
+docs/phase5/PLAN.md
+
+# Submission form files (keep local)
+mvp-submission-form-questions.md
+mvp-submission-requirements.txt
+
+# Research/reference docs (keep local)
+avalanche-docs/
+hashlips-docs/
+snowtrace-docs/
+vercel-docs/
+
+# Internal deployment scripts
+scripts/
 
 # Hardhat
 artifacts/

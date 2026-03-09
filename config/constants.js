@@ -258,6 +258,18 @@ module.exports = {
       warning: 2,
     },
     ALERT_COOLDOWN_HOURS: 6,
+    // Auto-fund: deployer tops up wallets when gas is low
+    AUTO_FUND: {
+      ENABLED: true,
+      // Target balance to send when topping up (in AVAX)
+      TOP_UP_AMOUNTS: {
+        nft_store: "0.5",
+        weapon_store: "0.5",
+        rewards: "0.5",
+      },
+      // Deployer won't fund others if its own balance drops below this
+      DEPLOYER_MIN_RESERVE: 0.5,
+    },
   },
 
   // Wallet roles
