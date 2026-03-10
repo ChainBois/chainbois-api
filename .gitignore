@@ -145,6 +145,9 @@ vite.config.ts.timestamp-*
 reference-projects-from-algorand/
 reference-projects/
 
+# Claude workspace
+.claude/
+
 # Documentation & research (keep local, exclude from repo)
 prompt.txt
 cumulative-chainbois-plans.txt

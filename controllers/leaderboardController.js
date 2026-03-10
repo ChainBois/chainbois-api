@@ -142,13 +142,15 @@ const getLeaderboard = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    period,
-    startDate: startDate || null,
-    endDate: endDate || null,
-    currentPage: page,
-    totalPages,
-    totalUsers,
-    leaderboard,
+    data: {
+      period,
+      startDate: startDate || null,
+      endDate: endDate || null,
+      currentPage: page,
+      totalPages,
+      totalUsers,
+      leaderboard,
+    },
   });
 });
 
@@ -236,11 +238,13 @@ const getUserRank = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    uid,
-    period,
-    rank,
-    scoreGained,
-    currentScore,
+    data: {
+      uid,
+      period,
+      rank,
+      scoreGained,
+      currentScore,
+    },
   });
 });
 

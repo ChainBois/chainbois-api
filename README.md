@@ -1,6 +1,8 @@
 # ChainBois
 
-A military-themed Web3 gaming platform on Avalanche where players own NFT characters, earn $BATTLE tokens through gameplay, train their soldiers, buy weapons, and compete in tournaments for real prizes.
+**ChainBois** is a play-to-earn third-person shooter (TPS) game built on Avalanche. Players own NFT soldiers, equip weapon NFTs, earn $BATTLE tokens through gameplay, train and level up their characters, and compete in tournaments for real prizes. The game features multiple game modes including Frontline, Team Deathmatch, Kill Confirmed, Capture the Flag, Search and Destroy, Gun Fight, and Battle Royale.
+
+This repository contains the backend API that powers the entire platform — handling blockchain interactions, game state synchronization via Firebase, the in-game economy, automated tournaments, dynamic tokenomics, and more.
 
 **Live API**: [https://test-2.ghettopigeon.com](https://test-2.ghettopigeon.com)
 **Frontend**: [https://chainbois-true.vercel.app](https://chainbois-true.vercel.app)
@@ -8,58 +10,83 @@ A military-themed Web3 gaming platform on Avalanche where players own NFT charac
 
 ---
 
-## For Judges & Testers: Quick Start
+## For Judges & Testers: Getting Started
 
-### Step 1: Get Testnet Assets
+### Step 1: Set Up MetaMask for Fuji Testnet
+
+1. Install [MetaMask](https://metamask.io/) browser extension
+2. Open MetaMask → Click the network dropdown → **Add Network** → **Add a network manually**
+3. Enter these details:
+   - **Network Name**: Avalanche Fuji Testnet
+   - **RPC URL**: `https://api.avax-test.network/ext/bc/C/rpc`
+   - **Chain ID**: `43113`
+   - **Currency Symbol**: AVAX
+   - **Explorer URL**: `https://testnet.snowtrace.io`
+4. Click **Save** and switch to the Fuji Testnet network
+5. Get free testnet AVAX from the [Avalanche Faucet](https://core.app/tools/testnet-faucet/) (needed for level-ups)
+
+### Step 2: Claim Your Free Starter Pack
 
 Visit the **[Testnet Starter Pack](https://chainbois-testnet-faucet.vercel.app)** page and paste your Fuji Testnet wallet address. You'll receive:
-- **2 ChainBoi NFTs** (ERC-721 characters)
+- **2 ChainBoi NFTs** (ERC-721 soldier characters)
 - **8 Weapon NFTs** (one from each category: Assault, SMG, LMG, Marksman, Handgun, Launcher, Shotgun, Melee)
 - **1,000 $BATTLE tokens**
 
-> You need a wallet on Avalanche Fuji Testnet (Chain ID 43113). Use [Core Wallet](https://core.app) or MetaMask with the Fuji network added.
+No gas needed — the platform pays all transfer fees. Max 1 claim per wallet.
 
-### Step 2: Sign Up & Connect Wallet
+### Step 3: Download the Game & Create an Account
 
-1. Go to the [ChainBois Frontend](https://chainbois-true.vercel.app)
-2. Create an account or sign in
-3. Connect your wallet (the same one you used to claim the starter pack)
-4. The platform verifies your on-chain NFTs and syncs your game profile
+Download the game first, create an account in-game, then connect your wallet:
 
-### Step 3: Download & Play the Game
+**Download from the frontend:**
+Visit [https://chainbois-true.vercel.app](https://chainbois-true.vercel.app) and navigate to the download section.
 
-Download the game from the frontend or directly:
-- **PC**: `GET https://test-2.ghettopigeon.com/api/v1/game/download/win`
-- **Mobile (APK)**: `GET https://test-2.ghettopigeon.com/api/v1/game/download/apk`
+**Or download directly** (paste in browser, no `GET` prefix):
+- **PC**: [https://test-2.ghettopigeon.com/api/v1/game/download/win](https://test-2.ghettopigeon.com/api/v1/game/download/win)
+- **Mobile (APK)**: [https://test-2.ghettopigeon.com/api/v1/game/download/apk](https://test-2.ghettopigeon.com/api/v1/game/download/apk)
 
-The game communicates with the backend via Firebase. Your NFT ownership, level, and weapons are automatically synced to the game.
+**Using Postman or curl:**
+```bash
+# PC build
+curl -OJ https://test-2.ghettopigeon.com/api/v1/game/download/win
 
-> **PC Users**: Navigate to [https://chainbois-true.vercel.app/access-request](https://chainbois-true.vercel.app/access-request) manually to connect your wallet (the in-game redirect button is currently available in the APK build only).
+# Android APK
+curl -OJ https://test-2.ghettopigeon.com/api/v1/game/download/apk
+```
 
-### Step 4: Level Up & Train
+### Step 4: Sign Up & Connect Your Wallet
 
-- Visit the **Training Room** on the frontend
-- Pay AVAX to level up your ChainBoi NFT (Level 0 → 7)
-- Each level unlocks new characters and weapons in-game
-- Level metadata updates on-chain and reflects in the NFT
+1. Open the game and create an account
+2. **Mobile (APK)**: The game has a button that redirects you to the website to connect your wallet
+3. **PC**: Navigate manually to [https://chainbois-true.vercel.app/access-request](https://chainbois-true.vercel.app/access-request) to connect your wallet
+4. Connect the same MetaMask wallet you used to claim the starter pack
+5. The backend verifies your on-chain NFTs and syncs your assets (characters, weapons, level) to the game via Firebase
 
-### Step 5: Buy Weapons & NFTs
+### Step 5: Play & Earn
 
-- Visit the **Armory** on the frontend
-- Purchase weapons with $BATTLE tokens
-- Purchase additional ChainBoi NFTs with AVAX
-- All purchases are verified on-chain with purchase failsafe protection
+Launch the game — your NFT characters and weapons are automatically loaded. Play matches across multiple game modes to earn points. Your scores sync to the backend every 5 minutes.
 
-### Step 6: Compete in Tournaments
+### Available Game Modes
+- **Frontline** — Large-scale team combat
+- **Team Deathmatch** — Classic team vs team
+- **Kill Confirmed** — Collect dog tags to score
+- **Gun Fight** — Small team tactical
+- **Battle Royale** — Last player standing (best with many players)
+- **Capture the Flag** — Objective-based (in development)
+- **Search and Destroy** — Plant/defuse objective (in development)
 
-- 7 tournament tiers (one per level)
-- 5-day tournaments with automatic prize distribution
-- Prizes: AVAX (1st & 2nd place) + $BATTLE (3rd place)
-- Leaderboards with multiple time periods
+### Step 6: Explore Platform Features (API-Ready, Frontend In Progress)
 
-### Step 7: View Your Inventory
+The following features are **fully implemented in the backend API** with documentation and Postman collections. Frontend integration is in progress:
 
-- See all owned NFTs, weapons, balances, and transaction history on the frontend
+- **Training Room** — Level up your ChainBoi NFT (0→7) by paying AVAX. Each level unlocks 4 new characters and additional weapons. Level is stored on-chain in the smart contract.
+- **Armory** — Purchase weapon NFTs with $BATTLE tokens. Purchase additional ChainBoi NFTs with AVAX. All transactions verified on-chain with purchase failsafe protection.
+- **Tournaments** — 7 tournament tiers (one per player level). 5-day cycles with automatic prize distribution: AVAX to 1st/2nd, $BATTLE to 3rd.
+- **Points Conversion** — Convert in-game points to $BATTLE tokens at a dynamic rate that adjusts based on the rewards pool health.
+- **Inventory** — View all owned NFTs, weapons, $BATTLE balance, points balance, and full transaction history.
+- **Leaderboard** — Global rankings with multiple time periods (30min, 1 hour, 24 hours, week, month, all-time).
+
+> All endpoints are documented with Postman collections — see the [API Documentation](#api-documentation) section below.
 
 ---
 
@@ -78,12 +105,22 @@ The game communicates with the backend via Firebase. Your NFT ownership, level, 
 +------------------+                            +-------------------+
 ```
 
+### How It Works
+
+1. **Player owns NFTs on-chain** — ChainBoi character NFTs and Weapon NFTs on Avalanche C-Chain
+2. **Backend verifies ownership** — Checks the blockchain, syncs data to Firebase Realtime DB
+3. **Game reads Firebase** — Unity game loads characters, weapons, and level from Firebase (no direct API calls from game)
+4. **Player plays & earns** — Game writes scores to Firebase; backend polls every 5 minutes and syncs to MongoDB
+5. **Economy runs automatically** — Tournaments auto-distribute prizes, tokenomics auto-burn $BATTLE, wallet health auto-funds low wallets
+6. **NFT metadata is dynamic** — Level-ups, badges, and stats update in real-time via the metadata API endpoint (EIP-4906 compliant)
+
 ### Design Principles
 
-- **Backend-heavy blockchain**: All on-chain operations happen server-side. The frontend never signs contract calls directly.
-- **Firebase as game bridge**: The Unity game reads/writes Firebase Realtime DB. The backend syncs Firebase and MongoDB via cron jobs. Game developers don't need to change anything.
-- **Pre-minted assets**: NFTs and tokens are pre-minted to platform wallets. Users buy/earn via transfers, not mints. If stores run empty, the system auto-mints more.
-- **Dynamic tokenomics**: $BATTLE conversion rates, burn rates, and airdrop amounts auto-adjust based on the rewards wallet health tier.
+- **Backend-heavy blockchain**: All on-chain operations happen server-side. The frontend and game never directly sign contract calls — this simplifies UX and enables purchase failsafes.
+- **Firebase as game bridge**: Unity game devs don't need to implement API calls. The backend handles all blockchain logic and syncs state via Firebase.
+- **Pre-minted assets**: NFTs and tokens are pre-minted to platform wallets. Users buy/earn via transfers. If stores empty out, the system auto-mints more.
+- **Dynamic tokenomics**: $BATTLE conversion rates, burn rates, and airdrop amounts auto-adjust based on the rewards wallet health tier — creating a self-regulating deflationary economy.
+- **Anti-cheat**: Score plausibility checks, velocity limits, threat scoring, and ban system protect competitive integrity.
 
 ### Tech Stack
 
@@ -92,9 +129,9 @@ The game communicates with the backend via Firebase. Your NFT ownership, level, 
 | Backend | Node.js, Express, CommonJS |
 | Database | MongoDB Atlas (primary), Firebase RTDB (game bridge) |
 | Blockchain | Avalanche C-Chain (Fuji Testnet), Solidity 0.8.24 |
-| Smart Contracts | ERC-721 (NFTs), ERC20Capped ($BATTLE, 10M fixed supply) |
+| Smart Contracts | ERC-721 (ChainBoi NFTs, Weapon NFTs), ERC20Capped ($BATTLE, 10M fixed supply) |
 | Contract Tooling | Hardhat 2.28.6, OpenZeppelin v5.6 |
-| Image/Metadata | Cloudinary (dynamic badge overlays), Pinata (IPFS) |
+| NFT Art | HashLips Art Engine (generative), Cloudinary (dynamic badge overlays), Pinata (IPFS) |
 | Real-time | Socket.IO (tournament updates) |
 | Process Manager | PM2 (cluster mode) |
 | Security | Helmet, XSS protection, mongo-sanitize, rate limiting, AES-256 wallet encryption |
@@ -103,13 +140,13 @@ The game communicates with the backend via Firebase. Your NFT ownership, level, 
 
 ## Smart Contracts (Fuji Testnet)
 
-| Contract | Address | Explorer |
-|----------|---------|----------|
-| BattleToken (ERC20Capped) | `0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0) |
-| ChainBoisNFT (ERC-721) | `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b) |
-| WeaponNFT (ERC-721) | `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d) |
+| Contract | Purpose | Address | Explorer |
+|----------|---------|---------|----------|
+| **BattleToken** | ERC20Capped, 10M fixed supply, burn-capable | `0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0` | [Snowtrace](https://testnet.snowtrace.io/address/0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0) |
+| **ChainBoisNFT** | ERC-721, on-chain levels (0-7), EIP-4906 metadata | `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b` | [Snowtrace](https://testnet.snowtrace.io/address/0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b) |
+| **WeaponNFT** | ERC-721, on-chain weapon names, 8 categories | `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d` | [Snowtrace](https://testnet.snowtrace.io/address/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d) |
 
-All contracts are deployed on **Avalanche Fuji Testnet** (Chain ID 43113). Source code is in the `contracts/` directory.
+Source code: [`contracts/`](contracts/) | ABIs: [`abis/`](abis/)
 
 ---
 
@@ -131,7 +168,44 @@ All contracts are deployed on **Avalanche Fuji Testnet** (Chain ID 43113). Sourc
 | Metrics | `/api/v1/metrics` | platform stats, compute |
 | Health | `/api/v1` | health check, public settings |
 
-Full API reference: see `docs/phase*/FRONTEND_API.md` and `docs/phase*/POSTMAN_COLLECTION.json` (importable).
+### Response Format
+
+All endpoints return a consistent response pattern:
+
+```json
+// Success
+{ "success": true, "data": { ... } }
+
+// Error
+{ "success": false, "message": "Error description" }
+```
+
+> The metadata endpoint (`/api/v1/metadata/:tokenId`) returns raw ERC-721 JSON (no wrapper) as required by the standard.
+
+---
+
+## API Documentation
+
+### Per-Phase Reference
+
+| Phase | Name | API Docs | Architecture | Flow | Postman |
+|-------|------|----------|--------------|------|---------|
+| 1 | Auth & Game Integration | [API](docs/phase1/FRONTEND_API.md) | [Arch](docs/phase1/ARCHITECTURE.md) | [Flow](docs/phase1/FLOW.md) | [Collection](docs/phase1/POSTMAN_COLLECTION.json) |
+| 3 | Training Room & NFT Progression | [API](docs/phase3/FRONTEND_API.md) | [Arch](docs/phase3/ARCHITECTURE.md) | [Flow](docs/phase3/FLOW.md) | [Collection](docs/phase3/POSTMAN_COLLECTION.json) |
+| 4 | Battleground & Leaderboard | [API](docs/phase4/FRONTEND_API.md) | [Arch](docs/phase4/ARCHITECTURE.md) | [Flow](docs/phase4/FLOW.md) | [Collection](docs/phase4/POSTMAN_COLLECTION.json) |
+| 5 | Armory & Points Economy | [API](docs/phase5/FRONTEND_API.md) | [Arch](docs/phase5/ARCHITECTURE.md) | [Flow](docs/phase5/FLOW.md) | [Collection](docs/phase5/POSTMAN_COLLECTION.json) |
+| 6 | Inventory & Transaction History | [API](docs/phase6/FRONTEND_API.md) | [Arch](docs/phase6/ARCHITECTURE.md) | [Flow](docs/phase6/FLOW.md) | [Collection](docs/phase6/POSTMAN_COLLECTION.json) |
+
+### Additional Documentation
+
+| Document | Description |
+|----------|-------------|
+| [System Architecture](docs/SYSTEM_ARCHITECTURE.md) | Complete architecture reference — infrastructure, wallets, data flows, security |
+| [NFT & Token System](docs/NFT_AND_TOKEN_SYSTEM.md) | NFT mechanics, character unlocks, token flows, metadata system |
+| [Tokenomics Architecture](docs/TOKENOMICS_ARCHITECTURE.md) | Dynamic burn/recycle system, health tiers, sweep mechanics |
+| [Product Requirements](docs/PRD.md) | Full PRD with requirements, flows, and data models |
+| [Post-Hackathon Roadmap](docs/POST_HACKATHON_ROADMAP.md) | Mainnet launch, armor, battle pass, marketplace, cross-chain |
+| [Setup Guide](docs/SETUP_GUIDE.md) | Development environment setup |
 
 ---
 
@@ -139,9 +213,9 @@ Full API reference: see `docs/phase*/FRONTEND_API.md` and `docs/phase*/POSTMAN_C
 
 | Job | Schedule | Purpose |
 |-----|----------|---------|
-| syncScoresJob | Every 5 min | Sync game scores from Firebase → MongoDB |
-| syncNewUsersJob | Daily midnight | Detect Web2 players for metrics |
-| tournamentJob | Hourly | Tournament lifecycle: create, end, distribute prizes |
+| syncScoresJob | Every 5 min | Sync game scores from Firebase → MongoDB, run anti-cheat |
+| syncNewUsersJob | Daily midnight | Detect Web2 players (playing without wallet) for metrics |
+| tournamentJob | Hourly | Tournament lifecycle: create, end, auto-distribute prizes |
 | purchaseFailsafeJob | Every 5 min | Recover stuck NFT/weapon purchases, auto-refund |
 | failedPayoutJob | Every 6 hours | Retry failed tournament prize payouts |
 | traitAirdropJob | Wed 8 PM UTC | Weekly trait-based $BATTLE airdrop to NFT holders |
@@ -168,30 +242,45 @@ $BATTLE is an **ERC20Capped** token with a **fixed 10M supply** — no new token
 | SCARCE | 15-30% | 0.3x | 20% |
 | CRITICAL | <15% | 0.15x | 10% |
 
+See [Tokenomics Architecture](docs/TOKENOMICS_ARCHITECTURE.md) for full details.
+
+---
+
+## NFT System
+
+### ChainBoi NFTs (ERC-721)
+- **Supply**: 4,032 total (4,000 public + 32 reserved), 50 on testnet
+- **Art**: Generative art via HashLips Art Engine, hosted on IPFS (Pinata)
+- **On-chain level**: Stored in smart contract (`mapping(uint256 => uint8) nftLevel`), 0-7
+- **Character unlocks**: Each level unlocks 4 characters (32 total at max level)
+- **Army ranks**: Private → Corporal → Sergeant → Captain → Major → Colonel → Major General → Field Marshal
+- **Dynamic metadata**: Served via API with real-time level, stats, and Cloudinary badge overlays
+- **EIP-4906**: `MetadataUpdate` events emitted on level-up, triggering indexer refreshes
+
+### Weapon NFTs (ERC-721)
+- **8 categories**: Assault, SMG, LMG, Marksman, Handgun, Launcher, Shotgun, Melee
+- **Purchased with**: $BATTLE tokens
+- **Base weapons** (free in-game): M4, RENETTI, GUTTER KNIFE, RPG
+
+### Platform Wallets (5)
+All wallet keys encrypted with AES-256-CBC:
+- **deployer** — Deploys contracts, mints new assets, funds other wallets
+- **nft_store** — Holds ChainBoi NFTs for sale
+- **weapon_store** — Holds Weapon NFTs for sale
+- **rewards** — Holds $BATTLE for prizes, conversions, airdrops
+- **prize_pool** — Holds AVAX for tournament prizes
+
 ---
 
 ## Security
 
 - **Wallet encryption**: All platform wallet keys encrypted with AES-256-CBC
-- **Purchase failsafe**: Atomic DB claims prevent double-sells; stuck purchases auto-recover
-- **Anti-cheat**: Score plausibility checks, velocity limits, threat scoring, temporary/permanent bans
+- **Purchase failsafe**: Atomic DB claims prevent double-sells; stuck purchases auto-recover with retry or refund
+- **Anti-cheat**: Score plausibility checks, velocity limits, daily earning caps, threat scoring, temporary/permanent bans
 - **Rate limiting**: Per-endpoint rate limits (auth, purchases, claims)
 - **Input validation**: Helmet, XSS protection, mongo-sanitize, parameter pollution prevention
-- **Transaction verification**: All purchases verified on-chain (sender, receiver, amount, staleness)
-
----
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [System Architecture](docs/SYSTEM_ARCHITECTURE.md) | Complete architecture reference (32KB) |
-| [NFT & Token System](docs/NFT_AND_TOKEN_SYSTEM.md) | NFT mechanics, token flows, metadata |
-| [Tokenomics Architecture](docs/TOKENOMICS_ARCHITECTURE.md) | Dynamic burn/recycle system |
-| [Post-Hackathon Roadmap](docs/POST_HACKATHON_ROADMAP.md) | Future plans: mainnet, armor, battle pass |
-| [Setup Guide](docs/SETUP_GUIDE.md) | Development environment setup |
-| Phase API Docs | `docs/phase*/FRONTEND_API.md` — endpoint reference per phase |
-| Postman Collections | `docs/phase*/POSTMAN_COLLECTION.json` — importable collections |
+- **Transaction verification**: All purchases verified on-chain (sender, receiver, amount, staleness check)
+- **Auto-fund**: Deployer wallet automatically tops up low-gas wallets; sends Discord alerts when its own balance is low
 
 ---
 
@@ -214,6 +303,18 @@ npm test -- <testfile>    # Run specific test
 
 ---
 
-## License
+## Post-Hackathon Roadmap
 
-Built for the Avalanche Build Games Hackathon 2026
+- **Mainnet Launch** — Deploy to Avalanche mainnet, mint full 4,032 NFT collection
+- **Armor & Loot Boxes** — Additional equipment layer with random drops
+- **$BATTLE Cashout** — Convert $BATTLE back to AVAX via DEX integration
+- **Battle Pass** — Free and premium seasonal content with tiered rewards
+- **Mythic Upgrades** — Rare NFT evolution system
+- **Secondary Marketplace** — In-house trading for NFTs and weapons
+- **Cross-Chain** — Bridge to other EVM chains
+
+See [Post-Hackathon Roadmap](docs/POST_HACKATHON_ROADMAP.md) for the full plan.
+
+---
+
+Built for the **Avalanche Build Games Hackathon 2026**
