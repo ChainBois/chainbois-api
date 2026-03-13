@@ -91,7 +91,7 @@ const getNfts = catchAsync(async (req, res, next) => {
       traits: nft.traits || [],
       stats: nft.inGameStats || {},
       contractAddress: nft.contractAddress,
-      metadataUrl: `https://your-api-domain.com/api/v1/metadata/${nft.tokenId}.json`,
+      metadataUrl: `${process.env.API_BASE_URL || 'https://test-2.ghettopigeon.com'}/api/v1/metadata/${nft.tokenId}.json`,
     })),
   });
 });

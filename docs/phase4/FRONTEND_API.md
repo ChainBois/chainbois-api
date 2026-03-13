@@ -1,6 +1,6 @@
 # Phase 4: Battleground + Leaderboard - Frontend API Reference
 
-Base URL: `https://your-api-domain.com/api/v1`
+Base URL: `https://test-2.ghettopigeon.com/api/v1`
 
 All tournament/leaderboard endpoints are **public** (no auth required).
 
@@ -352,7 +352,7 @@ Connect to the `/tournaments` namespace for real-time leaderboard and tournament
 ```javascript
 import { io } from "socket.io-client";
 
-const socket = io("https://your-api-domain.com/tournaments");
+const socket = io("https://test-2.ghettopigeon.com/tournaments");
 
 // Subscribe to a specific tournament level
 socket.emit("join:level", 1);
@@ -387,7 +387,7 @@ socket.emit("leave:level", 1);
 | Prize Pool | `0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e` | AVAX prizes (1st/2nd) |
 | Rewards | TBD (run `node scripts/generateWallets.js`) | $BATTLE prizes (3rd) |
 | ChainBoisNFT | `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b` | NFT contract |
-| BattleToken | `0xF16214F76f19bD1E6d3349fC199B250a8E441E8C` | $BATTLE ERC-20 |
+| BattleToken | `0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0` | $BATTLE ERC-20 |
 
 ---
 

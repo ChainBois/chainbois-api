@@ -155,6 +155,6 @@ describe("getTokenMetadata", () => {
     await callHandler(getTokenMetadata, req, res, next);
 
     const data = res.json.mock.calls[0][0];
-    expect(data.external_url).toBe("https://chainbois.gg/nft/7");
+    expect(data.external_url).toBe("https://chainbois-true.vercel.app/nft/7");
   });
 });

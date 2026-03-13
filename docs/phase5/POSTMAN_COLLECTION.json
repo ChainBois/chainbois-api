@@ -6,7 +6,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://your-api-domain.com/api/v1"
+      "value": "https://test-2.ghettopigeon.com/api/v1"
     },
     {
       "key": "userAddress",

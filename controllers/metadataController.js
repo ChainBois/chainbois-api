@@ -82,7 +82,7 @@ const getTokenMetadata = catchAsync(async (req, res, next) => {
     name,
     description,
     image: imageUrl || fallbackImage,
-    external_url: `https://chainbois.gg/nft/${tokenId}`,
+    external_url: `${process.env.FRONTEND_URL || 'https://chainbois-true.vercel.app'}/nft/${tokenId}`,
     collection: "ChainBois Genesis",
     attributes,
   });

@@ -159,7 +159,7 @@ chainbois-api/
 
 | Component | Details |
 |-----------|---------|
-| API Server | `https://your-api-domain.com/api/v1` |
+| API Server | `https://test-2.ghettopigeon.com/api/v1` |
 | Runtime | PM2 cluster mode (2 instances), port 3003 |
 | Reverse Proxy | Nginx with Certbot SSL |
 | Database | MongoDB Atlas (cloud) |

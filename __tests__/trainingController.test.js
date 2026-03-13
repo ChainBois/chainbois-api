@@ -99,7 +99,7 @@ const mockDb = { ref: mockFbRef };
 beforeEach(() => {
   jest.clearAllMocks();
   process.env = { ...originalEnv };
-  process.env.CHAINBOIS_NFT_ADDRESS = "0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5";
+  process.env.CHAINBOIS_NFT_ADDRESS = "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b";
   getFirebaseDb.mockReturnValue(mockDb);
 });
 

@@ -1,13 +1,13 @@
 {
   "info": {
     "name": "ChainBois API - Phase 1 (Auth + Game + Leaderboard)",
-    "description": "Phase 1 endpoints: Auth, Game, Leaderboard, Health & Settings.\n\nThe `base_url` is pre-set to the live testnet API at https://your-api-domain.com/api/v1.\nSet the `firebase_token` variable after signing in via Firebase Auth.\n\nThe `test_address` is pre-set to the nft_store wallet which holds 50 ChainBoi NFTs on Fuji testnet.\n\n## How to Import\n1. Open Postman (desktop app or web)\n2. Click **Import** (top-left)\n3. Drag and drop this JSON file, or click **Upload Files** and select it\n4. The collection appears in the sidebar under **Collections**\n5. Click the collection name, then the **Variables** tab to review/set variables\n6. Set `firebase_token` (get via Firebase Auth SDK: `user.getIdToken()`)\n7. Optionally set `test_uid` (get from /auth/create-user response)\n\n## Snowtrace Explorer (Fuji Testnet)\n- BattleToken: https://testnet.snowtrace.io/address/0xF16214F76f19bD1E6d3349fC199B250a8E441E8C\n- ChainBoisNFT: https://testnet.snowtrace.io/address/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5\n- WeaponNFT: https://testnet.snowtrace.io/address/0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28\n- NFT Store Wallet: https://testnet.snowtrace.io/address/0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0\n- Weapon Store: https://testnet.snowtrace.io/address/0xD40e6631617B7557C28789bAc01648A74753739C\n- Prize Pool: https://testnet.snowtrace.io/address/0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
+    "description": "Phase 1 endpoints: Auth, Game, Leaderboard, Health & Settings.\n\nThe `base_url` is pre-set to the live testnet API at https://test-2.ghettopigeon.com/api/v1.\nSet the `firebase_token` variable after signing in via Firebase Auth.\n\nThe `test_address` is pre-set to the nft_store wallet which holds 50 ChainBoi NFTs on Fuji testnet.\n\n## How to Import\n1. Open Postman (desktop app or web)\n2. Click **Import** (top-left)\n3. Drag and drop this JSON file, or click **Upload Files** and select it\n4. The collection appears in the sidebar under **Collections**\n5. Click the collection name, then the **Variables** tab to review/set variables\n6. Set `firebase_token` (get via Firebase Auth SDK: `user.getIdToken()`)\n7. Optionally set `test_uid` (get from /auth/create-user response)\n\n## Snowtrace Explorer (Fuji Testnet)\n- BattleToken: https://testnet.snowtrace.io/address/0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\n- ChainBoisNFT: https://testnet.snowtrace.io/address/0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\n- WeaponNFT: https://testnet.snowtrace.io/address/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\n- NFT Store Wallet: https://testnet.snowtrace.io/address/0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0\n- Weapon Store: https://testnet.snowtrace.io/address/0xD40e6631617B7557C28789bAc01648A74753739C\n- Prize Pool: https://testnet.snowtrace.io/address/0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "base_url",
-      "value": "https://your-api-domain.com/api/v1",
+      "value": "https://test-2.ghettopigeon.com/api/v1",
       "type": "string"
     },
     {
@@ -441,7 +441,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tournamentSchedule\": { \"startDay\": 3, \"startHour\": 12, \"durationHours\": 120, \"cooldownHours\": 48 },\n    \"prizePools\": { \"1\": 2, \"2\": 4, \"3\": 6, \"4\": 8, \"5\": 10, \"6\": 12, \"7\": 14 },\n    \"levelUpCosts\": { \"1\": 1, \"2\": 1, \"3\": 2, \"4\": 2, \"5\": 3, \"6\": 3, \"7\": 5 },\n    \"battleTokenDecimals\": 6,\n    \"maxPointsPerMatch\": 5000,\n    \"burnRate\": 0.5,\n    \"teamRevenueSplit\": 0.25,\n    \"awardPoolSplit\": 0.75,\n    \"armoryClosedDuringCooldown\": true,\n    \"claimLimit\": 1,\n    \"claimEnabled\": true,\n    \"downloads\": 0,\n    \"trailer\": null\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tournamentSchedule\": { \"startDay\": 3, \"startHour\": 12, \"durationHours\": 120, \"cooldownHours\": 48 },\n    \"prizePools\": { \"1\": 2, \"2\": 4, \"3\": 6, \"4\": 8, \"5\": 10, \"6\": 12, \"7\": 14 },\n    \"levelUpCosts\": { \"1\": 1, \"2\": 1, \"3\": 2, \"4\": 2, \"5\": 3, \"6\": 3, \"7\": 5 },\n    \"battleTokenDecimals\": 18,\n    \"maxPointsPerMatch\": 5000,\n    \"burnRate\": 0.5,\n    \"teamRevenueSplit\": 0.25,\n    \"awardPoolSplit\": 0.75,\n    \"armoryClosedDuringCooldown\": true,\n    \"claimLimit\": 1,\n    \"claimEnabled\": true,\n    \"downloads\": 0,\n    \"trailer\": null\n  }\n}"
             }
           ]
         },

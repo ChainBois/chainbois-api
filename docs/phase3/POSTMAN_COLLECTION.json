@@ -1,13 +1,13 @@
 {
   "info": {
     "name": "ChainBois API - Phase 3: Training Room, Metadata & Airdrop",
-    "description": "Phase 3 endpoints: Training Room (NFT display, level-up, costs, eligibility), Dynamic Metadata (ERC-721 live metadata), and Airdrop/Rarity system.\n\nBase URL: https://your-api-domain.com/api/v1\n\nContracts (Fuji Testnet):\n- ChainBoisNFT: 0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3\n- WeaponNFT: 0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\n- BattleToken: 0xF16214F76f19bD1E6d3349fC199B250a8E441E8C\n- Prize Pool: 0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
+    "description": "Phase 3 endpoints: Training Room (NFT display, level-up, costs, eligibility), Dynamic Metadata (ERC-721 live metadata), and Airdrop/Rarity system.\n\nBase URL: https://test-2.ghettopigeon.com/api/v1\n\nContracts (Fuji Testnet):\n- ChainBoisNFT: 0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\n- WeaponNFT: 0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\n- BattleToken: 0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\n- Prize Pool: 0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://your-api-domain.com/api/v1"
+      "value": "https://test-2.ghettopigeon.com/api/v1"
     },
     {
       "key": "address",
@@ -48,7 +48,7 @@
               "name": "Success - NFTs Found",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 50,\n    \"nfts\": [\n      {\n        \"tokenId\": 1,\n        \"contractAddress\": \"0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3\",\n        \"level\": 0,\n        \"rank\": \"Private\",\n        \"badge\": \"private\",\n        \"imageUri\": \"\",\n        \"metadataUri\": \"\",\n        \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\"],\n        \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 50,\n    \"nfts\": [\n      {\n        \"tokenId\": 1,\n        \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n        \"level\": 0,\n        \"rank\": \"Private\",\n        \"badge\": \"private\",\n        \"imageUri\": \"\",\n        \"metadataUri\": \"\",\n        \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\"],\n        \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n      }\n    ]\n  }\n}"
             },
             {
               "name": "No NFTs Found",
@@ -80,7 +80,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"contractAddress\": \"0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3\",\n    \"owner\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n    \"level\": 2,\n    \"rank\": \"Sergeant\",\n    \"badge\": \"sergeant\",\n    \"traits\": [{\"trait_type\": \"Background\", \"value\": \"Combat Red\"}],\n    \"imageUri\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png\",\n    \"metadataUri\": \"\",\n    \"inGameStats\": {\"kills\": 0, \"score\": 0, \"gamesPlayed\": 0},\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\", \"Corporal_A\", \"Corporal_B\", \"Corporal_C\", \"Corporal_D\", \"Sergeant_A\", \"Sergeant_B\", \"Sergeant_C\", \"Sergeant_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"],\n    \"nextLevelCost\": 0.003,\n    \"isMaxLevel\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n    \"owner\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n    \"level\": 2,\n    \"rank\": \"Sergeant\",\n    \"badge\": \"sergeant\",\n    \"traits\": [{\"trait_type\": \"Background\", \"value\": \"Combat Red\"}],\n    \"imageUri\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png\",\n    \"metadataUri\": \"\",\n    \"inGameStats\": {\"kills\": 0, \"score\": 0, \"gamesPlayed\": 0},\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\", \"Corporal_A\", \"Corporal_B\", \"Corporal_C\", \"Corporal_D\", \"Sergeant_A\", \"Sergeant_B\", \"Sergeant_C\", \"Sergeant_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"],\n    \"nextLevelCost\": 0.003,\n    \"isMaxLevel\": false\n  }\n}"
             }
           ]
         },
@@ -236,13 +236,13 @@
               "name": "Success - Level 2 (Sergeant)",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"name\": \"ChainBoi #1\",\n  \"description\": \"ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.\",\n  \"image\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png\",\n  \"external_url\": \"https://chainbois.gg/nft/1\",\n  \"collection\": \"ChainBois Genesis\",\n  \"attributes\": [\n    {\"trait_type\": \"Background\", \"value\": \"Combat Red\"},\n    {\"trait_type\": \"Skin\", \"value\": \"Pale Recruit\"},\n    {\"trait_type\": \"Weapon\", \"value\": \"War Bow\"},\n    {\"trait_type\": \"Suit\", \"value\": \"Covert Ops Carbon Suit\"},\n    {\"trait_type\": \"Eyes\", \"value\": \"Battle Hardened\"},\n    {\"trait_type\": \"Mouth\", \"value\": \"Viking Beard\"},\n    {\"trait_type\": \"Helmet\", \"value\": \"Cryo Enforcer\"},\n    {\"trait_type\": \"Level\", \"value\": 2, \"display_type\": \"number\", \"max_value\": 7},\n    {\"trait_type\": \"Rank\", \"value\": \"Sergeant\"},\n    {\"trait_type\": \"Kills\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Games Played\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Score\", \"value\": 0, \"display_type\": \"number\"}\n  ]\n}"
+              "body": "{\n  \"name\": \"ChainBoi #1\",\n  \"description\": \"ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.\",\n  \"image\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png\",\n  \"external_url\": \"https://chainbois-true.vercel.app/nft/1\",\n  \"collection\": \"ChainBois Genesis\",\n  \"attributes\": [\n    {\"trait_type\": \"Background\", \"value\": \"Combat Red\"},\n    {\"trait_type\": \"Skin\", \"value\": \"Pale Recruit\"},\n    {\"trait_type\": \"Weapon\", \"value\": \"War Bow\"},\n    {\"trait_type\": \"Suit\", \"value\": \"Covert Ops Carbon Suit\"},\n    {\"trait_type\": \"Eyes\", \"value\": \"Battle Hardened\"},\n    {\"trait_type\": \"Mouth\", \"value\": \"Viking Beard\"},\n    {\"trait_type\": \"Helmet\", \"value\": \"Cryo Enforcer\"},\n    {\"trait_type\": \"Level\", \"value\": 2, \"display_type\": \"number\", \"max_value\": 7},\n    {\"trait_type\": \"Rank\", \"value\": \"Sergeant\"},\n    {\"trait_type\": \"Kills\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Games Played\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Score\", \"value\": 0, \"display_type\": \"number\"}\n  ]\n}"
             },
             {
               "name": "Success - Level 0 (Private, no badge)",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"name\": \"ChainBoi #2\",\n  \"description\": \"ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.\",\n  \"image\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/chainbois/2.png\",\n  \"external_url\": \"https://chainbois.gg/nft/2\",\n  \"collection\": \"ChainBois Genesis\",\n  \"attributes\": [\n    {\"trait_type\": \"Background\", \"value\": \"Tactical Green\"},\n    {\"trait_type\": \"Level\", \"value\": 0, \"display_type\": \"number\", \"max_value\": 7},\n    {\"trait_type\": \"Rank\", \"value\": \"Private\"},\n    {\"trait_type\": \"Kills\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Games Played\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Score\", \"value\": 0, \"display_type\": \"number\"}\n  ]\n}"
+              "body": "{\n  \"name\": \"ChainBoi #2\",\n  \"description\": \"ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.\",\n  \"image\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/chainbois/2.png\",\n  \"external_url\": \"https://chainbois-true.vercel.app/nft/2\",\n  \"collection\": \"ChainBois Genesis\",\n  \"attributes\": [\n    {\"trait_type\": \"Background\", \"value\": \"Tactical Green\"},\n    {\"trait_type\": \"Level\", \"value\": 0, \"display_type\": \"number\", \"max_value\": 7},\n    {\"trait_type\": \"Rank\", \"value\": \"Private\"},\n    {\"trait_type\": \"Kills\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Games Played\", \"value\": 0, \"display_type\": \"number\"},\n    {\"trait_type\": \"Score\", \"value\": 0, \"display_type\": \"number\"}\n  ]\n}"
             },
             {
               "name": "Error - Token Not Found",
@@ -320,7 +320,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"poolName\": \"ChainBois Weekly Airdrop\",\n    \"tokenAddress\": \"0xF16214F76f19bD1E6d3349fC199B250a8E441E8C\",\n    \"weeklyDistributionAmount\": 1000,\n    \"status\": \"active\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"poolName\": \"ChainBois Weekly Airdrop\",\n    \"tokenAddress\": \"0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\",\n    \"weeklyDistributionAmount\": 1000,\n    \"status\": \"active\"\n  }\n}"
             }
           ]
         },
@@ -360,7 +360,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"poolName\": \"ChainBois Weekly Airdrop\",\n  \"tokenAddress\": \"0xF16214F76f19bD1E6d3349fC199B250a8E441E8C\",\n  \"weeklyDistributionAmount\": 1000,\n  \"walletRole\": \"rewards\"\n}"
+              "raw": "{\n  \"poolName\": \"ChainBois Weekly Airdrop\",\n  \"tokenAddress\": \"0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\",\n  \"weeklyDistributionAmount\": 1000,\n  \"walletRole\": \"rewards\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/airdrop/traits-pool",

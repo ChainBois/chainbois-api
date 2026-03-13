@@ -1,6 +1,6 @@
 # Phase 5: Armory + Points - Frontend API Reference
 
-Base URL: `https://your-api-domain.com/api/v1`
+Base URL: `https://test-2.ghettopigeon.com/api/v1`
 
 **No authentication required.** All endpoints are public. User is identified by wallet address.
 
@@ -294,6 +294,7 @@ POST /points/convert
     "message": "Converted 200 points to 200 $BATTLE",
     "pointsDeducted": 200,
     "battleTokensReceived": 200,
+    "conversionRate": 1.0,
     "newPointsBalance": 300,
     "txHash": "0x..."
   }
@@ -356,4 +357,4 @@ GET /points/history/:address?page=1&limit=20
 |----------|---------|
 | ChainBoisNFT | `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b` |
 | WeaponNFT | `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d` |
-| BattleToken | `0xF16214F76f19bD1E6d3349fC199B250a8E441E8C` |
+| BattleToken | `0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0` |

@@ -1,6 +1,6 @@
 # Phase 3: Training Room - Frontend API Reference
 
-Base URL: `https://your-api-domain.com/api/v1`
+Base URL: `https://test-2.ghettopigeon.com/api/v1`
 
 All endpoints require Firebase Auth token: `Authorization: Bearer <idToken>`
 
@@ -27,7 +27,7 @@ Authorization: Bearer <idToken>
     "nfts": [
       {
         "tokenId": 1,
-        "contractAddress": "0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3",
+        "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
         "level": 3,
         "rank": "Captain",
         "badge": "captain",
@@ -68,7 +68,7 @@ Authorization: Bearer <idToken>
   "success": true,
   "data": {
     "tokenId": 1,
-    "contractAddress": "0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3",
+    "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
     "owner": "0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0",
     "level": 3,
     "rank": "Captain",
@@ -297,7 +297,7 @@ This public endpoint serves real-time ERC-721 metadata for ChainBois NFTs. The o
   "name": "ChainBoi #1",
   "description": "ChainBois - Military-themed gaming NFTs on Avalanche...",
   "image": "https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png",
-  "external_url": "https://chainbois.gg/nft/1",
+  "external_url": "https://chainbois-true.vercel.app/nft/1",
   "collection": "ChainBois Genesis",
   "attributes": [
     { "trait_type": "Background", "value": "Combat Red" },
@@ -335,19 +335,23 @@ Paginated rarity leaderboard for all NFTs.
 {
   "success": true,
   "data": {
-    "total": 50,
-    "page": 1,
-    "limit": 20,
     "nfts": [
       {
         "tokenId": 42,
-        "rarityScore": 156.7,
+        "name": "ChainBoi #42",
         "rank": 1,
-        "percentile": 2.0,
+        "rarityScore": 156.7,
         "rarityTier": "legendary",
+        "percentile": 2.0,
         "traitCount": 7
       }
-    ]
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 50,
+      "pages": 3
+    }
   }
 }
 ```
@@ -385,9 +389,9 @@ Manually trigger a trait-based airdrop distribution.
 | Wallet | Address | Purpose |
 |--------|---------|---------|
 | Prize Pool | `0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e` | Level-up payments go here |
-| ChainBoisNFT | `0x8F9911E500C7ec8002Ec0050C7DcDEd510c95AB3` | NFT contract (EIP-4906) |
+| ChainBoisNFT | `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b` | NFT contract (EIP-4906) |
 | WeaponNFT | `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d` | Weapon NFT contract |
-| BattleToken | `0xF16214F76f19bD1E6d3349fC199B250a8E441E8C` | $BATTLE ERC-20 token |
+| BattleToken | `0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0` | $BATTLE ERC-20 token |
 
 ---
 

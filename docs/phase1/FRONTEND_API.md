@@ -137,7 +137,7 @@ export const auth = getAuth(app);
 import axios from "axios";
 import { auth } from "./firebase";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://your-api-domain.com/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://test-2.ghettopigeon.com/api/v1";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -183,7 +183,7 @@ export function Providers({ children }) {
 
 ```
 Development: http://localhost:5000/api/v1
-Testnet:     https://your-api-domain.com/api/v1
+Testnet:     https://test-2.ghettopigeon.com/api/v1
 Production:  TBD
 ```
 
@@ -280,9 +280,9 @@ View all contracts and wallets on the Avalanche Fuji Testnet explorer:
 **Contracts:**
 | Contract | Address | Explorer |
 |----------|---------|----------|
-| BattleToken | `0xF16214F76f19bD1E6d3349fC199B250a8E441E8C` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xF16214F76f19bD1E6d3349fC199B250a8E441E8C) |
-| ChainBoisNFT | `0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x4dE803339c041B0704Ec9FB679dEC245e5Bfb7a5) |
-| WeaponNFT | `0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xb30c39c284a1d2Ccd71Ea886349855E2Fc6b9D28) |
+| BattleToken | `0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0) |
+| ChainBoisNFT | `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b) |
+| WeaponNFT | `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d` | [View on Snowtrace](https://testnet.snowtrace.io/address/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d) |
 
 **Platform Wallets:**
 | Wallet | Address | Explorer |
@@ -741,8 +741,8 @@ const downloadWin = `${API_BASE_URL}/game/download/win`;
 const downloadApk = `${API_BASE_URL}/game/download/apk`;
 
 // HTML:
-// <a href="https://your-api-domain.com/api/v1/game/download/win">Download for Windows</a>
-// <a href="https://your-api-domain.com/api/v1/game/download/apk">Download APK (Android)</a>
+// <a href="https://test-2.ghettopigeon.com/api/v1/game/download/win">Download for Windows</a>
+// <a href="https://test-2.ghettopigeon.com/api/v1/game/download/apk">Download APK (Android)</a>
 ```
 
 #### Server Setup: Uploading Game Builds

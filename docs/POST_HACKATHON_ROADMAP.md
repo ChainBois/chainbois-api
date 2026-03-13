@@ -90,11 +90,9 @@ Features and improvements planned for after the Avalanche Build Games hackathon.
 ## Technical Debt & Improvements
 
 ### Known Issues to Address
-- `inventoryController.js`: Hardcoded placeholder URL `https://your-api-domain.com` needs environment variable
 - `metricsController.js`: `POST /compute` has no auth protection (potential DoS vector for expensive recomputation)
 - `armoryRoutes.js`: Purchase endpoints should add `purchaseLimiter` middleware
 - `config/cloudinary.js`: `initCloudinary()` not called from server.js startup
-- Phase 1 docs have some stale information (partially updated)
 
 ### Cleanup Opportunities
 - Remove unused models/utils: `gameSessionModel.js`, `apiFeatures.js`, `formatUtils.js`

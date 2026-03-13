@@ -1,6 +1,6 @@
 # Phase 6: Inventory - Frontend API Reference
 
-Base URL: `https://your-api-domain.com/api/v1`
+Base URL: `https://test-2.ghettopigeon.com/api/v1`
 
 **No authentication required.** All endpoints are public. User is identified by wallet address.
 
@@ -74,7 +74,7 @@ GET /inventory/:address/nfts
       "traits": [...],
       "stats": { "kills": 0, "score": 0, "gamesPlayed": 0 },
       "contractAddress": "0xb2fddb56...",
-      "metadataUrl": "https://your-api-domain.com/api/v1/metadata/5.json"
+      "metadataUrl": "https://test-2.ghettopigeon.com/api/v1/metadata/5.json"
     }
   ]
 }
@@ -149,4 +149,4 @@ GET /inventory/:address/history?page=1&limit=20&type=weapon_purchase
 |----------|---------|
 | ChainBoisNFT | `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b` |
 | WeaponNFT | `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d` |
-| BattleToken | `0xF16214F76f19bD1E6d3349fC199B250a8E441E8C` |
+| BattleToken | `0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0` |

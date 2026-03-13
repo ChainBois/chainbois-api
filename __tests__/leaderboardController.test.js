@@ -98,12 +98,12 @@ describe("leaderboardController", () => {
       expect(res.status).toHaveBeenCalledWith(200);
       const response = res.json.mock.calls[0][0];
       expect(response.success).toBe(true);
-      expect(response.period).toBe("all");
-      expect(response.leaderboard).toHaveLength(2);
-      expect(response.leaderboard[0].uid).toBe("user1");
-      expect(response.leaderboard[0].rank).toBe(1);
-      expect(response.leaderboard[1].rank).toBe(2);
-      expect(response.totalUsers).toBe(2);
+      expect(response.data.period).toBe("all");
+      expect(response.data.leaderboard).toHaveLength(2);
+      expect(response.data.leaderboard[0].uid).toBe("user1");
+      expect(response.data.leaderboard[0].rank).toBe(1);
+      expect(response.data.leaderboard[1].rank).toBe(2);
+      expect(response.data.totalUsers).toBe(2);
       expect(mockScoreChangeAggregate).not.toHaveBeenCalled();
     });
 
@@ -127,12 +127,12 @@ describe("leaderboardController", () => {
       expect(res.status).toHaveBeenCalledWith(200);
       const response = res.json.mock.calls[0][0];
       expect(response.success).toBe(true);
-      expect(response.period).toBe("week");
-      expect(response.leaderboard).toHaveLength(1);
-      expect(response.leaderboard[0].uid).toBe("user1");
-      expect(response.leaderboard[0].scoreGained).toBe(800);
-      expect(response.startDate).toBeDefined();
-      expect(response.endDate).toBeDefined();
+      expect(response.data.period).toBe("week");
+      expect(response.data.leaderboard).toHaveLength(1);
+      expect(response.data.leaderboard[0].uid).toBe("user1");
+      expect(response.data.leaderboard[0].scoreGained).toBe(800);
+      expect(response.data.startDate).toBeDefined();
+      expect(response.data.endDate).toBeDefined();
     });
 
     test("pagination works correctly", async () => {
@@ -149,9 +149,9 @@ describe("leaderboardController", () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       const response = res.json.mock.calls[0][0];
-      expect(response.currentPage).toBe(2);
-      expect(response.totalPages).toBe(3);
-      expect(response.leaderboard[0].rank).toBe(2);
+      expect(response.data.currentPage).toBe(2);
+      expect(response.data.totalPages).toBe(3);
+      expect(response.data.leaderboard[0].rank).toBe(2);
     });
 
     test("invalid period returns 400", async () => {
@@ -187,10 +187,10 @@ describe("leaderboardController", () => {
       expect(res.status).toHaveBeenCalledWith(200);
       const response = res.json.mock.calls[0][0];
       expect(response.success).toBe(true);
-      expect(response.uid).toBe("user1");
-      expect(response.rank).toBe(3);
-      expect(response.scoreGained).toBe(1000);
-      expect(response.currentScore).toBe(1000);
+      expect(response.data.uid).toBe("user1");
+      expect(response.data.rank).toBe(3);
+      expect(response.data.scoreGained).toBe(1000);
+      expect(response.data.currentScore).toBe(1000);
     });
 
     test("returns 404 for unknown uid", async () => {
@@ -230,9 +230,9 @@ describe("leaderboardController", () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       const response = res.json.mock.calls[0][0];
-      expect(response.rank).toBe(4);
-      expect(response.scoreGained).toBe(500);
-      expect(response.period).toBe("week");
+      expect(response.data.rank).toBe(4);
+      expect(response.data.scoreGained).toBe(500);
+      expect(response.data.period).toBe("week");
     });
 
     test("invalid period returns 400", async () => {
