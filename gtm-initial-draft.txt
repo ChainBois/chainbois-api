@@ -1,0 +1,178 @@
+Title
+ChainBois
+Playable Identity Gaming Infrastructure
+Go-To-Market Strategy, Growth Plan, and Vision
+Prepared for Avalanche Build Games Program
+Project: ChainBois
+Executive Summary
+ChainBois is a competitive third-person shooter built around the concept of Playable Identity.
+In traditional games, progression lives inside an account. Players grind for months or years, but that progress cannot be transferred, traded, or owned.
+ChainBois changes this model by tying progression directly to NFTs. Each ChainBoi NFT records gameplay performance such as wins, kills, and tournament results. These statistics increase the value, rarity, and competitive status of the character.
+Instead of static collectibles, ChainBois NFTs become evolving competitive identities.
+The project already has a working MVP deployed on Avalanche Fuji testnet including:
+• Deployed smart contracts
+• A working multiplayer game client (PC and Android)
+• Backend infrastructure supporting tournaments and tokenomics
+• NFT progression mechanics
+• Anti-cheat score validation
+• A full player onboarding system
+The Avalanche grant would accelerate the transition from MVP to scaled competitive ecosystem by supporting infrastructure scaling, player acquisition, and tournament expansion.
+Problem
+Web3 gaming has struggled with long-term player retention.
+Most blockchain games rely on speculative token economies instead of engaging gameplay. Assets are often static collectibles that do not evolve based on player performance.
+Common problems include:
+• NFTs with no gameplay relevance
+• Progression tied to centralized accounts
+• Token emissions that collapse under inflation
+• Poor onboarding experiences for non-crypto players
+As a result, most Web3 games experience rapid user churn after the initial launch hype.
+Meanwhile, competitive multiplayer games in Web2 continue to dominate global engagement. Titles like Call of Duty, Apex Legends, and Valorant demonstrate that players are highly motivated by skill-based competition, rankings, and prestige.
+The missing piece in Web3 gaming is a system where gameplay skill directly affects the value and identity of digital assets.
+Solution
+ChainBois introduces Playable Identity.
+Playable Identity means that the character itself becomes the record of a player's achievements.
+Instead of accounts holding progress, the NFT character holds:
+• Wins
+• Kills
+• Tournament placements
+• Level progression
+• Rank status
+As a player improves, their ChainBoi evolves. The NFT's metadata updates dynamically and reflects that performance.
+This system creates three key advantages:
+
+1. Skill-based asset value
+   Better players create more valuable characters.
+2. Tradable progression
+   Players can sell upgraded identities rather than starting from zero.
+3. Long-term engagement
+   Characters become personal competitive assets with history and prestige.
+   Product Overview
+   ChainBois is a multiplayer third-person shooter built using the Unity engine.
+   The game supports both PC and Android platforms and integrates blockchain ownership mechanics through Avalanche smart contracts.
+   Key features include:
+   • Seven multiplayer game modes
+   • NFT-based playable characters
+   • Weapon NFTs
+   • Tournament competition system
+   • Dynamic NFT progression
+   • Token-based rewards system
+   Game Modes:
+   • Frontline
+   • Team Deathmatch
+   • Kill Confirmed
+   • Gun Fight
+   • Battle Royale
+   • Capture the Flag
+   • Search and Destroy
+   The core philosophy is simple:
+   Skill determines progress.
+   Technical Architecture
+   ChainBois is built using a modular architecture that separates gameplay systems from blockchain infrastructure.
+   Game Engine
+   Unity handles gameplay, physics, rendering, and multiplayer interaction.
+   Backend Layer
+   A Node.js / Express API manages game state synchronization, tournaments, NFT progression logic, and token economy automation.
+   Database Layer
+   MongoDB stores persistent platform data while Firebase Realtime Database acts as a bridge between the game client and backend.
+   Blockchain Layer
+   Avalanche C‑Chain smart contracts manage NFT ownership, token balances, and asset transfers.
+   Smart Contracts
+   • BattleToken (ERC20 capped token)
+   • ChainBoisNFT (ERC721 characters)
+   • WeaponNFT (ERC721 weapons)
+   This architecture allows the game to remain responsive while still benefiting from blockchain transparency and ownership.
+   Onboarding
+   ChainBois is designed for both Web2 and Web3 players.
+   Players can start playing immediately without a wallet.
+   Step 1: Download the game
+   Players download the PC client or Android APK.
+   Step 2: Create an account
+   Users create an account through Firebase authentication.
+   Step 3: Connect wallet (optional)
+   Players connect a MetaMask or Core wallet when they want to access NFT ownership features.
+   Step 4: Claim starter pack
+   The testnet faucet distributes:
+   • 2 ChainBoi NFTs
+   • 8 weapon NFTs
+   • 1,000 $BATTLE tokens
+   Gas costs are covered by the platform.
+   This onboarding system removes the most common friction points in Web3 gaming.
+   Growth Flywheel
+   ChainBois is designed around a growth flywheel that compounds over time.
+   Step 1 – Player onboarding
+   New players download the game and begin competing.
+   Step 2 – Gameplay progression
+   Players earn wins and statistics tied to their ChainBoi NFTs.
+   Step 3 – NFT evolution
+   The NFT evolves based on player performance.
+   Step 4 – Increased value
+   High-performing NFTs become more valuable and gain access to higher-level tournaments.
+   Step 5 – Secondary market trading
+   Players trade upgraded characters on NFT marketplaces.
+   Step 6 – New players enter
+   New players purchase characters or mint new ones to compete.
+   This cycle continuously expands the player ecosystem.
+   Token Economy
+   The ChainBois ecosystem uses the $BATTLE token.
+   Key properties:
+   • Fixed supply of 10,000,000 tokens
+   • Deflationary burn mechanism
+   • Dynamic reward distribution
+   Token uses include:
+   • Weapon purchases
+   • Tournament rewards
+   • Points conversion
+   • Airdrops
+   Weapon purchases trigger automatic burn mechanics that reduce circulating supply over time.
+   This system creates a sustainable in-game economy tied directly to gameplay activity.
+   Competitive Landscape
+   Several Web3 shooters exist, but most focus on cosmetics or creator tools.
+   Examples include:
+   Off The Grid
+   AAA production but NFT assets are primarily cosmetic.
+   Shrapnel
+   Extraction shooter with strong creator ecosystem.
+   ChainBois differentiates itself through Playable Identity.
+   Characters evolve with skill and carry their competitive history on-chain.
+   Go To Market Strategy
+   ChainBois will grow through a phased strategy.
+   Phase 1 – Core Web3 community
+   Early tournaments and NFT events targeting crypto-native gamers.
+   Phase 2 – Competitive shooter audience
+   Streamer tournaments and competitive gaming communities.
+   Phase 3 – Mainstream onboarding
+   Mobile expansion and simplified wallet onboarding.
+   Funding Allocation
+   The Avalanche grant will accelerate development and ecosystem growth.
+   Product development – 40%
+   Game optimization and infrastructure scaling.
+   User acquisition – 35%
+   Community campaigns, tournaments, and creator partnerships.
+   Ecosystem partnerships – 15%
+   Integrations with Avalanche ecosystem partners.
+   Operations – 10%
+   Community management and tournament administration.
+   Roadmap
+   Short Term
+   • Expand multiplayer stability
+   • Launch early access
+   • Run recurring tournaments
+   Mid Term
+   • Mobile scaling
+   • Creator partnerships
+   • Competitive ranking system
+   Long Term
+   • Multiple games sharing playable identity
+   • Player-owned competitive ecosystem
+   Why Avalanche
+   Avalanche offers the performance and infrastructure needed for real-time gaming economies.
+   Advantages include:
+   • Fast finality
+   • Low transaction fees
+   • Strong gaming ecosystem
+   ChainBois aligns with Avalanche's vision of high-performance gaming infrastructure.
+   Conclusion
+   ChainBois is not just another Web3 game.
+   It introduces a new model where gameplay performance becomes a tradable identity.
+   By combining competitive multiplayer design with blockchain ownership, ChainBois creates a system where players truly own their achievements.
+   The Avalanche Build Games program provides the ideal environment to scale this vision.
