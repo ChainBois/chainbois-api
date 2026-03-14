@@ -50,13 +50,15 @@ const getTokenMetadata = catchAsync(async (req, res, next) => {
       .filter((t) => !dynamicTraitTypes.has(t.trait_type))
       .map((t) => ({ trait_type: t.trait_type, value: t.value }));
   } else {
-    // Try static metadata file
+    // Try static metadata file (async I/O to avoid blocking event loop)
     const staticPath = path.join(METADATA_DIR, `${tokenId}.json`);
-    if (fs.existsSync(staticPath)) {
-      const staticData = JSON.parse(fs.readFileSync(staticPath, "utf8"));
+    try {
+      const staticData = JSON.parse(await fs.promises.readFile(staticPath, "utf8"));
       baseTraits = (staticData.attributes || []).filter((a) => !dynamicTraitTypes.has(a.trait_type));
       name = staticData.name || name;
       description = staticData.description || description;
+    } catch (e) {
+      // File doesn't exist or is invalid — use defaults
     }
   }
 

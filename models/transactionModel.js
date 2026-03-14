@@ -64,6 +64,7 @@ transactionSchema.pre("save", function (next) {
 });
 
 transactionSchema.index({ toAddress: 1, type: 1, createdAt: -1 });
+transactionSchema.index({ fromAddress: 1, createdAt: -1 });
 transactionSchema.index({ txHash: 1 }, { unique: true, sparse: true });
 
 const Transaction = mongoose.model("Transaction", transactionSchema);

@@ -409,11 +409,13 @@ const walletHealthJob = async function () {
   const issues = [];
 
   try {
-    await checkGasBalances(issues);
-    await checkBattleBalance(issues);
-    await checkNftInventory(issues);
-    await checkWeaponInventory(issues);
-    await checkPrizePoolFunding(issues);
+    await Promise.all([
+      checkGasBalances(issues),
+      checkBattleBalance(issues),
+      checkNftInventory(issues),
+      checkWeaponInventory(issues),
+      checkPrizePoolFunding(issues),
+    ]);
   } catch (e) {
     console.error("[WalletHealth] Job failed:", e.message);
     return;

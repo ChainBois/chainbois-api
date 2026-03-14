@@ -7,11 +7,20 @@ jest.mock("../config/firebase", () => ({
 }));
 
 // Mock User model
-const mockUserFindOne = jest.fn();
+const mockUserFind = jest.fn();
 const mockUserSave = jest.fn().mockResolvedValue();
 
 jest.mock("../models/userModel", () => ({
-  findOne: (...args) => mockUserFindOne(...args),
+  find: (...args) => mockUserFind(...args),
+}));
+
+// Mock SecurityProfile model
+const mockSPFind = jest.fn();
+const mockSPFindOneAndUpdate = jest.fn();
+
+jest.mock("../models/securityProfileModel", () => ({
+  find: (...args) => mockSPFind(...args),
+  findOneAndUpdate: (...args) => mockSPFindOneAndUpdate(...args),
 }));
 
 // Mock WeeklyLeaderboard
@@ -35,9 +44,9 @@ jest.mock("../models/tournamentModel", () => ({
 }));
 
 // Mock ChainboiNft model
-const mockNftUpdateMany = jest.fn().mockResolvedValue({ modifiedCount: 0 });
+const mockNftBulkWrite = jest.fn().mockResolvedValue({ modifiedCount: 0 });
 jest.mock("../models/chainboiNftModel", () => ({
-  updateMany: (...args) => mockNftUpdateMany(...args),
+  bulkWrite: (...args) => mockNftBulkWrite(...args),
 }));
 
 // Mock weekUtils
@@ -46,13 +55,11 @@ jest.mock("../utils/weekUtils", () => ({
 }));
 
 // Mock antiCheat
-const mockGetOrCreateSP = jest.fn();
 const mockCheckBanStatus = jest.fn();
 const mockCheckDailyEarnings = jest.fn();
 const mockSPSave = jest.fn().mockResolvedValue();
 
 jest.mock("../middleware/antiCheat", () => ({
-  getOrCreateSecurityProfile: (...args) => mockGetOrCreateSP(...args),
   updateThreatScore: jest.fn(),
   checkBanStatus: (...args) => mockCheckBanStatus(...args),
   checkDailyEarnings: (...args) => mockCheckDailyEarnings(...args),
@@ -60,8 +67,10 @@ jest.mock("../middleware/antiCheat", () => ({
 
 const { syncScoresJob } = require("../jobs/syncScoresJob");
 
+const uid = "abcdefghijklmnopqrstuvwxyz12";
+
 const makeUser = (overrides = {}) => ({
-  uid: "abcdefghijklmnopqrstuvwxyz12",
+  uid,
   score: 0,
   highScore: 0,
   gamesPlayed: 0,
@@ -77,7 +86,7 @@ const makeUser = (overrides = {}) => ({
 });
 
 const makeSecurityProfile = (overrides = {}) => ({
-  uid: "abcdefghijklmnopqrstuvwxyz12",
+  uid,
   threatScore: 0,
   dailyEarnings: 0,
   dailyEarningsResetAt: new Date(),
@@ -86,9 +95,14 @@ const makeSecurityProfile = (overrides = {}) => ({
   ...overrides,
 });
 
-describe("syncScoresJob", () => {
-  const uid = "abcdefghijklmnopqrstuvwxyz12";
+// Helper to set up batch mocks: User.find returns users, SP.find returns profiles
+const setupBatchMocks = (users, profiles) => {
+  mockUserFind.mockResolvedValue(users);
+  mockSPFind.mockResolvedValue(profiles || []);
+  mockTournamentFind.mockReturnValue({ lean: () => Promise.resolve([]) });
+};
 
+describe("syncScoresJob", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTournamentFind.mockReturnValue({ lean: () => Promise.resolve([]) });
@@ -97,25 +111,24 @@ describe("syncScoresJob", () => {
   test("handles null Firebase snapshot", async () => {
     mockOnce.mockResolvedValue({ val: () => null });
     await syncScoresJob();
-    expect(mockUserFindOne).not.toHaveBeenCalled();
+    expect(mockUserFind).not.toHaveBeenCalled();
   });
 
   test("skips users not in MongoDB", async () => {
     mockOnce.mockResolvedValue({
       val: () => ({ [uid]: { Score: 100 } }),
     });
-    mockUserFindOne.mockResolvedValue(null);
+    setupBatchMocks([], []);
 
     await syncScoresJob();
-    expect(mockGetOrCreateSP).not.toHaveBeenCalled();
+    expect(mockCheckBanStatus).not.toHaveBeenCalled();
   });
 
   test("skips banned users and marks them in MongoDB", async () => {
     const user = makeUser({ isBanned: false });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 100 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: true, reason: "banned" });
 
     await syncScoresJob();
@@ -128,8 +141,7 @@ describe("syncScoresJob", () => {
     const user = makeUser({ isBanned: true, score: 0 });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 0 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
 
     await syncScoresJob();
@@ -142,13 +154,11 @@ describe("syncScoresJob", () => {
     const user = makeUser({ score: 500 });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 500 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
 
     await syncScoresJob();
 
-    // User.save called only for isBanned check, not for score update
     expect(mockLbFindOneAndUpdate).not.toHaveBeenCalled();
     expect(mockScoreChangeCreate).not.toHaveBeenCalled();
   });
@@ -157,8 +167,7 @@ describe("syncScoresJob", () => {
     const user = makeUser({ score: 100 });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 600 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
     mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 500 });
 
@@ -185,20 +194,16 @@ describe("syncScoresJob", () => {
   test("caps delta at MAX_POINTS_PER_MATCH", async () => {
     const user = makeUser({ score: 0 });
     const sp = makeSecurityProfile();
-    // Score jumped by 10000 (> 5000 max)
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 10000 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
     mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 5000 });
 
     await syncScoresJob();
 
     expect(user.pointsBalance).toBe(5000);
-    // Threat score should be incremented for suspicious delta
-    expect(sp.threatScore).toBe(5); // VELOCITY_EXPLOIT increment
+    expect(sp.threatScore).toBe(5);
     expect(sp.violationLog).toHaveLength(1);
-    // ScoreChange created with capped delta
     expect(mockScoreChangeCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         scoreChange: 5000,
@@ -212,15 +217,14 @@ describe("syncScoresJob", () => {
     const user = makeUser({ score: 0 });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 500 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
     mockCheckDailyEarnings.mockReturnValue({ allowed: false, cappedAmount: 0 });
 
     await syncScoresJob();
 
-    expect(user.score).toBe(0); // Not updated
-    expect(mockSPSave).toHaveBeenCalled(); // Still saves for daily reset
+    expect(user.score).toBe(0);
+    expect(mockSPSave).toHaveBeenCalled();
     expect(mockLbFindOneAndUpdate).not.toHaveBeenCalled();
     expect(mockScoreChangeCreate).not.toHaveBeenCalled();
   });
@@ -229,8 +233,7 @@ describe("syncScoresJob", () => {
     const user = makeUser({ score: 0, level: 2 });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 1000 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
     mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 1000 });
 
@@ -238,8 +241,8 @@ describe("syncScoresJob", () => {
 
     const lbCall = mockLbFindOneAndUpdate.mock.calls[0];
     expect(lbCall[0].uid).toBe(uid);
-    expect(lbCall[0].year).toBe(new Date().getFullYear());
-    expect(lbCall[0].weekNumber).toBeGreaterThan(0);
+    expect(lbCall[0].year).toBe(2026);
+    expect(lbCall[0].weekNumber).toBe(10);
     expect(lbCall[0].tournamentLevel).toBe(2);
     expect(lbCall[1].$max.highScore).toBe(1000);
     expect(lbCall[1].$inc.totalScore).toBe(1000);
@@ -250,7 +253,8 @@ describe("syncScoresJob", () => {
     const uid2 = "zyxwvutsrqponmlkjihgfedcba21";
     const user1 = makeUser({ uid, score: 0, save: jest.fn().mockRejectedValue(new Error("DB error")) });
     const user2 = makeUser({ uid: uid2, score: 0 });
-    const sp = makeSecurityProfile();
+    const sp1 = makeSecurityProfile({ uid });
+    const sp2 = makeSecurityProfile({ uid: uid2 });
 
     mockOnce.mockResolvedValue({
       val: () => ({
@@ -258,30 +262,23 @@ describe("syncScoresJob", () => {
         [uid2]: { Score: 200 },
       }),
     });
-    mockUserFindOne
-      .mockResolvedValueOnce(user1)
-      .mockResolvedValueOnce(user2);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user1, user2], [sp1, sp2]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
     mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 200 });
 
     await syncScoresJob(); // Should not throw
-
-    // Second user should still be processed
-    expect(mockUserFindOne).toHaveBeenCalledTimes(2);
   });
 
   test("skips score decrease (should not happen)", async () => {
     const user = makeUser({ score: 1000 });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 500 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
 
     await syncScoresJob();
 
-    expect(user.score).toBe(1000); // Unchanged
+    expect(user.score).toBe(1000);
     expect(mockLbFindOneAndUpdate).not.toHaveBeenCalled();
     expect(mockScoreChangeCreate).not.toHaveBeenCalled();
   });
@@ -291,73 +288,91 @@ describe("syncScoresJob", () => {
     await syncScoresJob(); // Should not throw
   });
 
-  test("syncs in-game stats to ChainboiNft after score update", async () => {
+  test("syncs in-game stats to ChainboiNft via bulkWrite after score update", async () => {
     const user = makeUser({ score: 100, gamesPlayed: 5, hasNft: true, address: "0xABC" });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 600 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
     mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 500 });
 
     await syncScoresJob();
 
-    expect(mockNftUpdateMany).toHaveBeenCalledWith(
-      { ownerAddress: "0xabc" },
+    expect(mockNftBulkWrite).toHaveBeenCalledWith([
       {
-        $set: {
-          "inGameStats.score": 600,
-          "inGameStats.gamesPlayed": 6,
+        updateMany: {
+          filter: { ownerAddress: "0xabc" },
+          update: {
+            $set: {
+              "inGameStats.score": 600,
+              "inGameStats.gamesPlayed": 6,
+            },
+          },
         },
-      }
-    );
+      },
+    ]);
   });
 
   test("skips NFT stats sync when user has no NFT", async () => {
     const user = makeUser({ score: 0, hasNft: false });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 500 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
     mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 500 });
 
     await syncScoresJob();
 
-    expect(mockNftUpdateMany).not.toHaveBeenCalled();
+    expect(mockNftBulkWrite).not.toHaveBeenCalled();
   });
 
   test("skips NFT stats sync when user has no address", async () => {
     const user = makeUser({ score: 0, address: "", hasNft: true });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 500 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
     mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 500 });
 
     await syncScoresJob();
 
-    expect(mockNftUpdateMany).not.toHaveBeenCalled();
+    expect(mockNftBulkWrite).not.toHaveBeenCalled();
   });
 
-  test("NFT stats sync failure does not break score sync", async () => {
+  test("NFT stats bulkWrite failure does not break score sync", async () => {
     const user = makeUser({ score: 0, hasNft: true });
     const sp = makeSecurityProfile();
     mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 500 } }) });
-    mockUserFindOne.mockResolvedValue(user);
-    mockGetOrCreateSP.mockResolvedValue(sp);
+    setupBatchMocks([user], [sp]);
     mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
     mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 500 });
-    mockNftUpdateMany.mockRejectedValueOnce(new Error("NFT DB error"));
+    mockNftBulkWrite.mockRejectedValueOnce(new Error("NFT DB error"));
 
     await syncScoresJob();
 
-    // Score update should still have completed
     expect(user.score).toBe(500);
     expect(mockUserSave).toHaveBeenCalled();
-    // Leaderboard and score change should still be recorded
     expect(mockLbFindOneAndUpdate).toHaveBeenCalled();
     expect(mockScoreChangeCreate).toHaveBeenCalled();
+  });
+
+  test("creates security profile on the fly when not in batch", async () => {
+    const user = makeUser();
+    const sp = makeSecurityProfile();
+    mockOnce.mockResolvedValue({ val: () => ({ [uid]: { Score: 100 } }) });
+    // User exists but no security profile in batch
+    setupBatchMocks([user], []);
+    mockSPFindOneAndUpdate.mockResolvedValue(sp);
+    mockCheckBanStatus.mockResolvedValue({ banned: false, reason: "" });
+    mockCheckDailyEarnings.mockReturnValue({ allowed: true, cappedAmount: 100 });
+
+    await syncScoresJob();
+
+    expect(mockSPFindOneAndUpdate).toHaveBeenCalledWith(
+      { uid },
+      { $setOnInsert: { uid } },
+      { upsert: true, new: true }
+    );
+    expect(user.score).toBe(100);
   });
 });

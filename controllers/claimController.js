@@ -9,14 +9,12 @@ const Wallet = require("../models/walletModel");
 const ChainboiNft = require("../models/chainboiNftModel");
 const WeaponNft = require("../models/weaponNftModel");
 const Transaction = require("../models/transactionModel");
-const { WALLET_ROLES, WEAPON_DEFINITIONS, TRANSACTION_TYPES } = require("../config/constants");
+const { WALLET_ROLES, WEAPON_DEFINITIONS, TRANSACTION_TYPES, WEAPON_CATEGORIES } = require("../config/constants");
 
 const BATTLE_CLAIM_AMOUNT = 1000;
 const NFT_CLAIM_COUNT = 2;
-const WEAPON_CATEGORIES = ["assault", "smg", "lmg", "marksman", "handgun", "launcher", "shotgun", "melee"];
 
-// In-memory lock to prevent concurrent claims (serializes blockchain txs)
-let claimLock = false;
+// MongoDB-based distributed lock (safe for PM2 cluster mode)
 const LOCK_TIMEOUT_MS = 180000; // 3 minutes max
 
 /**
@@ -94,20 +92,20 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
     return next(new AppError("This wallet has already claimed a starter pack", 400));
   }
 
-  // 3. Acquire processing lock (only one claim at a time to prevent nonce collisions)
-  if (claimLock) {
+  // 3. Distributed lock: check if any claim is currently processing (prevents nonce collisions across PM2 instances)
+  const activeClaim = await Claim.findOne({
+    status: "processing",
+    createdAt: { $gt: new Date(Date.now() - LOCK_TIMEOUT_MS) },
+  });
+  if (activeClaim) {
     return next(new AppError("Another claim is being processed. Please try again in a minute.", 429));
   }
-  claimLock = true;
-  const lockTimer = setTimeout(() => { claimLock = false; }, LOCK_TIMEOUT_MS);
 
-  // 4. Create claim record immediately to prevent double-claims (unique index)
+  // 4. Create claim record atomically to prevent double-claims (unique index on address)
   let claim;
   try {
     claim = await Claim.create({ address: normalizedAddress, status: "processing" });
   } catch (err) {
-    claimLock = false;
-    clearTimeout(lockTimer);
     if (err.code === 11000) {
       return next(new AppError("This wallet has already claimed a starter pack", 400));
     }
@@ -126,8 +124,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
     claim.status = "failed";
     claim.error = "Platform wallets not configured";
     await claim.save();
-    claimLock = false;
-    clearTimeout(lockTimer);
+
     return next(new AppError("Platform configuration error", 500));
   }
 
@@ -283,7 +280,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
       amount: BATTLE_CLAIM_AMOUNT,
       txHash: battleReceipt.hash,
     };
-    await recordTransaction(TRANSACTION_TYPES.POINTS_CONVERSION, rewardsWallet.address, normalizedAddress, BATTLE_CLAIM_AMOUNT, battleReceipt.hash, "BATTLE", {
+    await recordTransaction(TRANSACTION_TYPES.AIRDROP, rewardsWallet.address, normalizedAddress, BATTLE_CLAIM_AMOUNT, battleReceipt.hash, "BATTLE", {
       source: "starter_pack_claim",
     });
 
@@ -303,8 +300,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
     };
     await claim.save();
 
-    claimLock = false;
-    clearTimeout(lockTimer);
+
 
     return res.status(200).json({
       success: true,
@@ -334,8 +330,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
     };
     await claim.save();
 
-    claimLock = false;
-    clearTimeout(lockTimer);
+
 
     return next(new AppError(`Claim failed: ${err.message}`, 500));
   }

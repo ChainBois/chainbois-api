@@ -35,11 +35,6 @@ const userSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-    battleTokenBalance: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
     hasNft: {
       type: Boolean,
       default: false,

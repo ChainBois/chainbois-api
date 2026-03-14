@@ -53,4 +53,31 @@ settingsSchema.pre("save", async function (next) {
 });
 
 const Settings = mongoose.model("Settings", settingsSchema);
+
+// --- Cached Settings singleton (TTL: 60s) ---
+let _cachedSettings = null;
+let _cachedAt = 0;
+const SETTINGS_TTL_MS = 60000;
+
+/**
+ * Get the cached Settings singleton. Fetches from DB at most once per minute.
+ * Falls back to direct DB query if cache is stale.
+ * @returns {Promise<Object>} The settings document
+ */
+Settings.getCached = async function () {
+  const now = Date.now();
+  if (_cachedSettings && now - _cachedAt < SETTINGS_TTL_MS) {
+    return _cachedSettings;
+  }
+  _cachedSettings = await Settings.findOne().lean();
+  _cachedAt = now;
+  return _cachedSettings;
+};
+
+/** Invalidate the cache (call after updates) */
+Settings.invalidateCache = function () {
+  _cachedSettings = null;
+  _cachedAt = 0;
+};
+
 module.exports = Settings;

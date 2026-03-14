@@ -14,19 +14,25 @@ const BATTLE_TOKEN_ABI = BattleTokenArtifact.abi;
 const CHAINBOIS_NFT_ABI = ChainBoisNFTArtifact.abi;
 const WEAPON_NFT_ABI = WeaponNFTArtifact.abi;
 
+// --- Cached read-only contract instances ---
+const _readOnlyContracts = {};
+
 /**
- * Get a read-only contract instance
+ * Get a read-only contract instance (cached per address)
  * @param {string} address - Contract address
  * @param {Array} abi - Contract ABI
  * @returns {ethers.Contract}
  */
 const getContract = function (address, abi) {
-  const provider = getProvider();
-  return new ethers.Contract(address, abi, provider);
+  if (!_readOnlyContracts[address]) {
+    const provider = getProvider();
+    _readOnlyContracts[address] = new ethers.Contract(address, abi, provider);
+  }
+  return _readOnlyContracts[address];
 };
 
 /**
- * Get a writable contract instance (with signer)
+ * Get a writable contract instance (with signer) — NOT cached (unique per key)
  * @param {string} contractAddress - Contract address
  * @param {Array} abi - Contract ABI
  * @param {string} privateKey - Signer private key
@@ -54,13 +60,6 @@ const getBattleBalance = async function (walletAddress) {
     const balance = await contract.balanceOf(walletAddress);
     return ethers.formatEther(balance);
   });
-};
-
-const mintBattleTokens = async function (toAddress, amount, signerPrivateKey) {
-  const contract = getBattleTokenContract(signerPrivateKey);
-  const tx = await contract.mint(toAddress, ethers.parseEther(String(amount)));
-  const receipt = await tx.wait();
-  return receipt;
 };
 
 const burnBattleTokens = async function (amount, signerPrivateKey) {
@@ -199,7 +198,6 @@ module.exports = {
   getBattleTokenContract,
   getBattleBalance,
   getBattleTotalSupply,
-  mintBattleTokens,
   burnBattleTokens,
   transferBattleTokens,
   getChainboisNftContract,

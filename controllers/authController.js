@@ -28,7 +28,6 @@ const buildUserResponse = function (user) {
     address: user.address,
     playerType: user.playerType,
     pointsBalance: user.pointsBalance,
-    battleTokenBalance: user.battleTokenBalance,
     level: user.level,
     score: user.score,
     highScore: user.highScore,

@@ -8,8 +8,8 @@ const Settings = require("../models/settingsModel");
 const Tournament = require("../models/tournamentModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
-const { transferNft, transferWeaponNft, getBattleBalance } = require("../utils/contractUtils");
-const { getProvider, sendAvax, getAvaxBalance } = require("../utils/avaxUtils");
+const { transferNft, transferWeaponNft, getBattleBalance, BATTLE_TOKEN_ABI } = require("../utils/contractUtils");
+const { getProvider, sendAvax, getAvaxBalance, verifyPayment } = require("../utils/avaxUtils");
 const { decrypt } = require("../utils/cryptUtils");
 const { withRetry } = require("../utils/retryHelper");
 const { getFirebaseDb } = require("../config/firebase");
@@ -22,7 +22,6 @@ const {
   PURCHASE_FAILSAFE,
 } = require("../config/constants");
 const { ethers } = require("ethers");
-const BattleTokenABI = require("../abis/BattleToken.json").abi;
 
 /**
  * GET /api/v1/armory/weapons
@@ -301,7 +300,7 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
     return next(new AppError("Transaction not found or failed on-chain", 400));
   }
 
-  const battleInterface = new ethers.Interface(BattleTokenABI);
+  const battleInterface = new ethers.Interface(BATTLE_TOKEN_ABI);
   let paymentVerified = false;
   let actualPaymentAmount = String(weapon.price);
   const expectedAmount = ethers.parseEther(String(weapon.price));
@@ -507,31 +506,16 @@ const purchaseNft = catchAsync(async (req, res, next) => {
     }
   }
 
-  // 5. Verify on-chain AVAX payment to nft_store
-  const provider = getProvider();
-  const tx = await provider.getTransaction(txHash);
-  if (!tx) {
-    return next(new AppError("Transaction not found", 400));
-  }
-
-  const txReceipt = await provider.getTransactionReceipt(txHash);
-  if (!txReceipt || txReceipt.status !== 1) {
-    return next(new AppError("Transaction failed on-chain", 400));
-  }
-
-  if (tx.from.toLowerCase() !== normalizedAddress) {
-    return next(new AppError("Transaction sender does not match your wallet", 400));
-  }
-  if (!tx.to || tx.to.toLowerCase() !== nftStoreWallet.address.toLowerCase()) {
-    return next(new AppError("Payment must be sent to the NFT store wallet", 400));
-  }
-
+  // 5. Verify on-chain AVAX payment to nft_store (using verifyPayment for staleness check)
   const expectedAmount = ethers.parseEther(String(nftPrice));
-  if (tx.value < expectedAmount) {
-    return next(new AppError(`Insufficient payment. Expected at least ${nftPrice} AVAX`, 400));
+  const paymentResult = await verifyPayment(txHash, normalizedAddress, nftStoreWallet.address, expectedAmount.toString());
+  if (!paymentResult.valid) {
+    return next(new AppError(paymentResult.reason, 400));
   }
 
   // Capture actual payment amount (may be > price if user overpaid)
+  const provider = getProvider();
+  const tx = await provider.getTransaction(txHash);
   const actualPaymentAmount = ethers.formatEther(tx.value);
 
   // 6. Atomically claim an available NFT

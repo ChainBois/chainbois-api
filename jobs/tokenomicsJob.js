@@ -6,6 +6,7 @@ const { decrypt } = require("../utils/cryptUtils");
 const { getSweepSplit } = require("../services/tokenomicsService");
 const { sendDiscordAlert } = require("../utils/discordService");
 const { WALLET_ROLES, TOKENOMICS, TRANSACTION_TYPES } = require("../config/constants");
+const { getWeekInfo } = require("../utils/weekUtils");
 
 /**
  * Tokenomics sweep job — runs every 6 hours.
@@ -91,7 +92,7 @@ const tokenomicsJob = async function () {
 
     // 9. Record burn in database
     const now = new Date();
-    const weekNumber = Math.ceil((now - new Date(now.getFullYear(), 0, 1)) / (7 * 24 * 60 * 60 * 1000));
+    const { week: weekNumber } = getWeekInfo(now);
 
     await BurnRecord.create({
       weekNumber,

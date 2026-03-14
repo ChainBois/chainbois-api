@@ -1,4 +1,5 @@
 const User = require("../models/userModel");
+const SecurityProfile = require("../models/securityProfileModel");
 const WeeklyLeaderboard = require("../models/weeklyLeaderboardModel");
 const ScoreChange = require("../models/scoreChangeModel");
 const Tournament = require("../models/tournamentModel");
@@ -10,7 +11,6 @@ const {
   SECURITY,
 } = require("../config/constants");
 const {
-  getOrCreateSecurityProfile,
   updateThreatScore,
   checkBanStatus,
   checkDailyEarnings,
@@ -34,49 +34,61 @@ const syncScoresJob = async function () {
       return;
     }
 
-    let updatedCount = 0;
-    const updatedLevels = new Set();
+    // Filter valid Firebase IDs
+    const firebaseEntries = Object.entries(firebaseUsers).filter(
+      ([id, data]) => id && typeof id === "string" && id.length >= 20 && data && typeof data === "object"
+    );
 
-    // Build level-to-tournament map from active tournaments
-    // This ensures scores land in the correct tournament's week bucket
-    const activeTournaments = await Tournament.find({ status: "active" }).lean();
+    if (firebaseEntries.length === 0) return;
+
+    const firebaseIds = firebaseEntries.map(([id]) => id);
+
+    // Batch-fetch all MongoDB users and security profiles in parallel
+    const [users, securityProfiles, activeTournaments] = await Promise.all([
+      User.find({ uid: { $in: firebaseIds } }),
+      SecurityProfile.find({ uid: { $in: firebaseIds } }),
+      Tournament.find({ status: "active" }).lean(),
+    ]);
+
+    // Index into Maps for O(1) lookup
+    const userMap = new Map(users.map((u) => [u.uid, u]));
+    const profileMap = new Map(securityProfiles.map((p) => [p.uid, p]));
+
+    // Build level-to-tournament map
     const tournamentByLevel = {};
     for (const t of activeTournaments) {
       tournamentByLevel[t.level] = { weekNumber: t.weekNumber, year: t.year };
     }
-
-    // Fallback: use calendar week for users with no active tournament
     const calendarWeek = getWeekInfo();
 
-    for (const [firebaseId, userData] of Object.entries(firebaseUsers)) {
-      // Per-user error isolation - one failure doesn't abort the whole job
+    let updatedCount = 0;
+    const updatedLevels = new Set();
+    const nftStatsBulk = []; // Collect NFT stat updates for bulk write
+
+    for (const [firebaseId, userData] of firebaseEntries) {
       try {
-        if (!firebaseId || typeof firebaseId !== "string" || firebaseId.length < 20) {
-          continue;
-        }
-        if (!userData || typeof userData !== "object") {
-          continue;
+        const user = userMap.get(firebaseId);
+        if (!user) continue;
+
+        // Get or create security profile (create inline if missing from batch)
+        let securityProfile = profileMap.get(firebaseId);
+        if (!securityProfile) {
+          securityProfile = await SecurityProfile.findOneAndUpdate(
+            { uid: firebaseId },
+            { $setOnInsert: { uid: firebaseId } },
+            { upsert: true, new: true }
+          );
         }
 
-        // Find matching MongoDB user
-        const user = await User.findOne({ uid: firebaseId });
-        if (!user) {
-          continue;
-        }
-
-        // Check ban status FIRST
-        const securityProfile = await getOrCreateSecurityProfile(firebaseId);
+        // Check ban status
         const banCheck = await checkBanStatus(securityProfile);
         if (banCheck.banned) {
-          // Mark user as banned in MongoDB
           if (!user.isBanned) {
             user.isBanned = true;
             await user.save();
           }
           continue;
         }
-
-        // If ban expired, ensure isBanned is cleared on user
         if (user.isBanned && !banCheck.banned) {
           user.isBanned = false;
           await user.save();
@@ -84,22 +96,16 @@ const syncScoresJob = async function () {
 
         // Parse Firebase score (cumulative)
         const firebaseScore = parseInt(userData.Score) || 0;
-
-        // Calculate delta since last sync
         const previousScore = user.score || 0;
         const scoreDelta = firebaseScore - previousScore;
 
-        // No change or score went down
-        if (scoreDelta <= 0) {
-          continue;
-        }
+        if (scoreDelta <= 0) continue;
 
-        // Cap delta at MAX_POINTS_PER_MATCH per sync cycle
+        // Cap delta
         let cappedDelta = Math.min(scoreDelta, MAX_POINTS_PER_MATCH);
 
-        // If delta exceeds max per sync, flag as suspicious but still process capped amount
+        // Flag suspicious scores
         if (scoreDelta > MAX_POINTS_PER_MATCH) {
-          // Mutate in memory, save once at end
           securityProfile.threatScore += SECURITY.THREAT_INCREMENTS.VELOCITY_EXPLOIT;
           securityProfile.violationLog.push({
             type: `Score delta ${scoreDelta} exceeds max ${MAX_POINTS_PER_MATCH}`,
@@ -119,36 +125,34 @@ const syncScoresJob = async function () {
         }
         cappedDelta = earningsCheck.cappedAmount;
 
-        // Update daily earnings and save security profile once
+        // Save security profile once
         securityProfile.dailyEarnings += cappedDelta;
         await securityProfile.save();
 
-        // Update user score and stats
-        user.score = firebaseScore; // Store the actual cumulative score
+        // Update user
+        user.score = firebaseScore;
         user.highScore = Math.max(user.highScore, firebaseScore);
-        user.gamesPlayed += 1; // Counts sync cycles with activity (not actual games)
+        user.gamesPlayed += 1;
         user.pointsBalance += cappedDelta;
         user.lastScoreSync = new Date();
         await user.save();
 
-        // Sync in-game stats to the user's ChainBoi NFTs
+        // Collect NFT stat updates for batch write
         if (user.address && user.hasNft) {
-          try {
-            await ChainboiNft.updateMany(
-              { ownerAddress: user.address.toLowerCase() },
-              {
+          nftStatsBulk.push({
+            updateMany: {
+              filter: { ownerAddress: user.address.toLowerCase() },
+              update: {
                 $set: {
                   "inGameStats.score": user.score,
                   "inGameStats.gamesPlayed": user.gamesPlayed,
                 },
-              }
-            );
-          } catch (nftErr) {
-            console.error(`Failed to sync NFT stats for ${firebaseId}:`, nftErr.message);
-          }
+              },
+            },
+          });
         }
 
-        // Upsert weekly leaderboard entry using tournament's week info
+        // Upsert weekly leaderboard entry
         const userLevel = user.level || 0;
         const tournamentWeek = tournamentByLevel[userLevel];
         const weekInfo = tournamentWeek || calendarWeek;
@@ -179,7 +183,7 @@ const syncScoresJob = async function () {
           console.error(`Failed to update leaderboard for ${firebaseId}:`, e.message);
         }
 
-        // Record granular score change for time-period leaderboard queries
+        // Record score change
         try {
           await ScoreChange.create({
             uid: firebaseId,
@@ -197,6 +201,15 @@ const syncScoresJob = async function () {
       } catch (userError) {
         console.error(`Error processing user ${firebaseId}:`, userError.message);
         continue;
+      }
+    }
+
+    // Batch write NFT stat updates
+    if (nftStatsBulk.length > 0) {
+      try {
+        await ChainboiNft.bulkWrite(nftStatsBulk);
+      } catch (e) {
+        console.error("Failed to bulk update NFT stats:", e.message);
       }
     }
 

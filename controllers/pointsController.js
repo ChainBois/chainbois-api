@@ -137,9 +137,6 @@ const convertPoints = catchAsync(async (req, res, next) => {
     return next(new AppError("Transfer did not return a valid receipt", 500));
   }
 
-  // 6b. Update battleTokenBalance now that we know the effective amount
-  await User.findByIdAndUpdate(user._id, { $inc: { battleTokenBalance: effectiveBattle } });
-
   // 7. Record transaction (non-fatal — tokens already transferred on-chain)
   try {
     await Transaction.create({

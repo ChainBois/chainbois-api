@@ -26,7 +26,7 @@ const getInventory = catchAsync(async (req, res, next) => {
     WeaponNft.find({ ownerAddress: address })
       .select("tokenId weaponName category blueprintTier imageUri")
       .lean(),
-    User.findOne({ address }).select("pointsBalance battleTokenBalance").lean(),
+    User.findOne({ address }).select("pointsBalance").lean(),
   ]);
 
   let battleBalance = "0";
