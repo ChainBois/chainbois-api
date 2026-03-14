@@ -119,13 +119,13 @@
               "name": "Success (Web3 User with NFTs)",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n      \"playerType\": \"web3\",\n      \"pointsBalance\": 0,\n      \"battleTokenBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": true,\n      \"nftTokenId\": 1,\n      \"isBanned\": false,\n      \"hasClaimed\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    },\n    \"assets\": {\n      \"hasNft\": true,\n      \"nftTokenId\": 1,\n      \"level\": 0\n    },\n    \"weapons\": []\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n      \"playerType\": \"web3\",\n      \"pointsBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": true,\n      \"nftTokenId\": 1,\n      \"isBanned\": false,\n      \"hasClaimed\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    },\n    \"assets\": [{ \"tokenId\": 1, \"level\": 0 }],\n    \"weapons\": []\n  }\n}"
             },
             {
               "name": "Success (Web2 User, no NFTs)",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x80dbc4c3c17eb35160aeec41b1590d5f028079c0\",\n      \"playerType\": \"web2\",\n      \"pointsBalance\": 0,\n      \"battleTokenBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": false,\n      \"nftTokenId\": null,\n      \"isBanned\": false,\n      \"hasClaimed\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    },\n    \"assets\": {\n      \"hasNft\": false,\n      \"nftTokenId\": null,\n      \"level\": 0\n    },\n    \"weapons\": []\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x80dbc4c3c17eb35160aeec41b1590d5f028079c0\",\n      \"playerType\": \"web2\",\n      \"pointsBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": false,\n      \"nftTokenId\": null,\n      \"isBanned\": false,\n      \"hasClaimed\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    },\n    \"assets\": [],\n    \"weapons\": []\n  }\n}"
             }
           ]
         },
@@ -148,7 +148,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n      \"playerType\": \"web3\",\n      \"pointsBalance\": 0,\n      \"battleTokenBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": true,\n      \"nftTokenId\": 1,\n      \"isBanned\": false,\n      \"hasClaimed\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    }\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n      \"playerType\": \"web3\",\n      \"pointsBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": true,\n      \"nftTokenId\": 1,\n      \"isBanned\": false,\n      \"hasClaimed\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    }\n  }\n}"
             }
           ]
         },
@@ -199,13 +199,13 @@
               "name": "Success (has NFTs)",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"hasNft\": true,\n    \"nftTokenId\": 1,\n    \"level\": 0,\n    \"ownedWeaponNfts\": []\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"hasNft\": true,\n    \"assets\": [{ \"tokenId\": 1, \"level\": 0 }],\n    \"ownedWeaponNfts\": []\n  }\n}"
             },
             {
               "name": "Success (no NFTs)",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"hasNft\": false,\n    \"nftTokenId\": null,\n    \"level\": 0,\n    \"ownedWeaponNfts\": []\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"hasNft\": false,\n    \"assets\": [],\n    \"ownedWeaponNfts\": []\n  }\n}"
             }
           ]
         },

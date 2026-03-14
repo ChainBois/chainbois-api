@@ -422,7 +422,7 @@ Login with wallet address. Checks on-chain NFT ownership, creates or updates the
       "address": "0x1234...5678",
       "playerType": "web3",
       "pointsBalance": 500,
-      "battleTokenBalance": 0,
+
       "level": 2,
       "score": 1500,
       "highScore": 1500,
@@ -433,11 +433,10 @@ Login with wallet address. Checks on-chain NFT ownership, creates or updates the
 
       "lastLogin": "2026-03-03T12:00:00.000Z"
     },
-    "assets": {
-      "hasNft": true,
-      "nftTokenId": 42,
-      "level": 2
-    },
+    "assets": [
+      { "tokenId": 42, "level": 2 },
+      { "tokenId": 43, "level": 0 }
+    ],
     "weapons": [
       { "tokenId": 1, "name": "RENETTI" }
     ]
@@ -486,8 +485,8 @@ const LoginButton = () => {
       setWeapons(weapons);
 
       if (user.playerType === "web3") {
-        console.log("Web3 user! Has NFT #" + assets.nftTokenId);
-        console.log("Level:", assets.level);
+        console.log("Web3 user! Owns " + assets.length + " ChainBoi NFTs");
+        assets.forEach(nft => console.log(`  NFT #${nft.tokenId} (Level ${nft.level})`));
         console.log("Weapons:", weapons.map(w => w.name));
       } else {
         console.log("Web2 user - no NFT detected");
@@ -524,7 +523,7 @@ Get current user's profile from the database (fast, no blockchain call).
       "address": "0x1234...5678",
       "playerType": "web3",
       "pointsBalance": 500,
-      "battleTokenBalance": 0,
+
       "level": 2,
       "score": 1500,
       "highScore": 1500,
@@ -632,8 +631,10 @@ Re-check on-chain NFT ownership and sync to Firebase. Call this when the user ex
   "success": true,
   "data": {
     "hasNft": true,
-    "nftTokenId": 42,
-    "level": 2,
+    "assets": [
+      { "tokenId": 42, "level": 2 },
+      { "tokenId": 43, "level": 0 }
+    ],
     "ownedWeaponNfts": [{ "name": "RENETTI", "tokenId": 1 }]
   }
 }
@@ -650,7 +651,7 @@ const refreshAssets = async () => {
   try {
     const { data } = await api.post("/game/verify-assets");
     return data.data;
-    // { hasNft, nftTokenId, level, ownedWeaponNfts }
+    // { hasNft, assets: [{ tokenId, level }, ...], ownedWeaponNfts }
   } catch (error) {
     if (error.response?.status === 503) {
       console.log("NFT contracts not available yet");
@@ -1188,20 +1189,18 @@ interface UserObject {
   address: string;
   playerType: "web2" | "web3";
   pointsBalance: number;
-  battleTokenBalance: number;
-  level: number;            // 0-7
+  level: number;            // 0-7 (highest level across all owned NFTs)
   score: number;
   highScore: number;
   gamesPlayed: number;
   hasNft: boolean;
-  nftTokenId: number | null;
+  nftTokenId: number | null; // first owned NFT's tokenId (for quick access)
   isBanned: boolean;
   lastLogin: string;        // ISO 8601 date
 }
 
-interface AssetObject {
-  hasNft: boolean;
-  nftTokenId: number | null;
+interface ChainBoiAsset {
+  tokenId: number;
   level: number;             // 0-7
 }
 
@@ -1210,10 +1209,12 @@ interface WeaponObject {
   name: string;              // e.g., "RENETTI"
 }
 
+// Login response: data.assets is ChainBoiAsset[]
+// Login response: data.weapons is WeaponObject[]
+
 interface VerifyAssetsResponse {
   hasNft: boolean;
-  nftTokenId: number | null;
-  level: number;
+  assets: ChainBoiAsset[];   // all owned ChainBoi NFTs
   ownedWeaponNfts: WeaponObject[];
 }
 

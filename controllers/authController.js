@@ -162,13 +162,19 @@ const login = catchAsync(async (req, res, next) => {
   }
 
   // Check NFTs on-chain (only if contract is configured)
-  let assets = { hasNft: user.hasNft, nftTokenId: user.nftTokenId, level: user.level, weapons: [] };
+  let assets = { hasNft: user.hasNft, nfts: [], weapons: [] };
   if (process.env.CHAINBOIS_NFT_ADDRESS) {
     assets = await lookupNftAssets(normalizedAddress);
 
     user.hasNft = assets.hasNft;
-    user.nftTokenId = assets.nftTokenId;
-    user.level = assets.level;
+    // Store the first NFT's tokenId and highest level on the user record for quick access
+    if (assets.nfts.length > 0) {
+      user.nftTokenId = assets.nfts[0].tokenId;
+      user.level = Math.max(...assets.nfts.map((n) => n.level));
+    } else {
+      user.nftTokenId = null;
+      user.level = 0;
+    }
 
     // Upgrade web2 -> web3 if user now has NFT
     if (user.playerType === PLAYER_TYPE.WEB2 && assets.hasNft) {
@@ -190,7 +196,7 @@ const login = catchAsync(async (req, res, next) => {
       const db = getFirebaseDb();
       const fbUpdate = {
         hasNFT: assets.hasNft,
-        level: assets.level,
+        level: user.level,
         weapons: assets.weapons.length > 0 ? assets.weapons.map((w) => w.name) : null,
       };
       await db.ref(`${FIREBASE_PATHS.USERS}/${uid}`).update(fbUpdate);
@@ -203,11 +209,7 @@ const login = catchAsync(async (req, res, next) => {
     success: true,
     data: {
       user: buildUserResponse(user),
-      assets: {
-        hasNft: assets.hasNft,
-        nftTokenId: assets.nftTokenId,
-        level: assets.level,
-      },
+      assets: assets.nfts,
       weapons: assets.weapons,
     },
   });

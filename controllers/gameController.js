@@ -51,8 +51,13 @@ const verifyAssets = catchAsync(async (req, res, next) => {
 
   // Update user in MongoDB
   user.hasNft = assets.hasNft;
-  user.nftTokenId = assets.nftTokenId;
-  user.level = assets.level;
+  if (assets.nfts.length > 0) {
+    user.nftTokenId = assets.nfts[0].tokenId;
+    user.level = Math.max(...assets.nfts.map((n) => n.level));
+  } else {
+    user.nftTokenId = null;
+    user.level = 0;
+  }
 
   if (user.playerType === PLAYER_TYPE.WEB2 && assets.hasNft) {
     user.playerType = PLAYER_TYPE.WEB3;
@@ -69,7 +74,7 @@ const verifyAssets = catchAsync(async (req, res, next) => {
     const db = getFirebaseDb();
     const fbUpdate = {
       hasNFT: assets.hasNft,
-      level: assets.level,
+      level: user.level,
       weapons: assets.weapons.length > 0 ? assets.weapons.map((w) => w.name) : null,
     };
     await db.ref(`${FIREBASE_PATHS.USERS}/${req.user.uid}`).update(fbUpdate);
@@ -81,8 +86,7 @@ const verifyAssets = catchAsync(async (req, res, next) => {
     success: true,
     data: {
       hasNft: assets.hasNft,
-      nftTokenId: assets.nftTokenId,
-      level: assets.level,
+      assets: assets.nfts,
       ownedWeaponNfts: assets.weapons,
     },
   });
