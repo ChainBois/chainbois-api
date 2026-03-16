@@ -41,14 +41,14 @@
               "host": ["{{baseUrl}}"],
               "path": ["training", "nfts", "{{address}}"]
             },
-            "description": "List all ChainBoi NFTs owned by a wallet address. Returns level, rank, badge, and unlocked characters for each NFT."
+            "description": "List all ChainBoi NFTs owned by a wallet address. Returns level, rank, badge, and unlocked weapons for each NFT."
           },
           "response": [
             {
               "name": "Success - NFTs Found",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 50,\n    \"nfts\": [\n      {\n        \"tokenId\": 1,\n        \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n        \"level\": 0,\n        \"rank\": \"Private\",\n        \"badge\": \"private\",\n        \"imageUri\": \"\",\n        \"metadataUri\": \"\",\n        \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\"],\n        \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 50,\n    \"nfts\": [\n      {\n        \"tokenId\": 1,\n        \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n        \"level\": 0,\n        \"rank\": \"Private\",\n        \"badge\": \"private\",\n        \"imageUri\": \"\",\n        \"metadataUri\": \"\",\n        \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n      }\n    ]\n  }\n}"
             },
             {
               "name": "No NFTs Found",
@@ -73,14 +73,14 @@
               "host": ["{{baseUrl}}"],
               "path": ["training", "nft", "{{tokenId}}"]
             },
-            "description": "Get full details for a single ChainBoi NFT including owner, traits, in-game stats, unlocked characters, and next level cost."
+            "description": "Get full details for a single ChainBoi NFT including owner, traits, in-game stats, and next level cost."
           },
           "response": [
             {
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n    \"owner\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n    \"level\": 2,\n    \"rank\": \"Sergeant\",\n    \"badge\": \"sergeant\",\n    \"traits\": [{\"trait_type\": \"Background\", \"value\": \"Combat Red\"}],\n    \"imageUri\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png\",\n    \"metadataUri\": \"\",\n    \"inGameStats\": {\"kills\": 0, \"score\": 0, \"gamesPlayed\": 0},\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\", \"Corporal_A\", \"Corporal_B\", \"Corporal_C\", \"Corporal_D\", \"Sergeant_A\", \"Sergeant_B\", \"Sergeant_C\", \"Sergeant_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"],\n    \"nextLevelCost\": 0.003,\n    \"isMaxLevel\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n    \"owner\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n    \"level\": 2,\n    \"rank\": \"Sergeant\",\n    \"badge\": \"sergeant\",\n    \"traits\": [{\"trait_type\": \"Background\", \"value\": \"Combat Red\"}],\n    \"imageUri\": \"https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png\",\n    \"metadataUri\": \"\",\n    \"inGameStats\": {\"kills\": 0, \"score\": 0, \"gamesPlayed\": 0},\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"],\n    \"nextLevelCost\": 2,\n    \"isMaxLevel\": false\n  }\n}"
             }
           ]
         },
@@ -114,7 +114,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"previousLevel\": 0,\n    \"newLevel\": 1,\n    \"rank\": \"Corporal\",\n    \"cost\": 0.001,\n    \"contractTxHash\": \"0xabc...\",\n    \"characters\": [\"Private_A\", \"Private_B\", \"Private_C\", \"Private_D\", \"Corporal_A\", \"Corporal_B\", \"Corporal_C\", \"Corporal_D\"],\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"previousLevel\": 0,\n    \"newLevel\": 1,\n    \"rank\": \"Corporal\",\n    \"cost\": 1,\n    \"contractTxHash\": \"0xabc...\",\n    \"weapons\": [\"AR M4 MK18\", \"AM-18\", \"M-9 Bayonet\", \"M32A1 MSGL\"]\n  }\n}"
             },
             {
               "name": "Error - Replay",
@@ -158,7 +158,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"currentLevel\": 0,\n    \"nextLevel\": 1,\n    \"cost\": 0.001,\n    \"currency\": \"AVAX\",\n    \"isMaxLevel\": false,\n    \"rank\": \"Private\",\n    \"nextRank\": \"Corporal\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"currentLevel\": 0,\n    \"nextLevel\": 1,\n    \"cost\": 1,\n    \"currency\": \"AVAX\",\n    \"isMaxLevel\": false,\n    \"rank\": \"Private\",\n    \"nextRank\": \"Corporal\"\n  }\n}"
             }
           ]
         },
@@ -184,7 +184,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"costs\": {\"1\": 0.001, \"2\": 0.002, \"3\": 0.003, \"4\": 0.004, \"5\": 0.005, \"6\": 0.006, \"7\": 0.007},\n    \"currency\": \"AVAX\",\n    \"maxLevel\": 7\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"costs\": {\"1\": 1, \"2\": 1, \"3\": 2, \"4\": 2, \"5\": 3, \"6\": 3, \"7\": 5},\n    \"currency\": \"AVAX\",\n    \"maxLevel\": 7\n  }\n}"
             }
           ]
         },
@@ -278,7 +278,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"total\": 50,\n    \"page\": 1,\n    \"limit\": 20,\n    \"nfts\": [\n      {\n        \"tokenId\": 42,\n        \"rarityScore\": 156.7,\n        \"rank\": 1,\n        \"percentile\": 2.0,\n        \"rarityTier\": \"legendary\",\n        \"traitCount\": 7\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"nfts\": [\n      {\n        \"tokenId\": 42,\n        \"name\": \"ChainBoi #42\",\n        \"rank\": 1,\n        \"rarityScore\": 156.7,\n        \"rarityTier\": \"legendary\",\n        \"percentile\": 2.0,\n        \"traitCount\": 7\n      }\n    ],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 50,\n      \"total\": 50,\n      \"pages\": 1\n    }\n  }\n}"
             }
           ]
         },
@@ -320,7 +320,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"poolName\": \"ChainBois Weekly Airdrop\",\n    \"tokenAddress\": \"0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\",\n    \"weeklyDistributionAmount\": 1000,\n    \"status\": \"active\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"...\",\n      \"poolName\": \"ChainBois Weekly Airdrop\",\n      \"tokenName\": \"BATTLE\",\n      \"weeklyDistributionAmount\": 1000,\n      \"status\": \"active\",\n      \"lastChosenTrait\": null\n    }\n  ]\n}"
             }
           ]
         },
@@ -341,7 +341,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"history\": [\n      {\n        \"traitType\": \"Background\",\n        \"value\": \"Combat Red\",\n        \"dateChosen\": \"2026-03-01T20:00:00Z\",\n        \"weekNumber\": 9,\n        \"beneficiaryCount\": 12,\n        \"totalDistributed\": 1000\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"poolName\": \"ChainBois Weekly Airdrop\",\n    \"history\": [\n      {\n        \"traitType\": \"Background\",\n        \"value\": \"Combat Red\",\n        \"dateChosen\": \"2026-03-01T20:00:00Z\",\n        \"weekNumber\": 9,\n        \"beneficiaryCount\": 12,\n        \"totalDistributed\": 1000\n      }\n    ]\n  }\n}"
             }
           ]
         }
@@ -360,7 +360,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"poolName\": \"ChainBois Weekly Airdrop\",\n  \"tokenAddress\": \"0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\",\n  \"weeklyDistributionAmount\": 1000,\n  \"walletRole\": \"rewards\"\n}"
+              "raw": "{\n  \"poolName\": \"ChainBois Weekly Airdrop\",\n  \"tokenAddress\": \"0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\",\n  \"weeklyDistributionAmount\": 1000,\n  \"walletId\": \"<wallet_mongodb_id>\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/airdrop/traits-pool",

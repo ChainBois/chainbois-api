@@ -2,7 +2,7 @@
 
 Base URL: `https://test-2.ghettopigeon.com/api/v1`
 
-All tournament/leaderboard endpoints are **public** (no auth required).
+All tournament endpoints are **public** (no auth required). The user rank endpoint (`GET /leaderboard/rank/:uid`) requires Firebase auth.
 
 ---
 

@@ -114,7 +114,7 @@ GET /inventory/:address/history?page=1&limit=20&type=weapon_purchase
 |-------|---------|-----|-------------|
 | page | 1 | - | Page number |
 | limit | 20 | 100 | Items per page |
-| type | - | - | Filter: `level_up`, `weapon_purchase`, `nft_purchase`, `points_conversion`, `prize_payout` |
+| type | - | - | Filter: `level_up`, `weapon_purchase`, `nft_purchase`, `points_conversion`, `prize_payout`, `nft_transfer`, `trait_airdrop`, `rarity_airdrop`, `refund`, `token_burn`, `token_recycle` |
 
 **Response:**
 ```json

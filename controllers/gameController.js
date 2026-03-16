@@ -4,28 +4,17 @@ const AppError = require("../utils/appError");
 const { getFirebaseDb } = require("../config/firebase");
 const { lookupNftAssets } = require("../utils/nftUtils");
 const { getNftLevel, getNftOwner } = require("../utils/contractUtils");
-const { FIREBASE_PATHS, CHARACTERS_UNLOCK, BASE_WEAPONS_UNLOCK, MAX_LEVEL, PLAYER_TYPE } = require("../config/constants");
+const { FIREBASE_PATHS, BASE_WEAPONS_UNLOCK, MAX_LEVEL, PLAYER_TYPE } = require("../config/constants");
 
 /**
- * Calculate unlocked characters and weapons for a given level
+ * Get unlocked weapons for a given level
  * @param {number} level - NFT level (0-7)
  * @param {boolean} hasNft - Whether user has an NFT
- * @returns {{ characters: string[], weapons: string[] }}
+ * @returns {{ weapons: string[] }}
  */
 const getUnlockedContent = function (level, hasNft) {
-  const characters = [];
   const weapons = [...BASE_WEAPONS_UNLOCK];
-
-  // Level 0 characters are available to all players (including web2 without NFT)
-  const effectiveLevel = hasNft ? Math.min(level, MAX_LEVEL) : 0;
-
-  for (let i = 0; i <= effectiveLevel; i++) {
-    if (CHARACTERS_UNLOCK[i]) {
-      characters.push(...CHARACTERS_UNLOCK[i]);
-    }
-  }
-
-  return { characters, weapons };
+  return { weapons };
 };
 
 /**

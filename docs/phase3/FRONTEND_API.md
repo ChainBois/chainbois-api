@@ -10,7 +10,7 @@ All endpoints require Firebase Auth token: `Authorization: Bearer <idToken>`
 
 **`GET /training/nfts/:address`**
 
-Returns all ChainBoi NFTs owned by a wallet address with level, rank, and unlocked characters.
+Returns all ChainBoi NFTs owned by a wallet address with level, rank, and unlocked weapons.
 
 ### Request
 ```
@@ -33,7 +33,6 @@ Authorization: Bearer <idToken>
         "badge": "captain",
         "imageUri": "ipfs://...",
         "metadataUri": "ipfs://...",
-        "characters": ["Private_A", "Private_B", "...", "Captain_D"],
         "weapons": ["AR M4 MK18", "AM-18", "M-9 Bayonet", "M32A1 MSGL"]
       }
     ]
@@ -54,7 +53,7 @@ Authorization: Bearer <idToken>
 
 **`GET /training/nft/:tokenId`**
 
-Returns full details for a single ChainBoi NFT including owner, traits, in-game stats, and next level cost.
+Returns full details for a single ChainBoi NFT including owner, traits, in-game stats, unlocked weapons, and next level cost.
 
 ### Request
 ```
@@ -77,7 +76,6 @@ Authorization: Bearer <idToken>
     "imageUri": "ipfs://...",
     "metadataUri": "ipfs://...",
     "inGameStats": {"kills": 10, "score": 500, "gamesPlayed": 5},
-    "characters": ["Private_A", "...", "Captain_D"],
     "weapons": ["AR M4 MK18", "AM-18", "M-9 Bayonet", "M32A1 MSGL"],
     "nextLevelCost": 2,
     "isMaxLevel": false
@@ -106,7 +104,7 @@ Level up a ChainBoi NFT by paying AVAX. The frontend must first send the AVAX pa
 3. Frontend receives the transaction hash from the wallet
 4. Frontend calls `POST /training/level-up` with `{ tokenId, txHash }`
 5. Backend verifies payment, updates level on-chain, syncs to MongoDB + Firebase
-6. Backend returns new level, rank, and unlocked characters
+6. Backend returns new level, rank, and unlocked weapons
 
 ### Request
 ```
@@ -131,7 +129,6 @@ Authorization: Bearer <idToken>
     "rank": "Captain",
     "cost": 2,
     "contractTxHash": "0xabc...",
-    "characters": ["Private_A", "...", "Captain_D"],
     "weapons": ["AR M4 MK18", "AM-18", "M-9 Bayonet", "M32A1 MSGL"]
   }
 }
@@ -266,18 +263,18 @@ Level 0 (Private) NFTs are not eligible for any tournaments.
 
 ## Rank Progression
 
-| Level | Rank | Cost (AVAX) | Badge | Characters Unlocked |
-|-------|------|-------------|-------|---------------------|
-| 0 | Private | - | None | Private A-D |
-| 1 | Corporal | 0.001 | Corporal medal | + Corporal A-D |
-| 2 | Sergeant | 0.002 | Sergeant medal | + Sergeant A-D |
-| 3 | Captain | 0.003 | Captain medal | + Captain A-D |
-| 4 | Major | 0.004 | Major medal | + Major A-D |
-| 5 | Colonel | 0.005 | Colonel medal | + Colonel A-D |
-| 6 | Major General | 0.006 | Major General medal | + Major General A-D |
-| 7 | Field Marshal | 0.007 | Field Marshal medal | + Field Marshal A-D |
+| Level | Rank | Cost (AVAX) | Badge |
+|-------|------|-------------|-------|
+| 0 | Private | - | None |
+| 1 | Corporal | 1 | Corporal medal |
+| 2 | Sergeant | 1 | Sergeant medal |
+| 3 | Captain | 2 | Captain medal |
+| 4 | Major | 2 | Major medal |
+| 5 | Colonel | 3 | Colonel medal |
+| 6 | Major General | 3 | Major General medal |
+| 7 | Field Marshal | 5 | Field Marshal medal |
 
-**Total cost to max level: 0.028 AVAX** (testnet — costs are configurable per-level in settings)
+**Total cost to max level: 17 AVAX** (testnet — costs are configurable per-level in settings)
 
 Badge overlays appear in the top-right corner of the NFT image via Cloudinary URL transforms. Level 0 (Private) has no badge.
 
@@ -406,7 +403,6 @@ interface ChainBoiNft {
   badge: string;
   imageUri: string;
   metadataUri: string;
-  characters: string[];
   weapons: string[];
 }
 
@@ -425,7 +421,6 @@ interface LevelUpResult {
   rank: string;
   cost: number;
   contractTxHash: string;
-  characters: string[];
   weapons: string[];
 }
 

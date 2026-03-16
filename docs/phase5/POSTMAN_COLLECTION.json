@@ -120,7 +120,7 @@
               "mode": "raw",
               "raw": "{\n  \"address\": \"{{userAddress}}\",\n  \"amount\": 100\n}"
             },
-            "description": "Convert points to $BATTLE tokens (1:1 ratio)"
+            "description": "Convert points to $BATTLE tokens (dynamic rate based on rewards pool health tier)"
           }
         },
         {

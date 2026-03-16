@@ -119,13 +119,13 @@
               "name": "Success (Web3 User with NFTs)",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n      \"playerType\": \"web3\",\n      \"pointsBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": true,\n      \"nftTokenId\": 1,\n      \"isBanned\": false,\n      \"hasClaimed\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    },\n    \"assets\": [{ \"tokenId\": 1, \"level\": 0 }],\n    \"weapons\": []\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n      \"playerType\": \"web3\",\n      \"pointsBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": true,\n      \"nftTokenId\": 1,\n      \"isBanned\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    },\n    \"assets\": [{ \"tokenId\": 1, \"level\": 0 }],\n    \"weapons\": []\n  }\n}"
             },
             {
               "name": "Success (Web2 User, no NFTs)",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x80dbc4c3c17eb35160aeec41b1590d5f028079c0\",\n      \"playerType\": \"web2\",\n      \"pointsBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": false,\n      \"nftTokenId\": null,\n      \"isBanned\": false,\n      \"hasClaimed\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    },\n    \"assets\": [],\n    \"weapons\": []\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x80dbc4c3c17eb35160aeec41b1590d5f028079c0\",\n      \"playerType\": \"web2\",\n      \"pointsBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": false,\n      \"nftTokenId\": null,\n      \"isBanned\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    },\n    \"assets\": [],\n    \"weapons\": []\n  }\n}"
             }
           ]
         },
@@ -148,7 +148,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n      \"playerType\": \"web3\",\n      \"pointsBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": true,\n      \"nftTokenId\": 1,\n      \"isBanned\": false,\n      \"hasClaimed\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    }\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"uid\": \"abc123\",\n      \"username\": \"TestPlayer1\",\n      \"address\": \"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\",\n      \"playerType\": \"web3\",\n      \"pointsBalance\": 0,\n      \"level\": 0,\n      \"score\": 0,\n      \"highScore\": 0,\n      \"gamesPlayed\": 0,\n      \"hasNft\": true,\n      \"nftTokenId\": 1,\n      \"isBanned\": false,\n      \"lastLogin\": \"2026-03-04T21:55:00.000Z\"\n    }\n  }\n}"
             }
           ]
         },
@@ -308,7 +308,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"period\": \"all\",\n  \"startDate\": null,\n  \"endDate\": null,\n  \"currentPage\": 1,\n  \"totalPages\": 1,\n  \"totalUsers\": 2,\n  \"leaderboard\": [\n    { \"uid\": \"abc123\", \"username\": \"Player1\", \"scoreGained\": 5000, \"currentScore\": 5000, \"rank\": 1 }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"period\": \"all\",\n    \"startDate\": null,\n    \"endDate\": null,\n    \"currentPage\": 1,\n    \"totalPages\": 1,\n    \"totalUsers\": 2,\n    \"leaderboard\": [\n      { \"uid\": \"abc123\", \"username\": \"Player1\", \"scoreGained\": 5000, \"currentScore\": 5000, \"rank\": 1 }\n    ]\n  }\n}"
             }
           ]
         },
@@ -328,7 +328,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"period\": \"24hours\",\n  \"startDate\": \"2026-03-03T12:00:00.000Z\",\n  \"endDate\": \"2026-03-04T12:00:00.000Z\",\n  \"currentPage\": 1,\n  \"totalPages\": 1,\n  \"totalUsers\": 0,\n  \"leaderboard\": []\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"period\": \"24hours\",\n    \"startDate\": \"2026-03-03T12:00:00.000Z\",\n    \"endDate\": \"2026-03-04T12:00:00.000Z\",\n    \"currentPage\": 1,\n    \"totalPages\": 1,\n    \"totalUsers\": 0,\n    \"leaderboard\": []\n  }\n}"
             }
           ]
         },
@@ -348,7 +348,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"period\": \"week\",\n  \"startDate\": \"2026-02-25T00:00:00.000Z\",\n  \"endDate\": \"2026-03-04T00:00:00.000Z\",\n  \"currentPage\": 1,\n  \"totalPages\": 1,\n  \"totalUsers\": 0,\n  \"leaderboard\": []\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"period\": \"week\",\n    \"startDate\": \"2026-02-25T00:00:00.000Z\",\n    \"endDate\": \"2026-03-04T00:00:00.000Z\",\n    \"currentPage\": 1,\n    \"totalPages\": 1,\n    \"totalUsers\": 0,\n    \"leaderboard\": []\n  }\n}"
             }
           ]
         },
@@ -390,7 +390,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"uid\": \"abc123\",\n  \"period\": \"all\",\n  \"rank\": 1,\n  \"scoreGained\": 0,\n  \"currentScore\": 0\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"uid\": \"abc123\",\n    \"period\": \"all\",\n    \"rank\": 1,\n    \"scoreGained\": 0,\n    \"currentScore\": 0\n  }\n}"
             }
           ]
         },
@@ -416,7 +416,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"uid\": \"abc123\",\n  \"period\": \"week\",\n  \"rank\": 1,\n  \"scoreGained\": 0,\n  \"currentScore\": 0\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"uid\": \"abc123\",\n    \"period\": \"week\",\n    \"rank\": 1,\n    \"scoreGained\": 0,\n    \"currentScore\": 0\n  }\n}"
             }
           ]
         }
@@ -441,7 +441,7 @@
               "name": "Success",
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tournamentSchedule\": { \"startDay\": 3, \"startHour\": 12, \"durationHours\": 120, \"cooldownHours\": 48 },\n    \"prizePools\": { \"1\": 2, \"2\": 4, \"3\": 6, \"4\": 8, \"5\": 10, \"6\": 12, \"7\": 14 },\n    \"levelUpCosts\": { \"1\": 1, \"2\": 1, \"3\": 2, \"4\": 2, \"5\": 3, \"6\": 3, \"7\": 5 },\n    \"battleTokenDecimals\": 18,\n    \"maxPointsPerMatch\": 5000,\n    \"burnRate\": 0.5,\n    \"teamRevenueSplit\": 0.25,\n    \"awardPoolSplit\": 0.75,\n    \"armoryClosedDuringCooldown\": true,\n    \"claimLimit\": 1,\n    \"claimEnabled\": true,\n    \"downloads\": 0,\n    \"trailer\": null\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tournamentSchedule\": { \"startDay\": 3, \"startHour\": 12, \"durationHours\": 120, \"cooldownHours\": 48 },\n    \"prizePools\": { \"1\": 2, \"2\": 4, \"3\": 6, \"4\": 8, \"5\": 10, \"6\": 12, \"7\": 14 },\n    \"levelUpCosts\": { \"1\": 1, \"2\": 1, \"3\": 2, \"4\": 2, \"5\": 3, \"6\": 3, \"7\": 5 },\n    \"battleTokenDecimals\": 18,\n    \"maxPointsPerMatch\": 5000,\n    \"burnRate\": 0.5,\n    \"teamRevenueSplit\": 0.25,\n    \"awardPoolSplit\": 0.75,\n    \"armoryClosedDuringCooldown\": true,\n    \"nftPrice\": 0.001,\n    \"dynamicTokenomics\": true,\n    \"downloads\": 0,\n    \"trailer\": \"\"\n  }\n}"
             }
           ]
         },

@@ -312,7 +312,7 @@ Request → logger → CORS → rateLimiter → JSON parser → validateEndpoint
 3. tournamentJob (every hour):
    → Checks if any tournament period ended
    → Snapshots final leaderboard
-   → Calculates prizes (60/25/15 split)
+   → Calculates prizes (50/35/15 split)
    → Auto-distributes to winners (AVAX + $BATTLE)
    → Posts results to Discord
    → Creates next tournament
@@ -386,7 +386,7 @@ All cron jobs run only on PM2 instance 0 (primary). Registered in `server.js`.
 
 **syncScoresJob**: Reads Firebase RTDB `users/` tree. For each UID with a MongoDB User, compares `score` and `gamesPlayed`. If different, updates MongoDB and runs anti-cheat validation (score plausibility, velocity checks). Flags suspicious activity on SecurityProfile.
 
-**tournamentJob**: Manages the full tournament lifecycle. Creates Level 1-7 tournaments with 5-day duration + 48h cooldown. When a tournament ends: snapshots leaderboard, calculates prizes (60% 1st / 25% 2nd / 15% 3rd), distributes AVAX (1st/2nd) and $BATTLE (3rd) automatically, posts Discord notifications, creates next tournament.
+**tournamentJob**: Manages the full tournament lifecycle. Creates Level 1-7 tournaments with 5-day duration + 48h cooldown. When a tournament ends: snapshots leaderboard, calculates prizes (50% 1st / 35% 2nd / 15% 3rd), distributes AVAX (1st/2nd) and $BATTLE (3rd) automatically, posts Discord notifications, creates next tournament.
 
 **tokenomicsJob**: Checks weapon_store $BATTLE balance. If above 10 BATTLE threshold: calculates current health tier, splits into burn portion (10-50%) and recycle portion (50-90%), executes on-chain burn, transfers recycle to rewards wallet, records BurnRecord + Transactions, sends Discord notification.
 
@@ -616,7 +616,7 @@ The claim endpoint has cross-origin headers (`Access-Control-Allow-Origin: *`) t
 
 ## 11. Data Models
 
-### Core Models (20 total)
+### Core Models (21 total)
 
 | Model | Collection | Purpose |
 |-------|-----------|---------|

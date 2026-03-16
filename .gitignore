@@ -166,7 +166,23 @@ docs/phase5/PLAN.md
 
 # Submission form files (keep local)
 mvp-submission-form-questions.md
+mvp-submission-form-answers.txt
 mvp-submission-requirements.txt
+
+# Internal strategy & pitch docs (keep local)
+adobe-mcp-server.md
+chainbois-pitchdeck-original.pdf
+chainbois-pitchdeck-rewrite.md
+ChainBois Pitchdeck.pdf
+features.md
+github-mcp-server.md
+google-docs-mcp.md
+google-slides-mcp.md
+gtm-answers.md
+gtm-answers.txt
+gtm-initial-draft.txt
+gtm-questions.md
+video-script.md
 
 # Research/reference docs (keep local)
 avalanche-docs/

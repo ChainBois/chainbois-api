@@ -56,7 +56,7 @@ const getNfts = catchAsync(async (req, res, next) => {
         console.error(`Failed to get level for token ${tokenId}:`, e.message);
       }
 
-      const { characters, weapons } = getUnlockedContent(level, true);
+      const { weapons } = getUnlockedContent(level, true);
       const localNft = await ChainboiNft.findOne({ tokenId });
 
       return {
@@ -67,7 +67,6 @@ const getNfts = catchAsync(async (req, res, next) => {
         badge: (RANK_NAMES[level] || "Private").toLowerCase().replace(/ /g, "_"),
         imageUri: localNft ? localNft.imageUri : "",
         metadataUri: localNft ? localNft.metadataUri : "",
-        characters,
         weapons,
       };
     })
@@ -107,7 +106,7 @@ const getNftDetail = catchAsync(async (req, res, next) => {
   } catch (e) {
     return next(new AppError("Failed to get NFT level from contract", 500));
   }
-  const { characters, weapons } = getUnlockedContent(level, true);
+  const { weapons } = getUnlockedContent(level, true);
   const localNft = await ChainboiNft.findOne({ tokenId: parsedTokenId });
 
   // Get next level cost from settings
@@ -133,7 +132,6 @@ const getNftDetail = catchAsync(async (req, res, next) => {
       imageUri: localNft ? localNft.imageUri : "",
       metadataUri: localNft ? localNft.metadataUri : "",
       inGameStats: localNft ? localNft.inGameStats : { kills: 0, score: 0, gamesPlayed: 0 },
-      characters,
       weapons,
       nextLevelCost,
       isMaxLevel,
@@ -298,13 +296,12 @@ const levelUp = catchAsync(async (req, res, next) => {
   );
 
   // 13. Sync to Firebase (non-fatal)
-  const { characters, weapons } = getUnlockedContent(newLevel, true);
+  const { weapons } = getUnlockedContent(newLevel, true);
   try {
     const db = getFirebaseDb();
     await db.ref(`${FIREBASE_PATHS.USERS}/${req.user.uid}`).update({
       hasNFT: true,
       level: newLevel,
-      characters: characters,
       weapons: weapons.length > 0 ? weapons : null,
     });
   } catch (e) {
@@ -327,7 +324,6 @@ const levelUp = catchAsync(async (req, res, next) => {
       rank: RANK_NAMES[newLevel] || "Private",
       cost,
       contractTxHash: receipt.hash,
-      characters,
       weapons,
     },
   });

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "ChainBois API - Phase 4 (Battleground + Leaderboard)",
-    "description": "Tournament management, leaderboards, prize distribution, and real-time updates.\n\nAll tournament endpoints are public (no auth). Set `baseUrl` variable before running.",
+    "description": "Tournament management, leaderboards, prize distribution, and real-time updates.\n\nAll tournament endpoints are public (no auth). User rank endpoint requires Firebase auth. Set `baseUrl` variable before running.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

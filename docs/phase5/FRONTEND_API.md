@@ -347,7 +347,7 @@ GET /points/history/:address?page=1&limit=20
 |------|-------|----------|
 | ChainBoi NFT | 0.001 AVAX | AVAX |
 | Weapons | 1-5 $BATTLE | $BATTLE |
-| Points | 1:1 ratio | Points -> $BATTLE |
+| Points | Dynamic rate | Points -> $BATTLE (rate varies by rewards pool health) |
 
 ---
 
