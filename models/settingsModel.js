@@ -17,7 +17,7 @@ const settingsSchema = new mongoose.Schema(
       type: Map,
       of: Number,
       default: () => new Map([
-        ["1", 1], ["2", 1], ["3", 2], ["4", 2], ["5", 3], ["6", 3], ["7", 5],
+        ["1", 0.001], ["2", 0.002], ["3", 0.003], ["4", 0.004], ["5", 0.005], ["6", 0.006], ["7", 0.007],
       ]),
     },
     battleTokenDecimals: { type: Number, default: 18, min: 0, max: 18 },

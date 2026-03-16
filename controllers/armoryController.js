@@ -36,7 +36,7 @@ const listWeapons = catchAsync(async (req, res) => {
   const weapons = await WeaponNft.find({
     ownerAddress: weaponStoreWallet.address.toLowerCase(),
   })
-    .select("tokenId weaponName category blueprintTier price imageUri")
+    .select("tokenId weaponName category blueprintTier price imageUri metadataUri")
     .lean();
 
   // Group by category
@@ -48,11 +48,13 @@ const listWeapons = catchAsync(async (req, res) => {
     if (grouped[w.category]) {
       grouped[w.category].push({
         tokenId: w.tokenId,
+        contractAddress: process.env.WEAPON_NFT_ADDRESS,
         weaponName: w.weaponName,
         category: w.category,
         tier: w.blueprintTier,
         price: w.price,
         imageUri: w.imageUri || "",
+        metadataUri: w.metadataUri || "",
       });
     }
   }
@@ -79,16 +81,18 @@ const listWeaponsByCategory = catchAsync(async (req, res, next) => {
     category,
     ownerAddress: weaponStoreWallet.address.toLowerCase(),
   })
-    .select("tokenId weaponName category blueprintTier price imageUri")
+    .select("tokenId weaponName category blueprintTier price imageUri metadataUri")
     .lean();
 
   const data = weapons.map((w) => ({
     tokenId: w.tokenId,
+    contractAddress: process.env.WEAPON_NFT_ADDRESS,
     weaponName: w.weaponName,
     category: w.category,
     tier: w.blueprintTier,
     price: w.price,
     imageUri: w.imageUri || "",
+    metadataUri: w.metadataUri || "",
   }));
 
   res.status(200).json({ success: true, data });
@@ -121,6 +125,7 @@ const getWeaponDetail = catchAsync(async (req, res, next) => {
     success: true,
     data: {
       tokenId: weapon.tokenId,
+      contractAddress: process.env.WEAPON_NFT_ADDRESS,
       weaponName: weapon.weaponName,
       category: weapon.category,
       tier: weapon.blueprintTier,
@@ -129,6 +134,7 @@ const getWeaponDetail = catchAsync(async (req, res, next) => {
       available: isAvailable,
       description: def ? def.description : "",
       imageUri: weapon.imageUri || "",
+      metadataUri: weapon.metadataUri || "",
       paymentAddress: weaponStoreWallet.address,
     },
   });
@@ -150,7 +156,7 @@ const listNfts = catchAsync(async (req, res) => {
   const nfts = await ChainboiNft.find({
     ownerAddress: nftStoreWallet.address.toLowerCase(),
   })
-    .select("tokenId level badge imageUri")
+    .select("tokenId level badge imageUri metadataUri traits")
     .lean();
 
   res.status(200).json({
@@ -158,9 +164,12 @@ const listNfts = catchAsync(async (req, res) => {
     data: {
       nfts: nfts.map((n) => ({
         tokenId: n.tokenId,
+        contractAddress: process.env.CHAINBOIS_NFT_ADDRESS,
         level: n.level,
         badge: n.badge,
         imageUri: n.imageUri || "",
+        metadataUri: n.metadataUri || "",
+        traits: n.traits || [],
       })),
       price: nftPrice,
       currency: "AVAX",
@@ -198,10 +207,12 @@ const getNftDetail = catchAsync(async (req, res, next) => {
     success: true,
     data: {
       tokenId: nft.tokenId,
+      contractAddress: process.env.CHAINBOIS_NFT_ADDRESS,
       level: nft.level,
       badge: nft.badge,
       traits: nft.traits || [],
       imageUri: nft.imageUri || "",
+      metadataUri: nft.metadataUri || "",
       price: nftPrice,
       currency: "AVAX",
       available: isAvailable,

@@ -197,7 +197,7 @@ const login = catchAsync(async (req, res, next) => {
       const fbUpdate = {
         hasNFT: assets.hasNft,
         level: user.level,
-        weapons: assets.weapons.length > 0 ? assets.weapons.map((w) => w.name) : null,
+        weapons: assets.weapons.length > 0 ? assets.weapons.map((w) => w.weaponName) : null,
       };
       await db.ref(`${FIREBASE_PATHS.USERS}/${uid}`).update(fbUpdate);
     } catch (e) {

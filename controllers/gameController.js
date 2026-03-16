@@ -4,18 +4,7 @@ const AppError = require("../utils/appError");
 const { getFirebaseDb } = require("../config/firebase");
 const { lookupNftAssets } = require("../utils/nftUtils");
 const { getNftLevel, getNftOwner } = require("../utils/contractUtils");
-const { FIREBASE_PATHS, BASE_WEAPONS_UNLOCK, MAX_LEVEL, PLAYER_TYPE } = require("../config/constants");
-
-/**
- * Get unlocked weapons for a given level
- * @param {number} level - NFT level (0-7)
- * @param {boolean} hasNft - Whether user has an NFT
- * @returns {{ weapons: string[] }}
- */
-const getUnlockedContent = function (level, hasNft) {
-  const weapons = [...BASE_WEAPONS_UNLOCK];
-  return { weapons };
-};
+const { FIREBASE_PATHS, PLAYER_TYPE } = require("../config/constants");
 
 /**
  * POST /api/v1/game/verify-assets
@@ -35,7 +24,7 @@ const verifyAssets = catchAsync(async (req, res, next) => {
     return next(new AppError("NFT contract not configured", 503));
   }
 
-  // Use shared NFT lookup
+  // Use shared NFT lookup (returns full enriched data)
   const assets = await lookupNftAssets(user.address);
 
   // Update user in MongoDB
@@ -64,7 +53,7 @@ const verifyAssets = catchAsync(async (req, res, next) => {
     const fbUpdate = {
       hasNFT: assets.hasNft,
       level: user.level,
-      weapons: assets.weapons.length > 0 ? assets.weapons.map((w) => w.name) : null,
+      weapons: assets.weapons.length > 0 ? assets.weapons.map((w) => w.weaponName) : null,
     };
     await db.ref(`${FIREBASE_PATHS.USERS}/${req.user.uid}`).update(fbUpdate);
   } catch (e) {
@@ -75,6 +64,8 @@ const verifyAssets = catchAsync(async (req, res, next) => {
     success: true,
     data: {
       hasNft: assets.hasNft,
+      nftTokenId: assets.nfts.length > 0 ? assets.nfts[0].tokenId : null,
+      level: user.level,
       assets: assets.nfts,
       ownedWeaponNfts: assets.weapons,
     },
@@ -161,5 +152,4 @@ const setAvatar = catchAsync(async (req, res, next) => {
 module.exports = {
   verifyAssets,
   setAvatar,
-  getUnlockedContent,
 };

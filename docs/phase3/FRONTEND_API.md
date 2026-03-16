@@ -10,7 +10,7 @@ All endpoints require Firebase Auth token: `Authorization: Bearer <idToken>`
 
 **`GET /training/nfts/:address`**
 
-Returns all ChainBoi NFTs owned by a wallet address with level, rank, and unlocked weapons.
+Returns all ChainBoi NFTs owned by a wallet address with level, rank, badge, and traits.
 
 ### Request
 ```
@@ -33,7 +33,7 @@ Authorization: Bearer <idToken>
         "badge": "captain",
         "imageUri": "ipfs://...",
         "metadataUri": "ipfs://...",
-        "weapons": ["AR M4 MK18", "AM-18", "M-9 Bayonet", "M32A1 MSGL"]
+        "traits": []
       }
     ]
   }
@@ -53,7 +53,7 @@ Authorization: Bearer <idToken>
 
 **`GET /training/nft/:tokenId`**
 
-Returns full details for a single ChainBoi NFT including owner, traits, in-game stats, unlocked weapons, and next level cost.
+Returns full details for a single ChainBoi NFT including owner, traits, in-game stats, and next level cost.
 
 ### Request
 ```
@@ -76,8 +76,7 @@ Authorization: Bearer <idToken>
     "imageUri": "ipfs://...",
     "metadataUri": "ipfs://...",
     "inGameStats": {"kills": 10, "score": 500, "gamesPlayed": 5},
-    "weapons": ["AR M4 MK18", "AM-18", "M-9 Bayonet", "M32A1 MSGL"],
-    "nextLevelCost": 2,
+    "nextLevelCost": 0.003,
     "isMaxLevel": false
   }
 }
@@ -127,9 +126,8 @@ Authorization: Bearer <idToken>
     "previousLevel": 2,
     "newLevel": 3,
     "rank": "Captain",
-    "cost": 2,
-    "contractTxHash": "0xabc...",
-    "weapons": ["AR M4 MK18", "AM-18", "M-9 Bayonet", "M32A1 MSGL"]
+    "cost": 0.003,
+    "contractTxHash": "0xabc..."
   }
 }
 ```
@@ -171,7 +169,7 @@ Response:
   "data": {
     "currentLevel": 2,
     "nextLevel": 3,
-    "cost": 2,
+    "cost": 0.003,
     "currency": "AVAX",
     "isMaxLevel": false,
     "rank": "Sergeant",
@@ -196,7 +194,7 @@ Response:
 {
   "success": true,
   "data": {
-    "costs": {"1": 1, "2": 1, "3": 2, "4": 2, "5": 3, "6": 3, "7": 5},
+    "costs": {"1": 0.001, "2": 0.002, "3": 0.003, "4": 0.004, "5": 0.005, "6": 0.006, "7": 0.007},
     "currency": "AVAX",
     "maxLevel": 7
   }
@@ -266,15 +264,15 @@ Level 0 (Private) NFTs are not eligible for any tournaments.
 | Level | Rank | Cost (AVAX) | Badge |
 |-------|------|-------------|-------|
 | 0 | Private | - | None |
-| 1 | Corporal | 1 | Corporal medal |
-| 2 | Sergeant | 1 | Sergeant medal |
-| 3 | Captain | 2 | Captain medal |
-| 4 | Major | 2 | Major medal |
-| 5 | Colonel | 3 | Colonel medal |
-| 6 | Major General | 3 | Major General medal |
-| 7 | Field Marshal | 5 | Field Marshal medal |
+| 1 | Corporal | 0.001 | Corporal medal |
+| 2 | Sergeant | 0.002 | Sergeant medal |
+| 3 | Captain | 0.003 | Captain medal |
+| 4 | Major | 0.004 | Major medal |
+| 5 | Colonel | 0.005 | Colonel medal |
+| 6 | Major General | 0.006 | Major General medal |
+| 7 | Field Marshal | 0.007 | Field Marshal medal |
 
-**Total cost to max level: 17 AVAX** (testnet — costs are configurable per-level in settings)
+**Total cost to max level: 0.028 AVAX** (testnet — costs are configurable per-level in settings)
 
 Badge overlays appear in the top-right corner of the NFT image via Cloudinary URL transforms. Level 0 (Private) has no badge.
 
@@ -314,6 +312,37 @@ This public endpoint serves real-time ERC-721 metadata for ChainBois NFTs. The o
 - Game stats (Kills, Score, Games Played) come from MongoDB (synced from Firebase)
 - Image URL includes a Cloudinary badge overlay for levels 1-7 (Private/level 0 has no badge)
 - Badge is placed in the **top-right corner** of the NFT image
+
+---
+
+## Weapon Metadata Endpoint
+
+Public endpoint serving ERC-721 metadata for weapon NFTs.
+
+### `GET /api/v1/metadata/weapon/:tokenId.json`
+
+**Auth:** None (public -- marketplaces must access this)
+
+**Response:**
+```json
+{
+  "name": "AR M4 MK18",
+  "description": "A pinnacle of tactical excellence...",
+  "image": "ipfs://...",
+  "external_url": "https://chainbois-true.vercel.app/weapon/1",
+  "collection": "ChainBois Weapons",
+  "attributes": [
+    { "trait_type": "Weapon Name", "value": "AR M4 MK18" },
+    { "trait_type": "Category", "value": "assault" },
+    { "trait_type": "Tier", "value": "base" }
+  ]
+}
+```
+
+**How it works:**
+- Weapon name, category, and tier are read from MongoDB
+- Image URL points to the weapon's IPFS image
+- The on-chain `tokenURI()` on the WeaponNFT contract points here
 
 ---
 
@@ -365,7 +394,9 @@ Active airdrop pool configuration and status.
 
 History of past trait-based airdrop distributions.
 
-### Admin Endpoints (requires auth + admin role)
+### Admin Endpoints (Backend Dev Only -- not for frontend integration)
+
+These endpoints are documented in the Setup Guide. They require Firebase admin auth and are not used by the frontend.
 
 #### `POST /api/v1/airdrop/traits-pool`
 
@@ -403,12 +434,11 @@ interface ChainBoiNft {
   badge: string;
   imageUri: string;
   metadataUri: string;
-  weapons: string[];
+  traits: { trait_type: string; value: any }[];
 }
 
 interface NftDetail extends ChainBoiNft {
   owner: string;
-  traits: { trait_type: string; value: any }[];
   inGameStats: { kills: number; score: number; gamesPlayed: number };
   nextLevelCost: number | null;
   isMaxLevel: boolean;
@@ -421,7 +451,6 @@ interface LevelUpResult {
   rank: string;
   cost: number;
   contractTxHash: string;
-  weapons: string[];
 }
 
 interface LevelUpCost {

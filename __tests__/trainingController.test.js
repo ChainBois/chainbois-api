@@ -137,7 +137,7 @@ describe("getNfts", () => {
     expect(data.nfts).toEqual([]);
   });
 
-  test("returns enriched NFTs with levels and weapons", async () => {
+  test("returns enriched NFTs with levels and traits", async () => {
     getErc721Balances.mockResolvedValueOnce([{ tokenId: "1" }, { tokenId: "5" }]);
     getNftLevel.mockResolvedValueOnce(2).mockResolvedValueOnce(0);
     ChainboiNft.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
@@ -152,7 +152,7 @@ describe("getNfts", () => {
     expect(data.nfts[0].tokenId).toBe(1);
     expect(data.nfts[0].level).toBe(2);
     expect(data.nfts[0].rank).toBe("Sergeant");
-    expect(data.nfts[0].weapons.length).toBeGreaterThan(0);
+    expect(data.nfts[0].traits).toBeDefined();
     expect(data.nfts[1].tokenId).toBe(5);
     expect(data.nfts[1].level).toBe(0);
     expect(data.nfts[1].rank).toBe("Private");
@@ -196,7 +196,7 @@ describe("getNftDetail", () => {
     expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 404 }));
   });
 
-  test("returns full NFT detail with level and weapons", async () => {
+  test("returns full NFT detail with level and traits", async () => {
     getNftOwner.mockResolvedValueOnce("0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0");
     getNftLevel.mockResolvedValueOnce(3);
     ChainboiNft.findOne.mockResolvedValue({
@@ -218,8 +218,8 @@ describe("getNftDetail", () => {
     expect(data.owner).toBe("0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0");
     expect(data.nextLevelCost).toBe(2);
     expect(data.isMaxLevel).toBe(false);
-    expect(data.weapons).toBeDefined();
-    expect(data.characters).toBeUndefined();
+    expect(data.traits).toEqual([{ trait_type: "Background", value: "Blue" }]);
+    expect(data.weapons).toBeUndefined();
   });
 
   test("shows isMaxLevel true when at level 7", async () => {
@@ -381,8 +381,7 @@ describe("levelUp", () => {
     expect(data.rank).toBe("Captain");
     expect(data.cost).toBe(2);
     expect(data.contractTxHash).toBe("0xcontracttxhash");
-    expect(data.weapons).toBeDefined();
-    expect(data.characters).toBeUndefined();
+    expect(data.weapons).toBeUndefined();
 
     // Verify contract was called correctly
     expect(setNftLevel).toHaveBeenCalledWith(1, 3, "0xdeployerPrivateKey");

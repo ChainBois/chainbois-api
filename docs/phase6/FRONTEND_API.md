@@ -29,6 +29,9 @@ Returns all owned assets categorized: ChainBois, weapons, and balances.
         "rank": "Sergeant",
         "badge": "sergeant",
         "imageUri": "",
+        "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
+        "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/5.json",
+        "traits": [],
         "stats": { "kills": 0, "score": 0, "gamesPlayed": 0 }
       }
     ],
@@ -38,7 +41,9 @@ Returns all owned assets categorized: ChainBois, weapons, and balances.
         "weaponName": "AR M4 MK18",
         "category": "assault",
         "tier": "base",
-        "imageUri": ""
+        "imageUri": "",
+        "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
+        "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/2.json"
       }
     ],
     "balances": {

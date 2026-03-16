@@ -23,7 +23,15 @@
             "method": "GET",
             "url": "{{baseUrl}}/armory/weapons",
             "description": "List available weapons grouped by category"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"assault\": [\n      {\n        \"tokenId\": 1,\n        \"weaponName\": \"AR M4 MK18\",\n        \"category\": \"assault\",\n        \"tier\": \"base\",\n        \"price\": 1,\n        \"imageUri\": \"\",\n        \"contractAddress\": \"0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\",\n        \"metadataUri\": \"https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json\"\n      }\n    ]\n  }\n}"
+            }
+          ]
         },
         {
           "name": "List Weapons by Category",
@@ -39,7 +47,15 @@
             "method": "GET",
             "url": "{{baseUrl}}/armory/weapon/1",
             "description": "Get weapon details + payment address"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"weaponName\": \"AR M4 MK18\",\n    \"category\": \"assault\",\n    \"tier\": \"base\",\n    \"price\": 1,\n    \"currency\": \"BATTLE\",\n    \"available\": true,\n    \"description\": \"\",\n    \"imageUri\": \"\",\n    \"contractAddress\": \"0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\",\n    \"metadataUri\": \"https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json\",\n    \"paymentAddress\": \"0xD40e6631617B7557C28789bAc01648A74753739C\"\n  }\n}"
+            }
+          ]
         },
         {
           "name": "List ChainBoi NFTs",
@@ -47,7 +63,15 @@
             "method": "GET",
             "url": "{{baseUrl}}/armory/nfts",
             "description": "List ChainBoi NFTs available for purchase"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"nfts\": [\n      {\n        \"tokenId\": 5,\n        \"level\": 0,\n        \"badge\": \"private\",\n        \"imageUri\": \"\",\n        \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n        \"metadataUri\": \"https://test-2.ghettopigeon.com/api/v1/metadata/5.json\",\n        \"traits\": []\n      }\n    ],\n    \"price\": 0.001,\n    \"currency\": \"AVAX\",\n    \"available\": 45,\n    \"paymentAddress\": \"0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0\"\n  }\n}"
+            }
+          ]
         },
         {
           "name": "ChainBoi NFT Detail",
@@ -55,7 +79,15 @@
             "method": "GET",
             "url": "{{baseUrl}}/armory/nft/1",
             "description": "Single NFT details + payment address"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 5,\n    \"level\": 0,\n    \"badge\": \"private\",\n    \"traits\": [{\"trait_type\": \"Background\", \"value\": \"Combat Red\"}],\n    \"imageUri\": \"\",\n    \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n    \"metadataUri\": \"https://test-2.ghettopigeon.com/api/v1/metadata/5.json\",\n    \"price\": 0.001,\n    \"currency\": \"AVAX\",\n    \"available\": true,\n    \"paymentAddress\": \"0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0\"\n  }\n}"
+            }
+          ]
         },
         {
           "name": "Purchase Weapon",

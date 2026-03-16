@@ -28,7 +28,9 @@ Returns weapons available for purchase, grouped by category. Only shows weapons 
         "category": "assault",
         "tier": "base",
         "price": 1,
-        "imageUri": ""
+        "imageUri": "",
+        "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
+        "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json"
       }
     ],
     "smg": [],
@@ -72,6 +74,8 @@ Returns weapon info + payment address for purchase.
     "available": true,
     "description": "",
     "imageUri": "",
+    "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
+    "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json",
     "paymentAddress": "0xD40e..."
   }
 }
@@ -95,7 +99,10 @@ Returns ChainBoi NFTs available in the nft_store wallet.
         "tokenId": 5,
         "level": 0,
         "badge": "private",
-        "imageUri": ""
+        "imageUri": "",
+        "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
+        "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/5.json",
+        "traits": []
       }
     ],
     "price": 0.001,
@@ -122,6 +129,8 @@ GET /armory/nft/:tokenId
     "badge": "private",
     "traits": [{ "trait_type": "Background", "value": "Combat Red" }],
     "imageUri": "",
+    "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
+    "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/5.json",
     "price": 0.001,
     "currency": "AVAX",
     "available": true,

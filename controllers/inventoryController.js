@@ -21,10 +21,10 @@ const getInventory = catchAsync(async (req, res, next) => {
   // Fetch all owned assets in parallel
   const [chainbois, weapons, user] = await Promise.all([
     ChainboiNft.find({ ownerAddress: address })
-      .select("tokenId level badge imageUri traits inGameStats")
+      .select("tokenId level badge imageUri metadataUri traits inGameStats contractAddress")
       .lean(),
     WeaponNft.find({ ownerAddress: address })
-      .select("tokenId weaponName category blueprintTier imageUri")
+      .select("tokenId weaponName category blueprintTier imageUri metadataUri contractAddress")
       .lean(),
     User.findOne({ address }).select("pointsBalance").lean(),
   ]);
@@ -40,18 +40,23 @@ const getInventory = catchAsync(async (req, res, next) => {
       address,
       chainbois: chainbois.map((nft) => ({
         tokenId: nft.tokenId,
+        contractAddress: nft.contractAddress || process.env.CHAINBOIS_NFT_ADDRESS,
         level: nft.level,
         rank: RANK_NAMES[nft.level] || "Private",
         badge: nft.badge,
         imageUri: nft.imageUri || "",
+        metadataUri: nft.metadataUri || "",
+        traits: nft.traits || [],
         stats: nft.inGameStats || {},
       })),
       weapons: weapons.map((w) => ({
         tokenId: w.tokenId,
+        contractAddress: w.contractAddress || process.env.WEAPON_NFT_ADDRESS,
         weaponName: w.weaponName,
         category: w.category,
         tier: w.blueprintTier,
         imageUri: w.imageUri || "",
+        metadataUri: w.metadataUri || "",
       })),
       balances: {
         points: user ? user.pointsBalance : 0,
@@ -91,7 +96,7 @@ const getNfts = catchAsync(async (req, res, next) => {
       traits: nft.traits || [],
       stats: nft.inGameStats || {},
       contractAddress: nft.contractAddress,
-      metadataUrl: `${process.env.API_BASE_URL || 'https://test-2.ghettopigeon.com'}/api/v1/metadata/${nft.tokenId}.json`,
+      metadataUri: `${process.env.API_BASE_URL || 'https://test-2.ghettopigeon.com'}/api/v1/metadata/${nft.tokenId}.json`,
     })),
   });
 });
@@ -107,18 +112,19 @@ const getWeapons = catchAsync(async (req, res, next) => {
   }
 
   const weapons = await WeaponNft.find({ ownerAddress: address })
-    .select("tokenId weaponName category blueprintTier imageUri contractAddress")
+    .select("tokenId weaponName category blueprintTier imageUri metadataUri contractAddress")
     .lean();
 
   res.status(200).json({
     success: true,
     data: weapons.map((w) => ({
       tokenId: w.tokenId,
+      contractAddress: w.contractAddress || process.env.WEAPON_NFT_ADDRESS,
       weaponName: w.weaponName,
       category: w.category,
       tier: w.blueprintTier,
       imageUri: w.imageUri || "",
-      contractAddress: w.contractAddress,
+      metadataUri: w.metadataUri || "",
     })),
   });
 });

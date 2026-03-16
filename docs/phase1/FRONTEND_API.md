@@ -28,7 +28,7 @@ The ChainBois frontend is a web application where users:
 2. Connect their Avalanche wallet (Thirdweb)
 3. View their NFT assets and weapons
 4. Download the game
-5. View leaderboards (see `docs/phase4/FRONTEND_API.md` for leaderboard endpoints)
+5. View leaderboards (see Leaderboard section below)
 6. (Future phases) Level up NFTs, buy weapons, enter tournaments
 
 ### What the Frontend Does NOT Do
@@ -434,11 +434,39 @@ Login with wallet address. Checks on-chain NFT ownership, creates or updates the
       "lastLogin": "2026-03-03T12:00:00.000Z"
     },
     "assets": [
-      { "tokenId": 42, "level": 2 },
-      { "tokenId": 43, "level": 0 }
+      {
+        "tokenId": 42,
+        "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
+        "level": 2,
+        "rank": "Sergeant",
+        "badge": "sergeant",
+        "imageUri": "ipfs://...",
+        "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/42.json",
+        "traits": [{ "trait_type": "Background", "value": "Combat Red" }],
+        "inGameStats": { "kills": 10, "score": 500, "gamesPlayed": 5 }
+      },
+      {
+        "tokenId": 43,
+        "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
+        "level": 0,
+        "rank": "Private",
+        "badge": "private",
+        "imageUri": "ipfs://...",
+        "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/43.json",
+        "traits": [],
+        "inGameStats": { "kills": 0, "score": 0, "gamesPlayed": 0 }
+      }
     ],
     "weapons": [
-      { "tokenId": 1, "name": "RENETTI" }
+      {
+        "tokenId": 1,
+        "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
+        "weaponName": "RENETTI",
+        "category": "handgun",
+        "tier": "base",
+        "imageUri": "ipfs://...",
+        "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json"
+      }
     ]
   }
 }
@@ -487,7 +515,7 @@ const LoginButton = () => {
       if (user.playerType === "web3") {
         console.log("Web3 user! Owns " + assets.length + " ChainBoi NFTs");
         assets.forEach(nft => console.log(`  NFT #${nft.tokenId} (Level ${nft.level})`));
-        console.log("Weapons:", weapons.map(w => w.name));
+        console.log("Weapons:", weapons.map(w => w.weaponName));
       } else {
         console.log("Web2 user - no NFT detected");
       }
@@ -631,11 +659,32 @@ Re-check on-chain NFT ownership and sync to Firebase. Call this when the user ex
   "success": true,
   "data": {
     "hasNft": true,
+    "nftTokenId": 42,
+    "level": 2,
     "assets": [
-      { "tokenId": 42, "level": 2 },
-      { "tokenId": 43, "level": 0 }
+      {
+        "tokenId": 42,
+        "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
+        "level": 2,
+        "rank": "Sergeant",
+        "badge": "sergeant",
+        "imageUri": "ipfs://...",
+        "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/42.json",
+        "traits": [{ "trait_type": "Background", "value": "Combat Red" }],
+        "inGameStats": { "kills": 10, "score": 500, "gamesPlayed": 5 }
+      }
     ],
-    "ownedWeaponNfts": [{ "name": "RENETTI", "tokenId": 1 }]
+    "ownedWeaponNfts": [
+      {
+        "tokenId": 1,
+        "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
+        "weaponName": "RENETTI",
+        "category": "handgun",
+        "tier": "base",
+        "imageUri": "ipfs://...",
+        "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json"
+      }
+    ]
   }
 }
 ```
@@ -651,7 +700,7 @@ const refreshAssets = async () => {
   try {
     const { data } = await api.post("/game/verify-assets");
     return data.data;
-    // { hasNft, assets: [{ tokenId, level }, ...], ownedWeaponNfts }
+    // { hasNft, nftTokenId, level, assets: [{ tokenId, level, ... }], ownedWeaponNfts }
   } catch (error) {
     if (error.response?.status === 503) {
       console.log("NFT contracts not available yet");
@@ -898,7 +947,7 @@ Get public game settings (costs, thresholds, schedule, etc.).
       "cooldownHours": 48
     },
     "prizePools": { "1": 2, "2": 4, "3": 6, "4": 8, "5": 10, "6": 12, "7": 14 },
-    "levelUpCosts": { "1": 1, "2": 1, "3": 2, "4": 2, "5": 3, "6": 3, "7": 5 },
+    "levelUpCosts": { "1": 0.001, "2": 0.002, "3": 0.003, "4": 0.004, "5": 0.005, "6": 0.006, "7": 0.007 },
     "battleTokenDecimals": 18,
     "maxPointsPerMatch": 5000,
     "burnRate": 0.5,
@@ -1150,7 +1199,7 @@ The game registers users via Firebase Auth SDK and writes `{ username, Score }` 
 ### Q: What is the difference between "score" and "pointsBalance"?
 
 - `score`: Cumulative game score synced from Firebase (what the game writes)
-- `pointsBalance`: Redeemable points that can be converted to $BATTLE tokens (6 decimals) in Phase 5
+- `pointsBalance`: Redeemable points that can be converted to $BATTLE tokens (18 decimals) in Phase 5
 
 Points are earned proportionally to score changes. They are separate because points can be "spent" (converted to tokens) while score keeps accumulating.
 
@@ -1174,7 +1223,7 @@ Any EVM wallet works: MetaMask, Core, Rabby, etc. For testnet:
 - **Symbol**: CB
 - **Total Supply**: 4,032 (4,000 public + 32 reserved)
 - **Testnet Supply**: 50
-- **$BATTLE Token**: 6 decimal places
+- **$BATTLE Token**: 18 decimal places
 
 ---
 
@@ -1201,12 +1250,24 @@ interface UserObject {
 
 interface ChainBoiAsset {
   tokenId: number;
+  contractAddress: string;   // "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b"
   level: number;             // 0-7
+  rank: string;              // e.g., "Sergeant"
+  badge: string;             // e.g., "sergeant"
+  imageUri: string;          // IPFS URI
+  metadataUri: string;       // metadata endpoint URL
+  traits: { trait_type: string; value: any }[];
+  inGameStats: { kills: number; score: number; gamesPlayed: number };
 }
 
 interface WeaponObject {
   tokenId: number;
-  name: string;              // e.g., "RENETTI"
+  contractAddress: string;   // "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d"
+  weaponName: string;        // e.g., "RENETTI"
+  category: string;          // e.g., "handgun"
+  tier: string;              // e.g., "base"
+  imageUri: string;          // IPFS URI
+  metadataUri: string;       // metadata endpoint URL
 }
 
 // Login response: data.assets is ChainBoiAsset[]
@@ -1214,7 +1275,9 @@ interface WeaponObject {
 
 interface VerifyAssetsResponse {
   hasNft: boolean;
-  assets: ChainBoiAsset[];   // all owned ChainBoi NFTs
+  nftTokenId: number | null;  // first NFT's tokenId (convenience)
+  level: number;              // highest level across owned NFTs (convenience)
+  assets: ChainBoiAsset[];    // all owned ChainBoi NFTs with full data
   ownedWeaponNfts: WeaponObject[];
 }
 

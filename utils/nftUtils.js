@@ -1,13 +1,14 @@
 const { getErc721Balances } = require("./avaxUtils");
 const { getNftLevel } = require("./contractUtils");
+const ChainboiNft = require("../models/chainboiNftModel");
+const WeaponNft = require("../models/weaponNftModel");
+const { RANK_NAMES } = require("../config/constants");
 
 /**
- * Look up NFT assets for an address and return asset data
+ * Look up NFT assets for an address and return full enriched data
  * Shared by authController and gameController
- * @param {string} address - Wallet address (lowercase)
+ * @param {string} address - Wallet address
  * @returns {Promise<Object>} { hasNft, nfts: [...], weapons: [...] }
- *   nfts: array of { tokenId, level }
- *   weapons: array of { tokenId, name }
  */
 const lookupNftAssets = async function (address) {
   const result = { hasNft: false, nfts: [], weapons: [] };
@@ -21,19 +22,45 @@ const lookupNftAssets = async function (address) {
     if (nftBalances && nftBalances.length > 0) {
       result.hasNft = true;
 
-      // Fetch levels in parallel for all owned NFTs
-      result.nfts = await Promise.all(
-        nftBalances.map(async (nft) => {
-          const tokenId = parseInt(nft.tokenId);
-          let level = 0;
-          try {
-            level = await getNftLevel(tokenId);
-          } catch (e) {
-            console.error(`Failed to get NFT level for token ${tokenId}:`, e.message);
-          }
-          return { tokenId, level };
-        })
-      );
+      // Get on-chain token IDs
+      const tokenIds = nftBalances.map((nft) => parseInt(nft.tokenId));
+
+      // Batch fetch MongoDB records + on-chain levels in parallel
+      const [dbNfts, levels] = await Promise.all([
+        ChainboiNft.find({ tokenId: { $in: tokenIds } }).lean(),
+        Promise.all(
+          tokenIds.map(async (tokenId) => {
+            try {
+              return await getNftLevel(tokenId);
+            } catch (e) {
+              console.error(`Failed to get NFT level for token ${tokenId}:`, e.message);
+              return 0;
+            }
+          })
+        ),
+      ]);
+
+      // Index DB records by tokenId for O(1) lookup
+      const dbMap = {};
+      for (const nft of dbNfts) {
+        dbMap[nft.tokenId] = nft;
+      }
+
+      result.nfts = tokenIds.map((tokenId, i) => {
+        const level = levels[i];
+        const db = dbMap[tokenId] || {};
+        return {
+          tokenId,
+          contractAddress: nftAddress,
+          level,
+          rank: RANK_NAMES[level] || "Private",
+          badge: (RANK_NAMES[level] || "Private").toLowerCase().replace(/ /g, "_"),
+          imageUri: db.imageUri || "",
+          metadataUri: db.metadataUri || "",
+          traits: db.traits || [],
+          inGameStats: db.inGameStats || { kills: 0, score: 0, gamesPlayed: 0 },
+        };
+      });
     }
 
     // Check for weapon NFTs
@@ -42,10 +69,27 @@ const lookupNftAssets = async function (address) {
       try {
         const weaponBalances = await getErc721Balances(address, weaponAddress);
         if (weaponBalances && weaponBalances.length > 0) {
-          result.weapons = weaponBalances.map((w) => ({
-            tokenId: parseInt(w.tokenId),
-            name: w.metadata && w.metadata.name ? w.metadata.name : `Weapon #${w.tokenId}`,
-          }));
+          const weaponTokenIds = weaponBalances.map((w) => parseInt(w.tokenId));
+
+          // Batch fetch MongoDB weapon records
+          const dbWeapons = await WeaponNft.find({ tokenId: { $in: weaponTokenIds } }).lean();
+          const wMap = {};
+          for (const w of dbWeapons) {
+            wMap[w.tokenId] = w;
+          }
+
+          result.weapons = weaponTokenIds.map((tokenId) => {
+            const db = wMap[tokenId] || {};
+            return {
+              tokenId,
+              contractAddress: weaponAddress,
+              weaponName: db.weaponName || `Weapon #${tokenId}`,
+              category: db.category || "",
+              tier: db.blueprintTier || "base",
+              imageUri: db.imageUri || "",
+              metadataUri: db.metadataUri || "",
+            };
+          });
         }
       } catch (e) {
         console.error("Failed to get weapon NFTs:", e.message);

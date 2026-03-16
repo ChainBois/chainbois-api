@@ -11,7 +11,6 @@ const { getFirebaseDb } = require("../config/firebase");
 const { getNftLevel, setNftLevel, getNftOwner } = require("../utils/contractUtils");
 const { getErc721Balances, verifyPayment, reindexNftMetadata } = require("../utils/avaxUtils");
 const { decrypt } = require("../utils/cryptUtils");
-const { getUnlockedContent } = require("./gameController");
 const {
   MAX_LEVEL,
   RANK_NAMES,
@@ -56,7 +55,6 @@ const getNfts = catchAsync(async (req, res, next) => {
         console.error(`Failed to get level for token ${tokenId}:`, e.message);
       }
 
-      const { weapons } = getUnlockedContent(level, true);
       const localNft = await ChainboiNft.findOne({ tokenId });
 
       return {
@@ -67,7 +65,7 @@ const getNfts = catchAsync(async (req, res, next) => {
         badge: (RANK_NAMES[level] || "Private").toLowerCase().replace(/ /g, "_"),
         imageUri: localNft ? localNft.imageUri : "",
         metadataUri: localNft ? localNft.metadataUri : "",
-        weapons,
+        traits: localNft ? localNft.traits : [],
       };
     })
   );
@@ -106,7 +104,6 @@ const getNftDetail = catchAsync(async (req, res, next) => {
   } catch (e) {
     return next(new AppError("Failed to get NFT level from contract", 500));
   }
-  const { weapons } = getUnlockedContent(level, true);
   const localNft = await ChainboiNft.findOne({ tokenId: parsedTokenId });
 
   // Get next level cost from settings
@@ -132,7 +129,6 @@ const getNftDetail = catchAsync(async (req, res, next) => {
       imageUri: localNft ? localNft.imageUri : "",
       metadataUri: localNft ? localNft.metadataUri : "",
       inGameStats: localNft ? localNft.inGameStats : { kills: 0, score: 0, gamesPlayed: 0 },
-      weapons,
       nextLevelCost,
       isMaxLevel,
     },
@@ -296,13 +292,11 @@ const levelUp = catchAsync(async (req, res, next) => {
   );
 
   // 13. Sync to Firebase (non-fatal)
-  const { weapons } = getUnlockedContent(newLevel, true);
   try {
     const db = getFirebaseDb();
     await db.ref(`${FIREBASE_PATHS.USERS}/${req.user.uid}`).update({
       hasNFT: true,
       level: newLevel,
-      weapons: weapons.length > 0 ? weapons : null,
     });
   } catch (e) {
     console.error("Failed to sync level-up to Firebase:", e.message);
@@ -324,7 +318,6 @@ const levelUp = catchAsync(async (req, res, next) => {
       rank: RANK_NAMES[newLevel] || "Private",
       cost,
       contractTxHash: receipt.hash,
-      weapons,
     },
   });
 });

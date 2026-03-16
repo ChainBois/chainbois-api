@@ -90,6 +90,47 @@ const getTokenMetadata = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * GET /api/v1/metadata/weapon/:tokenId.json
+ * Dynamic ERC-721 metadata endpoint for weapon NFTs (public, no auth).
+ */
+const getWeaponMetadata = catchAsync(async (req, res, next) => {
+  let tokenIdParam = req.params.tokenId;
+  if (tokenIdParam && tokenIdParam.endsWith(".json")) {
+    tokenIdParam = tokenIdParam.replace(/\.json$/, "");
+  }
+
+  const tokenId = parseInt(tokenIdParam);
+  if (isNaN(tokenId) || tokenId < 1) {
+    return next(new AppError("Invalid token ID", 400));
+  }
+
+  const WeaponNft = require("../models/weaponNftModel");
+  const weapon = await WeaponNft.findOne({ tokenId }).lean();
+  if (!weapon) {
+    return next(new AppError("Weapon token does not exist", 404));
+  }
+
+  const { WEAPON_DEFINITIONS } = require("../config/constants");
+  const def = WEAPON_DEFINITIONS.find((d) => d.name === weapon.weaponName);
+
+  const attributes = [
+    { trait_type: "Weapon Name", value: weapon.weaponName },
+    { trait_type: "Category", value: weapon.category },
+    { trait_type: "Tier", value: weapon.blueprintTier || "base" },
+  ];
+
+  res.status(200).json({
+    name: weapon.weaponName || `Weapon #${tokenId}`,
+    description: def ? def.description : "ChainBois Weapon NFT on Avalanche.",
+    image: weapon.imageUri || "",
+    external_url: `${process.env.FRONTEND_URL || 'https://chainbois-true.vercel.app'}/weapon/${tokenId}`,
+    collection: "ChainBois Weapons",
+    attributes,
+  });
+});
+
 module.exports = {
   getTokenMetadata,
+  getWeaponMetadata,
 };
