@@ -64,7 +64,12 @@ describe("nftUtils", () => {
     expect(result.nfts[0].rank).toBe("Captain");
     expect(result.nfts[0].contractAddress).toBe("0xChainBoisNFT");
     expect(result.nfts[0].imageUri).toBe("ipfs://img/42.png");
-    expect(result.nfts[0].traits).toEqual([{ trait_type: "Background", value: "Blue" }]);
+    expect(result.nfts[0].traits).toEqual(expect.arrayContaining([
+      { trait_type: "Background", value: "Blue" },
+      { trait_type: "Level", value: 3 },
+      { trait_type: "Rank", value: "Captain" },
+      { trait_type: "Kills", value: 5 },
+    ]));
     expect(result.nfts[0].inGameStats.kills).toBe(5);
   });
 

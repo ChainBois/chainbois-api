@@ -20,6 +20,8 @@ const {
   WALLET_ROLES,
   FIREBASE_PATHS,
   PURCHASE_FAILSAFE,
+  buildCurrentTraits,
+  RANK_NAMES,
 } = require("../config/constants");
 const { ethers } = require("ethers");
 
@@ -169,7 +171,7 @@ const listNfts = catchAsync(async (req, res) => {
         badge: n.badge,
         imageUri: n.imageUri || "",
         metadataUri: n.metadataUri || "",
-        traits: n.traits || [],
+        traits: buildCurrentTraits(n.traits, { level: n.level, rank: RANK_NAMES[n.level] || "Private" }),
       })),
       price: nftPrice,
       currency: "AVAX",
@@ -210,7 +212,7 @@ const getNftDetail = catchAsync(async (req, res, next) => {
       contractAddress: process.env.CHAINBOIS_NFT_ADDRESS,
       level: nft.level,
       badge: nft.badge,
-      traits: nft.traits || [],
+      traits: buildCurrentTraits(nft.traits, { level: nft.level, rank: RANK_NAMES[nft.level] || "Private" }),
       imageUri: nft.imageUri || "",
       metadataUri: nft.metadataUri || "",
       price: nftPrice,

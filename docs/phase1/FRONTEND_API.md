@@ -440,9 +440,22 @@ Login with wallet address. Checks on-chain NFT ownership, creates or updates the
         "level": 2,
         "rank": "Sergeant",
         "badge": "sergeant",
-        "imageUri": "ipfs://...",
+        "imageUri": "ipfs://bafybei.../chainboi-42.png",
         "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/42.json",
-        "traits": [{ "trait_type": "Background", "value": "Combat Red" }],
+        "traits": [
+          { "trait_type": "Background", "value": "Combat Red" },
+          { "trait_type": "Skin", "value": "Pale Recruit" },
+          { "trait_type": "Weapon", "value": "War Bow" },
+          { "trait_type": "Suit", "value": "Covert Ops Carbon Suit" },
+          { "trait_type": "Eyes", "value": "Battle Hardened" },
+          { "trait_type": "Mouth", "value": "Viking Beard" },
+          { "trait_type": "Helmet", "value": "Cryo Enforcer" },
+          { "trait_type": "Level", "value": 2 },
+          { "trait_type": "Rank", "value": "Sergeant" },
+          { "trait_type": "Kills", "value": 10 },
+          { "trait_type": "Score", "value": 500 },
+          { "trait_type": "Games Played", "value": 5 }
+        ],
         "inGameStats": { "kills": 10, "score": 500, "gamesPlayed": 5 }
       },
       {
@@ -451,9 +464,22 @@ Login with wallet address. Checks on-chain NFT ownership, creates or updates the
         "level": 0,
         "rank": "Private",
         "badge": "private",
-        "imageUri": "ipfs://...",
+        "imageUri": "ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/43.png",
         "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/43.json",
-        "traits": [],
+        "traits": [
+          { "trait_type": "Background", "value": "Tactical Green" },
+          { "trait_type": "Skin", "value": "Dark Ops" },
+          { "trait_type": "Weapon", "value": "Combat Knife" },
+          { "trait_type": "Suit", "value": "Desert Storm" },
+          { "trait_type": "Eyes", "value": "Focused" },
+          { "trait_type": "Mouth", "value": "Gas Mask" },
+          { "trait_type": "Helmet", "value": "Night Vision" },
+          { "trait_type": "Level", "value": 0 },
+          { "trait_type": "Rank", "value": "Private" },
+          { "trait_type": "Kills", "value": 0 },
+          { "trait_type": "Score", "value": 0 },
+          { "trait_type": "Games Played", "value": 0 }
+        ],
         "inGameStats": { "kills": 0, "score": 0, "gamesPlayed": 0 }
       }
     ],
@@ -668,9 +694,22 @@ Re-check on-chain NFT ownership and sync to Firebase. Call this when the user ex
         "level": 2,
         "rank": "Sergeant",
         "badge": "sergeant",
-        "imageUri": "ipfs://...",
+        "imageUri": "ipfs://bafybei.../chainboi-42.png",
         "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/42.json",
-        "traits": [{ "trait_type": "Background", "value": "Combat Red" }],
+        "traits": [
+          { "trait_type": "Background", "value": "Combat Red" },
+          { "trait_type": "Skin", "value": "Pale Recruit" },
+          { "trait_type": "Weapon", "value": "War Bow" },
+          { "trait_type": "Suit", "value": "Covert Ops Carbon Suit" },
+          { "trait_type": "Eyes", "value": "Battle Hardened" },
+          { "trait_type": "Mouth", "value": "Viking Beard" },
+          { "trait_type": "Helmet", "value": "Cryo Enforcer" },
+          { "trait_type": "Level", "value": 2 },
+          { "trait_type": "Rank", "value": "Sergeant" },
+          { "trait_type": "Kills", "value": 10 },
+          { "trait_type": "Score", "value": 500 },
+          { "trait_type": "Games Played", "value": 5 }
+        ],
         "inGameStats": { "kills": 10, "score": 500, "gamesPlayed": 5 }
       }
     ],
@@ -1164,7 +1203,16 @@ The API handles this gracefully. Endpoints that need contract interaction (`veri
 
 ### Q: How do I show a user's NFT image?
 
-The NFT image is on IPFS. Construct the URL using the ChainBois images CID:
+Use the `imageUri` field from the API response. For level 0 NFTs, this points to the original IPFS image. For leveled-up NFTs (level 1+), the `imageUri` points to an IPFS-pinned badge image (`ipfs://{cid}/chainboi-{tokenId}.png`) — the badge overlay is generated via Cloudinary and then pinned to IPFS. Cloudinary is used as a generation tool only, not for serving.
+
+```javascript
+// Use the imageUri directly from the API response
+const imageUrl = asset.imageUri;
+// Convert ipfs:// to a gateway URL if needed:
+const gatewayUrl = imageUrl.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/");
+```
+
+For the original (pre-level-up) images, you can also construct the URL using the ChainBois images CID:
 ```javascript
 const CHAINBOIS_IMAGES_CID = "bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4";
 const imageUrl = `https://gateway.pinata.cloud/ipfs/${CHAINBOIS_IMAGES_CID}/${user.nftTokenId}.png`;

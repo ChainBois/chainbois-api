@@ -218,8 +218,12 @@ describe("getNftDetail", () => {
     expect(data.owner).toBe("0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0");
     expect(data.nextLevelCost).toBe(2);
     expect(data.isMaxLevel).toBe(false);
-    expect(data.traits).toEqual([{ trait_type: "Background", value: "Blue" }]);
-    expect(data.weapons).toBeUndefined();
+    expect(data.traits).toEqual(expect.arrayContaining([
+      { trait_type: "Background", value: "Blue" },
+      { trait_type: "Level", value: 3 },
+      { trait_type: "Rank", value: "Captain" },
+    ]));
+    expect(data.traits).toHaveLength(6); // Background + Level + Rank + Kills + Score + Games Played
   });
 
   test("shows isMaxLevel true when at level 7", async () => {

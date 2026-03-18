@@ -31,9 +31,22 @@ Authorization: Bearer <idToken>
         "level": 3,
         "rank": "Captain",
         "badge": "captain",
-        "imageUri": "ipfs://...",
+        "imageUri": "ipfs://bafybei.../chainboi-1.png",
         "metadataUri": "ipfs://...",
-        "traits": []
+        "traits": [
+          { "trait_type": "Background", "value": "Combat Red" },
+          { "trait_type": "Skin", "value": "Pale Recruit" },
+          { "trait_type": "Weapon", "value": "War Bow" },
+          { "trait_type": "Suit", "value": "Covert Ops Carbon Suit" },
+          { "trait_type": "Eyes", "value": "Battle Hardened" },
+          { "trait_type": "Mouth", "value": "Viking Beard" },
+          { "trait_type": "Helmet", "value": "Cryo Enforcer" },
+          { "trait_type": "Level", "value": 3 },
+          { "trait_type": "Rank", "value": "Captain" },
+          { "trait_type": "Kills", "value": 10 },
+          { "trait_type": "Score", "value": 500 },
+          { "trait_type": "Games Played", "value": 5 }
+        ]
       }
     ]
   }
@@ -72,11 +85,24 @@ Authorization: Bearer <idToken>
     "level": 3,
     "rank": "Captain",
     "badge": "captain",
-    "traits": [{"trait_type": "Background", "value": "Blue"}],
-    "imageUri": "ipfs://...",
+    "traits": [
+      { "trait_type": "Background", "value": "Combat Red" },
+      { "trait_type": "Skin", "value": "Pale Recruit" },
+      { "trait_type": "Weapon", "value": "War Bow" },
+      { "trait_type": "Suit", "value": "Covert Ops Carbon Suit" },
+      { "trait_type": "Eyes", "value": "Battle Hardened" },
+      { "trait_type": "Mouth", "value": "Viking Beard" },
+      { "trait_type": "Helmet", "value": "Cryo Enforcer" },
+      { "trait_type": "Level", "value": 3 },
+      { "trait_type": "Rank", "value": "Captain" },
+      { "trait_type": "Kills", "value": 10 },
+      { "trait_type": "Score", "value": 500 },
+      { "trait_type": "Games Played", "value": 5 }
+    ],
+    "imageUri": "ipfs://bafybei.../chainboi-1.png",
     "metadataUri": "ipfs://...",
     "inGameStats": {"kills": 10, "score": 500, "gamesPlayed": 5},
-    "nextLevelCost": 0.003,
+    "nextLevelCost": 0.004,
     "isMaxLevel": false
   }
 }
@@ -102,8 +128,9 @@ Level up a ChainBoi NFT by paying AVAX. The frontend must first send the AVAX pa
 2. Frontend prompts user's wallet to send `cost` AVAX to the prize pool address: `0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e`
 3. Frontend receives the transaction hash from the wallet
 4. Frontend calls `POST /training/level-up` with `{ tokenId, txHash }`
-5. Backend verifies payment, updates level on-chain, syncs to MongoDB + Firebase
-6. Backend returns new level, rank, and unlocked weapons
+5. Backend verifies payment, updates level on-chain
+6. Backend pins badge image to IPFS, updates on-chain level, syncs traits to MongoDB + IPFS
+7. Backend returns new level, rank, and contract transaction hash
 
 ### Request
 ```
@@ -274,7 +301,7 @@ Level 0 (Private) NFTs are not eligible for any tournaments.
 
 **Total cost to max level: 0.028 AVAX** (testnet — costs are configurable per-level in settings)
 
-Badge overlays appear in the top-right corner of the NFT image via Cloudinary URL transforms. Level 0 (Private) has no badge.
+Badge overlays are generated via Cloudinary URL transforms (top-right corner of the NFT image) and then pinned to IPFS. After level-up, the `imageUri` in API responses points to the IPFS-pinned badge image (`ipfs://{cid}/chainboi-{tokenId}.png`). Cloudinary is used as a generation tool only, not for serving. Level 0 (Private) has no badge — `imageUri` points to the original IPFS image.
 
 ---
 
@@ -286,17 +313,22 @@ This public endpoint serves real-time ERC-721 metadata for ChainBois NFTs. The o
 
 **Auth:** None (public — marketplaces must access this)
 
-**Response:**
+**Response (level 2 example):**
 ```json
 {
   "name": "ChainBoi #1",
   "description": "ChainBois - Military-themed gaming NFTs on Avalanche...",
-  "image": "https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/l_chainbois-badges:sergeant,g_north_east,w_500,x_50,y_50,o_90/chainbois/1.png",
+  "image": "ipfs://bafybei.../chainboi-1.png",
   "external_url": "https://chainbois-true.vercel.app/nft/1",
   "collection": "ChainBois Genesis",
   "attributes": [
     { "trait_type": "Background", "value": "Combat Red" },
     { "trait_type": "Skin", "value": "Pale Recruit" },
+    { "trait_type": "Weapon", "value": "War Bow" },
+    { "trait_type": "Suit", "value": "Covert Ops Carbon Suit" },
+    { "trait_type": "Eyes", "value": "Battle Hardened" },
+    { "trait_type": "Mouth", "value": "Viking Beard" },
+    { "trait_type": "Helmet", "value": "Cryo Enforcer" },
     { "trait_type": "Level", "value": 2, "display_type": "number", "max_value": 7 },
     { "trait_type": "Rank", "value": "Sergeant" },
     { "trait_type": "Kills", "value": 42, "display_type": "number" },
@@ -310,8 +342,9 @@ This public endpoint serves real-time ERC-721 metadata for ChainBois NFTs. The o
 - Level and rank are read from the on-chain contract (real-time)
 - Base traits (Background, Skin, etc.) come from MongoDB
 - Game stats (Kills, Score, Games Played) come from MongoDB (synced from Firebase)
-- Image URL includes a Cloudinary badge overlay for levels 1-7 (Private/level 0 has no badge)
-- Badge is placed in the **top-right corner** of the NFT image
+- Dynamic traits (Level, Rank, Kills, Score, Games Played) are always included with current live values via `buildCurrentTraits()`
+- Badge overlay is generated via Cloudinary (top-right corner) and then **pinned to IPFS**. The `image` field points to the IPFS-pinned badge image for levels 1-7. Cloudinary is used as a generation tool only, not for serving.
+- Level 0 (Private) has no badge — `image` points to the original IPFS image
 
 ---
 

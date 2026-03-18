@@ -28,10 +28,23 @@ Returns all owned assets categorized: ChainBois, weapons, and balances.
         "level": 2,
         "rank": "Sergeant",
         "badge": "sergeant",
-        "imageUri": "",
+        "imageUri": "ipfs://bafybei.../chainboi-5.png",
         "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
         "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/5.json",
-        "traits": [],
+        "traits": [
+          { "trait_type": "Background", "value": "Combat Red" },
+          { "trait_type": "Skin", "value": "Pale Recruit" },
+          { "trait_type": "Weapon", "value": "War Bow" },
+          { "trait_type": "Suit", "value": "Covert Ops Carbon Suit" },
+          { "trait_type": "Eyes", "value": "Battle Hardened" },
+          { "trait_type": "Mouth", "value": "Viking Beard" },
+          { "trait_type": "Helmet", "value": "Cryo Enforcer" },
+          { "trait_type": "Level", "value": 2 },
+          { "trait_type": "Rank", "value": "Sergeant" },
+          { "trait_type": "Kills", "value": 0 },
+          { "trait_type": "Score", "value": 0 },
+          { "trait_type": "Games Played", "value": 0 }
+        ],
         "stats": { "kills": 0, "score": 0, "gamesPlayed": 0 }
       }
     ],
@@ -75,10 +88,23 @@ GET /inventory/:address/nfts
       "level": 2,
       "rank": "Sergeant",
       "badge": "sergeant",
-      "imageUri": "",
-      "traits": [...],
+      "imageUri": "ipfs://bafybei.../chainboi-5.png",
+      "traits": [
+        { "trait_type": "Background", "value": "Combat Red" },
+        { "trait_type": "Skin", "value": "Pale Recruit" },
+        { "trait_type": "Weapon", "value": "War Bow" },
+        { "trait_type": "Suit", "value": "Covert Ops Carbon Suit" },
+        { "trait_type": "Eyes", "value": "Battle Hardened" },
+        { "trait_type": "Mouth", "value": "Viking Beard" },
+        { "trait_type": "Helmet", "value": "Cryo Enforcer" },
+        { "trait_type": "Level", "value": 2 },
+        { "trait_type": "Rank", "value": "Sergeant" },
+        { "trait_type": "Kills", "value": 0 },
+        { "trait_type": "Score", "value": 0 },
+        { "trait_type": "Games Played", "value": 0 }
+      ],
       "stats": { "kills": 0, "score": 0, "gamesPlayed": 0 },
-      "contractAddress": "0xb2fddb56...",
+      "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
       "metadataUrl": "https://test-2.ghettopigeon.com/api/v1/metadata/5.json"
     }
   ]

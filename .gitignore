@@ -166,7 +166,6 @@ docs/phase5/PLAN.md
 
 # Submission form files (keep local)
 mvp-submission-form-questions.md
-mvp-submission-form-answers.txt
 mvp-submission-requirements.txt
 
 # Internal strategy & pitch docs (keep local)
@@ -177,7 +176,6 @@ ChainBois Pitchdeck.pdf
 github-mcp-server.md
 google-docs-mcp.md
 google-slides-mcp.md
-gtm-answers.md
 gtm-answers.txt
 gtm-initial-draft.txt
 gtm-questions.md

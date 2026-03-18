@@ -282,4 +282,30 @@ module.exports = {
     REWARDS: "rewards",
     TEST: "test",
   },
+
+  // Trait types that are dynamically computed (not static NFT art traits)
+  DYNAMIC_TRAIT_TYPES: new Set(["Level", "Rank", "Kills", "Score", "Games Played"]),
+
+  /**
+   * Build a complete traits array with current dynamic values.
+   * Static art traits are preserved; dynamic traits are replaced with live values.
+   * @param {Array} rawTraits - Raw traits from MongoDB (may have stale dynamic values)
+   * @param {object} opts - { level, rank, inGameStats }
+   * @returns {Array} Complete traits array with current values
+   */
+  buildCurrentTraits: function (rawTraits, opts) {
+    const dynamic = new Set(["Level", "Rank", "Kills", "Score", "Games Played"]);
+    const staticTraits = Array.isArray(rawTraits)
+      ? rawTraits.filter((t) => !dynamic.has(t.trait_type)).map((t) => ({ trait_type: t.trait_type, value: t.value }))
+      : [];
+    const { level = 0, rank = "Private", inGameStats = {} } = opts || {};
+    return [
+      ...staticTraits,
+      { trait_type: "Level", value: level },
+      { trait_type: "Rank", value: rank },
+      { trait_type: "Kills", value: inGameStats.kills || 0 },
+      { trait_type: "Score", value: inGameStats.score || 0 },
+      { trait_type: "Games Played", value: inGameStats.gamesPlayed || 0 },
+    ];
+  },
 };

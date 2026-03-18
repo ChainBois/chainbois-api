@@ -26,9 +26,17 @@ This document summarizes all breaking and non-breaking changes to Phase 1 API re
     "level": 2,
     "rank": "Sergeant",
     "badge": "sergeant",
-    "imageUri": "ipfs://...",
+    "imageUri": "ipfs://bafybei.../chainboi-42.png",
     "metadataUri": "ipfs://...",
-    "traits": [{ "trait_type": "Background", "value": "Combat Red" }],
+    "traits": [
+      { "trait_type": "Background", "value": "Combat Red" },
+      { "trait_type": "Skin", "value": "Pale Recruit" },
+      { "trait_type": "Level", "value": 2 },
+      { "trait_type": "Rank", "value": "Sergeant" },
+      { "trait_type": "Kills", "value": 0 },
+      { "trait_type": "Score", "value": 0 },
+      { "trait_type": "Games Played", "value": 0 }
+    ],
     "inGameStats": { "kills": 0, "score": 0, "gamesPlayed": 0 }
   }
 ]
@@ -83,6 +91,32 @@ Now: Field absent. Use `GET /armory/balance/:address` for on-chain balance.
 
 Was: `"hasClaimed": false` in user object.
 Now: Field absent. Claim feature removed entirely.
+
+---
+
+## Traits Now Include Dynamic Values
+
+Traits now always include current Level, Rank, Kills, Score, and Games Played with live values. The `buildCurrentTraits()` function replaces stale MongoDB traits with live values from the blockchain and game stats. You no longer need to look at separate fields for dynamic data — the `traits` array is the single source of truth for both static art traits and dynamic game traits.
+
+**Example traits array (always returned in full):**
+```json
+"traits": [
+  { "trait_type": "Background", "value": "Combat Red" },
+  { "trait_type": "Skin", "value": "Pale Recruit" },
+  { "trait_type": "Weapon", "value": "War Bow" },
+  { "trait_type": "Suit", "value": "Covert Ops Carbon Suit" },
+  { "trait_type": "Eyes", "value": "Battle Hardened" },
+  { "trait_type": "Mouth", "value": "Viking Beard" },
+  { "trait_type": "Helmet", "value": "Cryo Enforcer" },
+  { "trait_type": "Level", "value": 0 },
+  { "trait_type": "Rank", "value": "Private" },
+  { "trait_type": "Kills", "value": 0 },
+  { "trait_type": "Score", "value": 0 },
+  { "trait_type": "Games Played", "value": 0 }
+]
+```
+
+The top-level `level`, `rank`, and `inGameStats` fields are still present for convenience, but the traits array always matches.
 
 ---
 

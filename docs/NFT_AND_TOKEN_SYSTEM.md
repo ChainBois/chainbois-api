@@ -369,22 +369,23 @@ Each ChainBoi NFT has a JSON metadata file stored on IPFS. The contract's `token
 
 ### How Metadata Gets Updated
 
-NFT metadata lives on IPFS (immutable), but we can:
+NFT metadata lives on IPFS (immutable per CID), but the system updates it in two ways:
 
-1. **Update metadata JSON files** locally → re-upload to Pinata → get new CID
-2. **Update `baseURI`** on the contract to point to the new CID
-3. **Trigger Glacier reindex** so marketplaces/explorers fetch the new metadata
-
-**This happens periodically in batch** (not per-action):
-
+**On level-up (immediate):**
 ```
-Player levels up NFT #42
+Player levels up NFT #42 from level 2 → 3:
   → on-chain: contract.setLevel(42, 3)        ← instant, on-chain
-  → MongoDB: user.level = 3                   ← instant
+  → MongoDB: user.level = 3, traits updated   ← instant
   → Firebase: { level: 3 }                    ← instant (game reads this)
-  → IPFS metadata: NOT updated immediately     ← batch update later
+  → Badge image: Cloudinary generates badge overlay → pinned to IPFS
+  → imageUri updated: ipfs://{cid}/chainboi-42.png (IPFS-pinned badge image)
+  → Traits synced to MongoDB + IPFS with current dynamic values
+```
 
-Batch metadata update (cron or manual):
+The badge overlay is generated via Cloudinary URL transforms (placed in the top-right corner of the NFT image), then pinned to IPFS. After level-up, `imageUri` points to the IPFS-pinned badge image. Cloudinary is used as a generation tool only, not for serving.
+
+**Batch metadata update (periodic):**
+```
   → Read all NFT levels/stats from MongoDB
   → Update JSON metadata files
   → Re-upload to Pinata → new metadataCID
@@ -392,11 +393,16 @@ Batch metadata update (cron or manual):
   → Glacier reindex for affected tokens
 ```
 
-**Why batch updates?**
+**Dynamic traits via API:**
+
+The metadata API endpoint (`/api/v1/metadata/:tokenId.json`) always returns current dynamic values via `buildCurrentTraits()`. Static art traits (Background, Skin, etc.) are preserved from MongoDB; dynamic traits (Level, Rank, Kills, Score, Games Played) are replaced with live values on every request.
+
+**Why batch updates for base metadata?**
 - IPFS uploads cost money (Pinata free tier has limits)
 - Each baseURI update is a gas-costing transaction
 - Game doesn't read from IPFS metadata - it reads from Firebase
 - IPFS metadata is primarily for marketplaces/explorers
+- The metadata API serves live data regardless of IPFS state
 
 ### Weapon NFT Metadata (on IPFS)
 

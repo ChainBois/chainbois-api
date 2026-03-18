@@ -2,7 +2,7 @@ const { getErc721Balances } = require("./avaxUtils");
 const { getNftLevel } = require("./contractUtils");
 const ChainboiNft = require("../models/chainboiNftModel");
 const WeaponNft = require("../models/weaponNftModel");
-const { RANK_NAMES } = require("../config/constants");
+const { RANK_NAMES, buildCurrentTraits } = require("../config/constants");
 
 /**
  * Look up NFT assets for an address and return full enriched data
@@ -57,7 +57,11 @@ const lookupNftAssets = async function (address) {
           badge: (RANK_NAMES[level] || "Private").toLowerCase().replace(/ /g, "_"),
           imageUri: db.imageUri || "",
           metadataUri: db.metadataUri || "",
-          traits: db.traits || [],
+          traits: buildCurrentTraits(db.traits, {
+            level,
+            rank: RANK_NAMES[level] || "Private",
+            inGameStats: db.inGameStats || {},
+          }),
           inGameStats: db.inGameStats || { kills: 0, score: 0, gamesPlayed: 0 },
         };
       });

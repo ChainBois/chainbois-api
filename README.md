@@ -112,7 +112,7 @@ The following features are **fully implemented in the backend API** with documen
 3. **Game reads Firebase** — Unity game loads characters, weapons, and level from Firebase (no direct API calls from game)
 4. **Player plays & earns** — Game writes scores to Firebase; backend polls every 5 minutes and syncs to MongoDB
 5. **Economy runs automatically** — Tournaments auto-distribute prizes, tokenomics auto-burn $BATTLE, wallet health auto-funds low wallets
-6. **NFT metadata is dynamic** — Level-ups, badges, and stats update in real-time via the metadata API endpoint (EIP-4906 compliant)
+6. **NFT metadata is dynamic** — Level-ups, badges, and stats update in real-time via the metadata API endpoint (EIP-4906 compliant). Badge overlays are generated via Cloudinary, pinned to IPFS via `utils/pinataUtils.js`, then the Cloudinary cache is deleted — after level-up, `imageUri` points to the IPFS-pinned badge image (`ipfs://{cid}/chainboi-{tokenId}.png`)
 
 ### Design Principles
 
@@ -131,7 +131,7 @@ The following features are **fully implemented in the backend API** with documen
 | Blockchain | Avalanche C-Chain (Fuji Testnet), Solidity 0.8.24 |
 | Smart Contracts | ERC-721 (ChainBoi NFTs, Weapon NFTs), ERC20Capped ($BATTLE, 10M fixed supply) |
 | Contract Tooling | Hardhat 2.28.6, OpenZeppelin v5.6 |
-| NFT Art | HashLips Art Engine (generative), Cloudinary (dynamic badge overlays), Pinata (IPFS) |
+| NFT Art | HashLips Art Engine (generative), Cloudinary (badge overlay generation), Pinata (IPFS hosting + badge image pinning) |
 | Real-time | Socket.IO (tournament updates) |
 | Process Manager | PM2 (cluster mode) |
 | Security | Helmet, XSS protection, mongo-sanitize, rate limiting, AES-256 wallet encryption |
@@ -162,7 +162,7 @@ Source code: [`contracts/`](contracts/) | ABIs: [`abis/`](abis/)
 | Points | `/api/v1/points` | balance + rate, convert to $BATTLE, history |
 | Inventory | `/api/v1/inventory` | all assets, NFTs, weapons, tx history |
 | Leaderboard | `/api/v1/leaderboard` | global (30min to all-time), user rank |
-| Metadata | `/api/v1/metadata` | dynamic ERC-721 metadata (serves OpenSea/Glacier) |
+| Metadata | `/api/v1/metadata` | ChainBoi metadata (`:tokenId`), weapon metadata (`/weapon/:tokenId`) |
 | Airdrop | `/api/v1/airdrop` | rarity, trait pools, distribution |
 | Claim | `/api/v1/claim` | starter-pack, check claim status |
 | Metrics | `/api/v1/metrics` | platform stats, compute |
@@ -180,7 +180,7 @@ All endpoints return a consistent response pattern:
 { "success": false, "message": "Error description" }
 ```
 
-> The metadata endpoint (`/api/v1/metadata/:tokenId`) returns raw ERC-721 JSON (no wrapper) as required by the standard.
+> The metadata endpoints (`/api/v1/metadata/:tokenId` and `/api/v1/metadata/weapon/:tokenId`) return raw ERC-721 JSON (no wrapper) as required by the standard.
 
 ---
 
@@ -254,7 +254,7 @@ See [Tokenomics Architecture](docs/TOKENOMICS_ARCHITECTURE.md) for full details.
 - **On-chain level**: Stored in smart contract (`mapping(uint256 => uint8) nftLevel`), 0-7
 - **Character unlocks**: Each level unlocks 4 characters (32 total at max level)
 - **Army ranks**: Private → Corporal → Sergeant → Captain → Major → Colonel → Major General → Field Marshal
-- **Dynamic metadata**: Served via API with real-time level, stats, and Cloudinary badge overlays
+- **Dynamic metadata**: Served via API with real-time level, stats, and IPFS-pinned badge images (generated via Cloudinary, pinned to IPFS). Traits always include current Level, Rank, Kills, Score, Games Played via `buildCurrentTraits()`
 - **EIP-4906**: `MetadataUpdate` events emitted on level-up, triggering indexer refreshes
 
 ### Weapon NFTs (ERC-721)
@@ -296,7 +296,7 @@ npm start              # Production (PM2 cluster)
 ## Testing
 
 ```bash
-npm test                  # Run all tests (286 tests)
+npm test                  # Run all tests (263 tests)
 npm test -- --verbose     # Verbose output
 npm test -- <testfile>    # Run specific test
 ```

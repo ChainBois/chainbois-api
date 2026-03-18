@@ -6,7 +6,7 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { getBattleBalance } = require("../utils/contractUtils");
 const { ethers } = require("ethers");
-const { RANK_NAMES, TRANSACTION_TYPES } = require("../config/constants");
+const { RANK_NAMES, TRANSACTION_TYPES, buildCurrentTraits } = require("../config/constants");
 
 /**
  * GET /api/v1/inventory/:address
@@ -46,7 +46,11 @@ const getInventory = catchAsync(async (req, res, next) => {
         badge: nft.badge,
         imageUri: nft.imageUri || "",
         metadataUri: nft.metadataUri || "",
-        traits: nft.traits || [],
+        traits: buildCurrentTraits(nft.traits, {
+          level: nft.level,
+          rank: RANK_NAMES[nft.level] || "Private",
+          inGameStats: nft.inGameStats || {},
+        }),
         stats: nft.inGameStats || {},
       })),
       weapons: weapons.map((w) => ({
@@ -93,7 +97,11 @@ const getNfts = catchAsync(async (req, res, next) => {
       rank: RANK_NAMES[nft.level] || "Private",
       badge: nft.badge,
       imageUri: nft.imageUri || "",
-      traits: nft.traits || [],
+      traits: buildCurrentTraits(nft.traits, {
+        level: nft.level,
+        rank: RANK_NAMES[nft.level] || "Private",
+        inGameStats: nft.inGameStats || {},
+      }),
       stats: nft.inGameStats || {},
       contractAddress: nft.contractAddress,
       metadataUri: `${process.env.API_BASE_URL || 'https://test-2.ghettopigeon.com'}/api/v1/metadata/${nft.tokenId}.json`,

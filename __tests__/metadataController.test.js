@@ -68,7 +68,7 @@ describe("getTokenMetadata", () => {
     expect(res.status).toHaveBeenCalledWith(200);
     const data = res.json.mock.calls[0][0];
     expect(data.name).toBe("ChainBoi #1");
-    expect(data.image).toContain("cloudinary.com");
+    expect(data.image).toBe("ipfs://abc/1.png");
     expect(data.collection).toBe("ChainBois Genesis");
     expect(data.attributes).toEqual(
       expect.arrayContaining([

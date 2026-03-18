@@ -11,12 +11,16 @@ const { getFirebaseDb } = require("../config/firebase");
 const { getNftLevel, setNftLevel, getNftOwner } = require("../utils/contractUtils");
 const { getErc721Balances, verifyPayment, reindexNftMetadata } = require("../utils/avaxUtils");
 const { decrypt } = require("../utils/cryptUtils");
+const { getBadgeOverlayUrl } = require("../utils/cloudinaryUtils");
+const { pinImageFromUrl, pinJsonToIpfs } = require("../utils/pinataUtils");
 const {
   MAX_LEVEL,
   RANK_NAMES,
   FIREBASE_PATHS,
   TRANSACTION_TYPES,
   WALLET_ROLES,
+  buildCurrentTraits,
+  DYNAMIC_TRAIT_TYPES,
 } = require("../config/constants");
 
 /**
@@ -65,7 +69,11 @@ const getNfts = catchAsync(async (req, res, next) => {
         badge: (RANK_NAMES[level] || "Private").toLowerCase().replace(/ /g, "_"),
         imageUri: localNft ? localNft.imageUri : "",
         metadataUri: localNft ? localNft.metadataUri : "",
-        traits: localNft ? localNft.traits : [],
+        traits: buildCurrentTraits(localNft ? localNft.traits : [], {
+          level,
+          rank: RANK_NAMES[level] || "Private",
+          inGameStats: localNft ? localNft.inGameStats : {},
+        }),
       };
     })
   );
@@ -125,7 +133,11 @@ const getNftDetail = catchAsync(async (req, res, next) => {
       level,
       rank: RANK_NAMES[level] || "Private",
       badge: (RANK_NAMES[level] || "Private").toLowerCase().replace(/ /g, "_"),
-      traits: localNft ? localNft.traits : [],
+      traits: buildCurrentTraits(localNft ? localNft.traits : [], {
+        level,
+        rank: RANK_NAMES[level] || "Private",
+        inGameStats: localNft ? localNft.inGameStats : {},
+      }),
       imageUri: localNft ? localNft.imageUri : "",
       metadataUri: localNft ? localNft.metadataUri : "",
       inGameStats: localNft ? localNft.inGameStats : { kills: 0, score: 0, gamesPlayed: 0 },
@@ -280,14 +292,81 @@ const levelUp = catchAsync(async (req, res, next) => {
   user.level = newLevel;
   await user.save();
 
+  const rankBadge = (RANK_NAMES[newLevel] || "Private").toLowerCase().replace(/ /g, "_");
+
+  // 12a. Pin badge image to IPFS + update metadata (non-fatal)
+  let newImageUri = null;
+  let newMetadataUri = null;
+  try {
+    const cloudinaryUrl = getBadgeOverlayUrl(parsedTokenId, newLevel);
+    if (cloudinaryUrl) {
+      // Pin badge overlay image to IPFS
+      const imageResult = await pinImageFromUrl(cloudinaryUrl, `chainboi-${parsedTokenId}.png`);
+      newImageUri = `ipfs://${imageResult.cid}/${imageResult.fileName}`;
+
+      // Build updated traits and metadata JSON
+      const localNft = await ChainboiNft.findOne({ tokenId: parsedTokenId });
+      const stats = localNft ? (localNft.inGameStats || {}) : {};
+      // For IPFS metadata, include display_type hints
+      const staticOnly = (localNft ? localNft.traits : []).filter((t) => !DYNAMIC_TRAIT_TYPES.has(t.trait_type)).map((t) => ({ trait_type: t.trait_type, value: t.value }));
+      const allTraits = [
+        ...staticOnly,
+        { trait_type: "Level", value: newLevel, display_type: "number", max_value: 7 },
+        { trait_type: "Rank", value: RANK_NAMES[newLevel] || "Private" },
+        { trait_type: "Kills", value: stats.kills || 0, display_type: "number" },
+        { trait_type: "Score", value: stats.score || 0, display_type: "number" },
+        { trait_type: "Games Played", value: stats.gamesPlayed || 0, display_type: "number" },
+      ];
+
+      const metadataJson = {
+        name: `ChainBoi #${parsedTokenId}`,
+        description: "ChainBois - Military-themed gaming NFTs on Avalanche. Battle, earn $BATTLE, and rise through the ranks.",
+        image: newImageUri,
+        external_url: `${process.env.FRONTEND_URL || "https://chainbois-true.vercel.app"}/nft/${parsedTokenId}`,
+        collection: "ChainBois Genesis",
+        attributes: allTraits,
+      };
+
+      const metaResult = await pinJsonToIpfs(metadataJson, `${parsedTokenId}.json`);
+      newMetadataUri = `ipfs://${metaResult.cid}/${metaResult.fileName}`;
+
+      // Delete previous level's Cloudinary cache (not current — keep current until next level-up)
+      // Level 0 has no Cloudinary badge image, so skip if previous level was 0
+      if (currentLevel > 0) {
+        try {
+          const { initCloudinary } = require("../config/cloudinary");
+          const cl = initCloudinary();
+          if (cl) await cl.uploader.destroy(`chainbois/${parsedTokenId}`, { resource_type: "image", invalidate: true });
+        } catch (delErr) {
+          console.error("Failed to delete previous Cloudinary image (non-fatal):", delErr.message);
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Failed to pin badge to IPFS (non-fatal):", e.message);
+  }
+
+  // 12b. Build updated traits for MongoDB
+  const existingNft = await ChainboiNft.findOne({ tokenId: parsedTokenId });
+  const updatedTraits = buildCurrentTraits(existingNft ? existingNft.traits : [], {
+    level: newLevel,
+    rank: RANK_NAMES[newLevel] || "Private",
+    inGameStats: existingNft ? existingNft.inGameStats : {},
+  });
+
+  const nftUpdate = {
+    level: newLevel,
+    badge: rankBadge,
+    ownerAddress: user.address.toLowerCase(),
+    contractAddress: process.env.CHAINBOIS_NFT_ADDRESS.toLowerCase(),
+    traits: updatedTraits,
+  };
+  if (newImageUri) nftUpdate.imageUri = newImageUri;
+  if (newMetadataUri) nftUpdate.metadataUri = newMetadataUri;
+
   await ChainboiNft.findOneAndUpdate(
     { tokenId: parsedTokenId },
-    {
-      level: newLevel,
-      badge: (RANK_NAMES[newLevel] || "Private").toLowerCase().replace(/ /g, "_"),
-      ownerAddress: user.address.toLowerCase(),
-      contractAddress: process.env.CHAINBOIS_NFT_ADDRESS.toLowerCase(),
-    },
+    nftUpdate,
     { upsert: true, new: true }
   );
 
