@@ -105,7 +105,7 @@ GET /inventory/:address/nfts
       ],
       "stats": { "kills": 0, "score": 0, "gamesPlayed": 0 },
       "contractAddress": "0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b",
-      "metadataUrl": "https://test-2.ghettopigeon.com/api/v1/metadata/5.json"
+      "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/5.json"
     }
   ]
 }
@@ -128,7 +128,7 @@ GET /inventory/:address/weapons
       "category": "assault",
       "tier": "base",
       "imageUri": "",
-      "contractAddress": "0xa2aff310..."
+      "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d"
     }
   ]
 }

@@ -221,7 +221,7 @@ chainbois-api/
 │   ├── redis.js             # Redis client
 │   ├── cloudinary.js        # Cloudinary SDK init
 │   └── socketio.js          # Socket.IO server init
-├── controllers/             # Request handlers (12 controllers)
+├── controllers/             # Request handlers (13 controllers)
 ├── jobs/                    # Cron job handlers (9 jobs)
 ├── middleware/
 │   ├── auth.js              # Firebase token verification
@@ -230,8 +230,8 @@ chainbois-api/
 │   ├── logger.js            # Request/response logging
 │   ├── rateLimiter.js       # Per-endpoint rate limiting
 │   └── validateEndpoint.js  # Whitelist-based 404 for unknown routes
-├── models/                  # Mongoose schemas (20 models)
-├── routes/                  # Express routers (12 route files)
+├── models/                  # Mongoose schemas (21 models)
+├── routes/                  # Express routers (13 route files)
 ├── scripts/                 # Deployment, minting, migration scripts
 ├── services/
 │   ├── prizeService.js      # Tournament prize calculation + distribution
