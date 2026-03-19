@@ -7,9 +7,9 @@
 
 ChainBois is building a Web3 AAA gaming studio on Avalanche — not a single game, but a franchise of competitive titles powered by a shared on-chain economy.
 
-Our first title is a multiplayer third-person shooter with a complete MVP live on Fuji Testnet: 7 game modes, NFT character progression, a deflationary $BATTLE token, automated tournaments, and a fully operational backend with 263 passing automated tests. This game proves our core thesis: that blockchain should make gaming more valuable, not more complicated.
+Our first title is a multiplayer third-person shooter with a complete MVP live on Fuji Testnet: 7 game modes, NFT character progression, a deflationary $BATTLE token, automated tournaments, and a fully operational backend with 258 passing automated tests and 10 cron jobs running continuously in production. This game proves our core thesis: that blockchain should make gaming more valuable, not more complicated.
 
-**Playable Identity** is the concept at the center of everything we build. Your ChainBoi NFT is not a static JPEG — it is a living record of your competitive career. Our IPFS-pinned badge overlay system is live: when a player levels up, badge images are dynamically generated via Cloudinary transformations, permanently pinned to IPFS, and the Cloudinary source is deleted after. The on-chain metadata is always current — our `buildCurrentTraits()` function reconstructs the full trait set (rank, level, badges, weapons, tournament stats) on every API response, so no stale data ever reaches the frontend or marketplace. Weapons have their own metadata endpoint with full trait resolution. Every kill, every tournament win, every rank-up is permanently part of your on-chain identity.
+**Playable Identity** is the concept at the center of everything we build. Your ChainBoi NFT is not a static JPEG — it is a living record of your competitive career. Our IPFS-pinned badge overlay system is live: when a player levels up, badge images are dynamically generated via Cloudinary transformations, permanently pinned to IPFS, and the Cloudinary source is deleted after. The on-chain metadata is always current — our `buildCurrentTraits()` system reconstructs the full trait set (Level, Rank, Kills, Score, Games Played) from live data on every API response, so no stale data ever reaches the frontend or marketplace. Weapons have their own metadata endpoint with full trait resolution. Every kill, every tournament win, every rank-up is permanently part of your on-chain identity.
 
 In 1-2 years, we see ChainBois as:
 
@@ -29,7 +29,7 @@ The long-term vision is to become the competitive gaming home on Avalanche — a
 
 **Q2 2026 (April - June) — Early Access Launch**
 - Smart contracts already deployed on Fuji Testnet (BattleToken, ChainBoisNFT, WeaponNFT) — mainnet deployment is a configuration change, not a rebuild
-- MVP backend complete: 263 automated tests passing, 9 cron jobs running continuously, training room badge system live with IPFS-pinned overlays
+- MVP backend complete: 258 automated tests passing, 10 cron jobs running continuously (including auto-replenishment), training room badge system live with IPFS-pinned overlays
 - Frontend integration actively underway — all API endpoints documented with Postman collections per phase
 - Deploy to Avalanche C-Chain Mainnet, mint full 4,032 ChainBoi NFT collection (4,000 public + 32 reserved)
 - Launch $BATTLE token with initial DEX liquidity on Trader Joe
@@ -187,7 +187,7 @@ ChainBois has five revenue streams, designed to grow with the player base and re
 - Studio-level IP licensing for merchandise and media
 
 **Why This Is Sustainable — And Already Running:**
-Unlike most Web3 games that rely on continuous token emissions (inflationary death spiral), ChainBois has a FIXED 10M $BATTLE supply that is actively deflationary. Revenue comes from real economic activity (purchases, trades, tournament fees), not from printing new tokens. The dynamic tokenomics system is live and operational: a 6-hourly sweep job moves weapon purchase revenue from the weapon_store wallet, splits it between permanent burn and rewards pool recycling, with rates determined by 5 health tiers (ABUNDANT/HEALTHY/MODERATE/SCARCE/CRITICAL). 9 cron jobs run continuously handling tokenomics sweeps, wallet health monitoring, platform audits, score syncing, tournament lifecycle, and more. This is not a whitepaper — it is running infrastructure. The more players play, the more $BATTLE is burned, creating natural scarcity without artificial inflation.
+Unlike most Web3 games that rely on continuous token emissions (inflationary death spiral), ChainBois has a FIXED 10M $BATTLE supply that is actively deflationary. Revenue comes from real economic activity (purchases, trades, tournament fees), not from printing new tokens. The dynamic tokenomics system is live and operational: a 6-hourly sweep job moves weapon purchase revenue from the weapon_store wallet, splits it between permanent burn and rewards pool recycling, with rates determined by 5 health tiers (ABUNDANT/HEALTHY/MODERATE/SCARCE/CRITICAL). 10 cron jobs run continuously handling tokenomics sweeps, wallet health monitoring, platform audits, score syncing, tournament lifecycle, inventory replenishment, and more. This is not a whitepaper — it is running infrastructure. The more players play, the more $BATTLE is burned, creating natural scarcity without artificial inflation.
 
 ---
 
@@ -226,10 +226,10 @@ No competitor does this:
 
 1. **Deflationary token design that is live and running.** $BATTLE has a hard cap of 10M tokens (ERC20Capped) with active burn mechanics executing on a 6-hourly cycle. $GUN has 10B supply and dropped 60%. Our fixed supply + automated burns create structural scarcity. The more players play, the scarcer $BATTLE becomes.
 
-2. **Automated tournament infrastructure.** 9 cron jobs handling tournament lifecycle, prize distribution, score validation, tokenomics sweeps, and anti-cheat — all without manual intervention. This scales to thousands of concurrent tournaments.
+2. **Automated tournament infrastructure.** 10 cron jobs handling tournament lifecycle, prize distribution, score validation, tokenomics sweeps, inventory replenishment, and anti-cheat — all without manual intervention. This scales to thousands of concurrent tournaments.
 
 3. **Web2-to-Web3 bridge.** Players can download and play without a wallet. Web2 scores are auto-detected and tracked. The blockchain layer is optional but compelling. This eliminates the onboarding friction that kills most Web3 games.
 
-4. **Studio-level infrastructure on Avalanche.** Our backend architecture (dynamic tokenomics with 5 health tiers, wallet management, purchase failsafes, anti-cheat, 263 automated tests) is not game-specific — it's platform infrastructure that scales across multiple titles. ChainBois is Title 1 from a gaming studio, not a standalone project.
+4. **Studio-level infrastructure on Avalanche.** Our backend architecture (dynamic tokenomics with 5 health tiers, wallet management, purchase failsafes, anti-cheat, 258 automated tests) is not game-specific — it's platform infrastructure that scales across multiple titles. ChainBois is Title 1 from a gaming studio, not a standalone project.
 
 5. **Cost-efficient positioning.** Off The Grid raised $30M+ and has 450 employees. Shrapnel raised $37M+. Nyan Heroes raised $11M and shut down. Shatterline shut down. ChainBois ships with a lean team and sustainable economics — we don't need $30M to survive, we need players who play. Our dynamic tokenomics ensures the economy self-corrects before it can death-spiral.
