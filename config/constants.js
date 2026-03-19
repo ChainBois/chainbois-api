@@ -328,7 +328,7 @@ module.exports = {
    * @returns {Array} Complete traits array with current values
    */
   buildCurrentTraits: function (rawTraits, opts) {
-    const dynamic = new Set(["Level", "Rank", "Kills", "Score", "Games Played"]);
+    const dynamic = module.exports.DYNAMIC_TRAIT_TYPES;
     const staticTraits = Array.isArray(rawTraits)
       ? rawTraits.filter((t) => !dynamic.has(t.trait_type)).map((t) => ({ trait_type: t.trait_type, value: t.value }))
       : [];

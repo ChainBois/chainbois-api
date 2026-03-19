@@ -381,6 +381,7 @@ All cron jobs run only on PM2 instance 0 (primary). Registered in `server.js`.
 | tokenomicsJob | `jobs/tokenomicsJob.js` | Every 6 hours | Sweep weapon_store → burn + recycle $BATTLE |
 | walletHealthJob | `jobs/walletHealthJob.js` | Every hour | Monitor gas, balances, inventory, prize pool + auto-fund |
 | platformAuditJob | `jobs/platformAuditJob.js` | Daily 3 AM UTC | Solvency, ownership sync, stuck purchases, failed payouts |
+| inventoryReplenishJob | `jobs/inventoryReplenishJob.js` | Every 30 min | Auto-mint NFTs and weapons when store inventory runs low |
 
 ### Job Details
 

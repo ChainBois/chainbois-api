@@ -47,6 +47,7 @@ const startServer = async function () {
       const { tokenomicsJob } = require("./jobs/tokenomicsJob");
       const { walletHealthJob } = require("./jobs/walletHealthJob");
       const { platformAuditJob } = require("./jobs/platformAuditJob");
+      const { inventoryReplenishJob } = require("./jobs/inventoryReplenishJob");
       const { SYNC_NEW_USERS_INTERVAL, SYNC_SCORES_INTERVAL } = require("./config/constants");
 
       cron.schedule(SYNC_NEW_USERS_INTERVAL, syncNewUsersJob);
@@ -58,7 +59,8 @@ const startServer = async function () {
       cron.schedule("0 */6 * * *", tokenomicsJob); // Every 6 hours
       cron.schedule("0 * * * *", walletHealthJob); // Every hour
       cron.schedule("0 3 * * *", platformAuditJob); // Daily 3 AM UTC
-      console.log("Cron jobs started: syncNewUsers, syncScores, traitAirdrop, tournament (hourly), failedPayout (6h), purchaseFailsafe (5m), tokenomics (6h), walletHealth (hourly), platformAudit (daily 3AM)");
+      cron.schedule("*/30 * * * *", inventoryReplenishJob); // Every 30 minutes
+      console.log("Cron jobs started: syncNewUsers, syncScores, traitAirdrop, tournament (hourly), failedPayout (6h), purchaseFailsafe (5m), tokenomics (6h), walletHealth (hourly), platformAudit (daily 3AM), inventoryReplenish (30m)");
     }
 
     // Start server

@@ -92,7 +92,7 @@ const tokenomicsJob = async function () {
 
     // 9. Record burn in database
     const now = new Date();
-    const { week: weekNumber } = getWeekInfo(now);
+    const { weekNumber } = getWeekInfo(now);
 
     await BurnRecord.create({
       weekNumber,

@@ -44,10 +44,10 @@ describe("validateEndpoint", () => {
     }
   });
 
-  test("allows game character endpoint with address", () => {
+  test("rejects removed game character endpoint", () => {
     const { req, res, next } = createMocks("/api/v1/game/characters/0x1234567890abcdef1234567890abcdef12345678");
     validateEndpoint(req, res, next);
-    expect(next).toHaveBeenCalledWith();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 404 }));
   });
 
   test("allows training endpoints", () => {

@@ -110,10 +110,10 @@ const computeMetrics = catchAsync(async (req, res) => {
 
   const participantAgg = await Tournament.aggregate([
     { $match: { status: "completed" } },
-    { $group: { _id: null, total: { $sum: { $size: "$winners" } } } },
+    { $group: { _id: null, totalWinners: { $sum: { $size: "$winners" } }, totalTournaments: { $sum: 1 } } },
   ]);
   const totalParticipants =
-    participantAgg[0] ? participantAgg[0].total : 0;
+    participantAgg[0] ? participantAgg[0].totalWinners : 0;
 
   const prizeAgg = await Transaction.aggregate([
     { $match: { type: "prize_payout", status: "confirmed" } },

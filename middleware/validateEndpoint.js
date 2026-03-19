@@ -7,7 +7,6 @@ const validPatterns = [
   /^\/api\/v1\/auth\/check-user\/.+$/,
   // Game
   /^\/api\/v1\/game\/(verify-assets|set-avatar|info)$/,
-  /^\/api\/v1\/game\/characters\/0x[a-fA-F0-9]{40}$/,
   /^\/api\/v1\/game\/download\/(win|apk)$/,
   // Training
   /^\/api\/v1\/training\/(nfts|nft|level-up|eligibility)(\/.*)?$/,

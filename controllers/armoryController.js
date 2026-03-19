@@ -20,6 +20,7 @@ const {
   WALLET_ROLES,
   FIREBASE_PATHS,
   PURCHASE_FAILSAFE,
+  PLAYER_TYPE,
   buildCurrentTraits,
   RANK_NAMES,
 } = require("../config/constants");
@@ -268,14 +269,15 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
   }
 
   // 5. Replay protection — check Transaction AND PurchaseAttempt
+  const normalizedTxHash = txHash.toLowerCase();
   const existingTx = await Transaction.findOne({
-    $or: [{ txHash }, { "metadata.paymentTxHash": txHash }],
+    $or: [{ txHash: normalizedTxHash }, { "metadata.paymentTxHash": normalizedTxHash }],
   });
   if (existingTx) {
     return next(new AppError("This transaction has already been used", 409));
   }
 
-  const existingAttempt = await PurchaseAttempt.findOne({ paymentTxHash: txHash });
+  const existingAttempt = await PurchaseAttempt.findOne({ paymentTxHash: normalizedTxHash });
   if (existingAttempt) {
     if (existingAttempt.status === "completed") {
       return next(new AppError("This payment has already been processed", 409));
@@ -347,7 +349,7 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
     attempt = await PurchaseAttempt.create({
       type: "weapon_purchase",
       buyerAddress: normalizedAddress,
-      paymentTxHash: txHash,
+      paymentTxHash: normalizedTxHash,
       paymentAmount: actualPaymentAmount,
       paymentCurrency: "BATTLE",
       storeWalletAddress: weaponStoreWallet.address,
@@ -418,7 +420,7 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
         weaponName: weapon.weaponName,
         weaponTokenId: weapon.tokenId,
         category: weapon.category,
-        paymentTxHash: txHash,
+        paymentTxHash: normalizedTxHash,
       },
     });
   } catch (e) {
@@ -429,15 +431,14 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
     });
   }
 
-  // 12. Sync to Firebase so game sees the weapon
+  // 12. Sync to Firebase so game sees the weapon (flat array, same format as login/verify-assets)
   if (user.uid) {
     try {
       const db = getFirebaseDb();
-      await db.ref(`${FIREBASE_PATHS.USERS}/${user.uid}/weapons/${weapon.weaponName.replace(/[.#$/[\]]/g, "_")}`).set({
-        tokenId: weapon.tokenId,
-        name: weapon.weaponName,
-        category: weapon.category,
-        acquiredAt: new Date().toISOString(),
+      const userWeapons = await WeaponNft.find({ ownerAddress: normalizedAddress }).select("weaponName").lean();
+      const weaponNames = userWeapons.map((w) => w.weaponName);
+      await db.ref(`${FIREBASE_PATHS.USERS}/${user.uid}`).update({
+        weapons: weaponNames.length > 0 ? weaponNames : null,
       });
     } catch (e) {
       console.error(`Firebase weapon sync failed for ${user.uid}: ${e.message}`);
@@ -454,7 +455,7 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
         category: weapon.category,
       },
       transferTxHash: transferReceipt.hash,
-      paymentTxHash: txHash,
+      paymentTxHash: normalizedTxHash,
     },
   });
 });
@@ -496,14 +497,15 @@ const purchaseNft = catchAsync(async (req, res, next) => {
   const nftPrice = settings && settings.nftPrice != null ? settings.nftPrice : 0.001;
 
   // 4. Replay protection — check Transaction AND PurchaseAttempt
+  const normalizedTxHash = txHash.toLowerCase();
   const existingTx = await Transaction.findOne({
-    $or: [{ txHash }, { "metadata.paymentTxHash": txHash }],
+    $or: [{ txHash: normalizedTxHash }, { "metadata.paymentTxHash": normalizedTxHash }],
   });
   if (existingTx) {
     return next(new AppError("This transaction has already been used", 409));
   }
 
-  const existingAttempt = await PurchaseAttempt.findOne({ paymentTxHash: txHash });
+  const existingAttempt = await PurchaseAttempt.findOne({ paymentTxHash: normalizedTxHash });
   if (existingAttempt) {
     if (existingAttempt.status === "completed") {
       return next(new AppError("This payment has already been processed", 409));
@@ -549,7 +551,7 @@ const purchaseNft = catchAsync(async (req, res, next) => {
       attempt = await PurchaseAttempt.create({
         type: "nft_purchase",
         buyerAddress: normalizedAddress,
-        paymentTxHash: txHash,
+        paymentTxHash: normalizedTxHash,
         paymentAmount: actualPaymentAmount,
         paymentCurrency: "AVAX",
         storeWalletAddress: nftStoreWallet.address,
@@ -610,7 +612,7 @@ const purchaseNft = catchAsync(async (req, res, next) => {
     attempt = await PurchaseAttempt.create({
       type: "nft_purchase",
       buyerAddress: normalizedAddress,
-      paymentTxHash: txHash,
+      paymentTxHash: normalizedTxHash,
       paymentAmount: actualPaymentAmount,
       paymentCurrency: "AVAX",
       storeWalletAddress: nftStoreWallet.address,
@@ -668,9 +670,13 @@ const purchaseNft = catchAsync(async (req, res, next) => {
   attempt.transferTxHash = transferReceipt.hash;
   await attempt.save();
 
-  // 10. Update user
+  // 10. Update user (upgrade to web3 if currently web2)
   user.hasNft = true;
   user.nftTokenId = availableNft.tokenId;
+  user.level = 0;
+  if (user.playerType === PLAYER_TYPE.WEB2) {
+    user.playerType = PLAYER_TYPE.WEB3;
+  }
   await user.save();
 
   // 11. Record transaction (non-fatal)
@@ -686,7 +692,7 @@ const purchaseNft = catchAsync(async (req, res, next) => {
       metadata: {
         description: `ChainBoi #${availableNft.tokenId} purchased successfully.`,
         tokenId: availableNft.tokenId,
-        paymentTxHash: txHash,
+        paymentTxHash: normalizedTxHash,
       },
     });
   } catch (e) {
@@ -718,7 +724,7 @@ const purchaseNft = catchAsync(async (req, res, next) => {
       message: "ChainBoi NFT purchased successfully!",
       tokenId: availableNft.tokenId,
       transferTxHash: transferReceipt.hash,
-      paymentTxHash: txHash,
+      paymentTxHash: normalizedTxHash,
     },
   });
 });

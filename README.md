@@ -209,7 +209,7 @@ All endpoints return a consistent response pattern:
 
 ---
 
-## Automated Systems (9 Cron Jobs)
+## Automated Systems (10 Cron Jobs)
 
 | Job | Schedule | Purpose |
 |-----|----------|---------|
@@ -222,6 +222,7 @@ All endpoints return a consistent response pattern:
 | tokenomicsJob | Every 6 hours | Sweep weapon_store $BATTLE → burn + recycle to rewards |
 | walletHealthJob | Hourly | Monitor wallet balances + auto-fund low wallets from deployer |
 | platformAuditJob | Daily 3 AM UTC | Solvency check, ownership sync, stuck purchase detection |
+| inventoryReplenishJob | Every 30 min | Auto-mint NFTs and weapons when store inventory runs low |
 
 ---
 

@@ -104,7 +104,7 @@ const getNfts = catchAsync(async (req, res, next) => {
       }),
       stats: nft.inGameStats || {},
       contractAddress: nft.contractAddress,
-      metadataUri: `${process.env.API_BASE_URL || 'https://test-2.ghettopigeon.com'}/api/v1/metadata/${nft.tokenId}.json`,
+      metadataUri: nft.metadataUri || `${process.env.API_BASE_URL || "https://test-2.ghettopigeon.com"}/api/v1/metadata/${nft.tokenId}.json`,
     })),
   });
 });

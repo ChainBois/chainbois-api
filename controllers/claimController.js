@@ -182,7 +182,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
             contractAddress: nftContractAddr,
             ownerAddress: normalizedAddress,
             imageUri: getChainBoiImageUri(tokenId),
-            metadataUri: `ipfs://${require("../config/constants").CHAINBOIS_IMAGES_CID}/${tokenId}.json`,
+            metadataUri: `${process.env.API_BASE_URL || "https://test-2.ghettopigeon.com"}/api/v1/metadata/${tokenId}.json`,
           });
         }
         results.nfts.push({
