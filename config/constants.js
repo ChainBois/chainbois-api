@@ -283,6 +283,39 @@ module.exports = {
     TEST: "test",
   },
 
+  // IPFS CIDs for NFT images
+  CHAINBOIS_IMAGES_CID: "bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4",
+  WEAPONS_IMAGES_CID: "bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe",
+
+  // Map weapon names to their IPFS file number (01-13)
+  WEAPON_FILE_MAP: {
+    "AM-18": "01", "AR M4 MK18": "02", "SPAS-12": "03", "H&K MP5": "04",
+    "Barrett M82": "05", "Sawed-Off Shotgun": "06", "M32A1 MSGL": "07",
+    "M-9 Bayonet": "08", "Stoner 96": "09", "AK74M": "10",
+    "SRS99G-S6 AM": "11", "Colt M1911": "12", "UMP 45": "13",
+  },
+
+  /**
+   * Get the IPFS image URI for a ChainBoi NFT.
+   * @param {number} tokenId
+   * @returns {string} ipfs:// URI
+   */
+  getChainBoiImageUri: function (tokenId) {
+    return `ipfs://${this.CHAINBOIS_IMAGES_CID}/${tokenId}.png`;
+  },
+
+  /**
+   * Get the IPFS image URI for a weapon NFT.
+   * @param {string} weaponName
+   * @returns {string} ipfs:// URI or empty string
+   */
+  getWeaponImageUri: function (weaponName) {
+    const num = this.WEAPON_FILE_MAP[weaponName];
+    if (!num) return "";
+    const normalized = String(weaponName).trim().replace(/\s/g, "-").replace(/&/g, "");
+    return `ipfs://${this.WEAPONS_IMAGES_CID}/${num}-${normalized}.jpeg`;
+  },
+
   // Trait types that are dynamically computed (not static NFT art traits)
   DYNAMIC_TRAIT_TYPES: new Set(["Level", "Rank", "Kills", "Score", "Games Played"]),
 

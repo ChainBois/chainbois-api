@@ -9,7 +9,7 @@ const Wallet = require("../models/walletModel");
 const ChainboiNft = require("../models/chainboiNftModel");
 const WeaponNft = require("../models/weaponNftModel");
 const Transaction = require("../models/transactionModel");
-const { WALLET_ROLES, WEAPON_DEFINITIONS, TRANSACTION_TYPES, WEAPON_CATEGORIES } = require("../config/constants");
+const { WALLET_ROLES, WEAPON_DEFINITIONS, TRANSACTION_TYPES, WEAPON_CATEGORIES, getChainBoiImageUri, getWeaponImageUri } = require("../config/constants");
 
 const BATTLE_CLAIM_AMOUNT = 1000;
 const NFT_CLAIM_COUNT = 2;
@@ -181,6 +181,8 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
             tokenId,
             contractAddress: nftContractAddr,
             ownerAddress: normalizedAddress,
+            imageUri: getChainBoiImageUri(tokenId),
+            metadataUri: `ipfs://${require("../config/constants").CHAINBOIS_IMAGES_CID}/${tokenId}.json`,
           });
         }
         results.nfts.push({
@@ -249,6 +251,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
               category: weaponDef.category,
               price: 0,
               supply: 1,
+              imageUri: getWeaponImageUri(weaponDef.name),
             });
           }
           results.weapons.push({
