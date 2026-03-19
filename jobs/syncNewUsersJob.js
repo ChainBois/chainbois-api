@@ -1,15 +1,19 @@
 const User = require("../models/userModel");
 const PlatformMetrics = require("../models/platformMetricsModel");
 const { getFirebaseDb } = require("../config/firebase");
-const { FIREBASE_PATHS, PLAYER_TYPE } = require("../config/constants");
+const { FIREBASE_PATHS } = require("../config/constants");
 
 /**
- * Sync new users from Firebase Realtime DB to MongoDB.
- * Runs daily at midnight UTC (detects web2 players for platform metrics: web2 vs web3 distinction).
+ * Update web2 user metrics from Firebase.
+ * Runs daily at midnight UTC.
  *
- * For users created via the Unity game (who register through Firebase directly),
- * this job creates corresponding MongoDB user records so they appear in the
- * leaderboard, can earn points, etc.
+ * Counts Firebase RTDB users that don't have a matching MongoDB record.
+ * These are game-only players (registered via Unity) who haven't visited
+ * the website yet. They remain invisible to the leaderboard and points
+ * system until they connect a wallet through the website — at that point
+ * the login endpoint creates their MongoDB record and syncs their data.
+ *
+ * This job only updates the platform metrics count (web2 vs web3).
  */
 const syncNewUsersJob = async function () {
   try {
@@ -25,61 +29,32 @@ const syncNewUsersJob = async function () {
     const existingUids = await User.distinct("uid");
     const existingUidSet = new Set(existingUids);
 
-    let syncCount = 0;
-
-    for (const [firebaseId, userData] of Object.entries(firebaseUsers)) {
-      try {
-        // Validate UID shape
-        if (!firebaseId || typeof firebaseId !== "string" || firebaseId.length < 20) {
-          continue;
-        }
-
-        // Skip if already in MongoDB
-        if (existingUidSet.has(firebaseId)) {
-          continue;
-        }
-
-        // Validate userData is an object
-        if (!userData || typeof userData !== "object") {
-          continue;
-        }
-
-        const username = userData.username && typeof userData.username === "string"
-          ? userData.username.substring(0, 100)
-          : "";
-        const score = parseInt(userData.Score) || 0;
-
-        await User.create({
-          uid: firebaseId,
-          username,
-          playerType: PLAYER_TYPE.WEB2,
-          address: null,
-          score: Math.max(0, score),
-          pointsBalance: 0, // Points start at 0, syncScoresJob handles earning
-          hasNft: false,
-          level: 0,
-        });
-
-        // Write back defaults to Firebase so Unity sees them
-        await db.ref(`${FIREBASE_PATHS.USERS}/${firebaseId}`).update({
-          level: 0,
-          hasNFT: false,
-          hasnft: false,
-        });
-
-        syncCount++;
-        await PlatformMetrics.incrementUsers("web2");
-        console.log(`New Web2 user synced: ${firebaseId}`);
-      } catch (e) {
-        // Duplicate key error means another instance beat us - skip
-        if (e.code === 11000) continue;
-        console.error(`Failed to sync user ${firebaseId}:`, e.message);
+    // Count Firebase users not in MongoDB (game-only / web2 players)
+    let web2Count = 0;
+    for (const firebaseId of Object.keys(firebaseUsers)) {
+      if (!firebaseId || typeof firebaseId !== "string" || firebaseId.length < 20) {
+        continue;
+      }
+      if (!existingUidSet.has(firebaseId)) {
+        web2Count++;
       }
     }
 
-    if (syncCount > 0) {
-      console.log(`Synced ${syncCount} new users from Firebase`);
-    }
+    // Set the web2 count directly (not increment — this is a snapshot count)
+    const web3Count = existingUidSet.size;
+    await PlatformMetrics.updateOne(
+      {},
+      {
+        $set: {
+          "users.web2": web2Count,
+          "users.web3": web3Count,
+          "users.total": web2Count + web3Count,
+        },
+      },
+      { upsert: true },
+    );
+
+    console.log(`Platform metrics updated: ${web2Count} web2, ${web3Count} web3, ${web2Count + web3Count} total`);
   } catch (error) {
     console.error("syncNewUsersJob error:", error.message);
   }

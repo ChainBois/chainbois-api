@@ -1,9 +1,7 @@
 // Mock dependencies
 const mockOnce = jest.fn();
-const mockUpdate = jest.fn().mockResolvedValue();
 const mockRef = jest.fn(() => ({
   once: mockOnce,
-  update: mockUpdate,
 }));
 
 jest.mock("../config/firebase", () => ({
@@ -12,16 +10,16 @@ jest.mock("../config/firebase", () => ({
   }),
 }));
 
-const mockCreate = jest.fn();
 const mockDistinct = jest.fn();
 
 jest.mock("../models/userModel", () => ({
-  create: (...args) => mockCreate(...args),
   distinct: (...args) => mockDistinct(...args),
 }));
 
+const mockUpdateOne = jest.fn().mockResolvedValue();
+
 jest.mock("../models/platformMetricsModel", () => ({
-  incrementUsers: jest.fn().mockResolvedValue(),
+  updateOne: (...args) => mockUpdateOne(...args),
 }));
 
 const { syncNewUsersJob } = require("../jobs/syncNewUsersJob");
@@ -35,7 +33,7 @@ describe("syncNewUsersJob", () => {
   test("handles null Firebase snapshot", async () => {
     mockOnce.mockResolvedValue({ val: () => null });
     await syncNewUsersJob();
-    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockUpdateOne).not.toHaveBeenCalled();
   });
 
   test("skips users with short UIDs", async () => {
@@ -44,127 +42,70 @@ describe("syncNewUsersJob", () => {
     });
 
     await syncNewUsersJob();
-    expect(mockCreate).not.toHaveBeenCalled();
-  });
 
-  test("skips users already in MongoDB", async () => {
-    const uid = "abcdefghijklmnopqrstuvwxyz12";
-    mockDistinct.mockResolvedValue([uid]);
-    mockOnce.mockResolvedValue({
-      val: () => ({ [uid]: { username: "test", Score: 100 } }),
-    });
-
-    await syncNewUsersJob();
-    expect(mockCreate).not.toHaveBeenCalled();
-  });
-
-  test("creates new user from Firebase data", async () => {
-    const uid = "abcdefghijklmnopqrstuvwxyz12";
-    mockOnce.mockResolvedValue({
-      val: () => ({
-        [uid]: { username: "player1", Score: 500 },
-      }),
-    });
-    mockCreate.mockResolvedValue({});
-
-    await syncNewUsersJob();
-
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        uid,
-        username: "player1",
-        playerType: "web2",
-        address: null,
-        score: 500,
-        pointsBalance: 0,
-        hasNft: false,
-        level: 0,
-      })
+    expect(mockUpdateOne).toHaveBeenCalledWith(
+      {},
+      { $set: { "users.web2": 0, "users.web3": 0, "users.total": 0 } },
+      { upsert: true },
     );
   });
 
-  test("writes defaults back to Firebase", async () => {
-    const uid = "abcdefghijklmnopqrstuvwxyz12";
+  test("counts Firebase users not in MongoDB as web2", async () => {
+    const uid1 = "abcdefghijklmnopqrstuvwxyz12";
+    const uid2 = "zyxwvutsrqponmlkjihgfedcba12";
+    mockDistinct.mockResolvedValue([]);
     mockOnce.mockResolvedValue({
       val: () => ({
-        [uid]: { username: "player1", Score: 0 },
+        [uid1]: { username: "player1", Score: 500 },
+        [uid2]: { username: "player2", Score: 200 },
       }),
     });
-    mockCreate.mockResolvedValue({});
 
     await syncNewUsersJob();
 
-    expect(mockRef).toHaveBeenCalledWith(`users/${uid}`);
-    expect(mockUpdate).toHaveBeenCalledWith({ level: 0, hasNFT: false, hasnft: false });
+    expect(mockUpdateOne).toHaveBeenCalledWith(
+      {},
+      { $set: { "users.web2": 2, "users.web3": 0, "users.total": 2 } },
+      { upsert: true },
+    );
   });
 
-  test("handles duplicate key error gracefully", async () => {
-    const uid = "abcdefghijklmnopqrstuvwxyz12";
+  test("excludes MongoDB users from web2 count", async () => {
+    const uid1 = "abcdefghijklmnopqrstuvwxyz12";
+    const uid2 = "zyxwvutsrqponmlkjihgfedcba12";
+    mockDistinct.mockResolvedValue([uid1]); // uid1 already in MongoDB
     mockOnce.mockResolvedValue({
       val: () => ({
-        [uid]: { username: "player1", Score: 0 },
+        [uid1]: { username: "player1", Score: 500 },
+        [uid2]: { username: "player2", Score: 200 },
       }),
     });
-    mockCreate.mockRejectedValue({ code: 11000 });
 
-    // Should not throw
     await syncNewUsersJob();
+
+    expect(mockUpdateOne).toHaveBeenCalledWith(
+      {},
+      { $set: { "users.web2": 1, "users.web3": 1, "users.total": 2 } },
+      { upsert: true },
+    );
   });
 
-  test("handles non-duplicate create errors gracefully", async () => {
+  test("all Firebase users in MongoDB means zero web2", async () => {
     const uid = "abcdefghijklmnopqrstuvwxyz12";
+    mockDistinct.mockResolvedValue([uid]);
     mockOnce.mockResolvedValue({
       val: () => ({
-        [uid]: { username: "test", Score: 0 },
-      }),
-    });
-    mockCreate.mockRejectedValue(new Error("DB connection error"));
-
-    // Should not throw
-    await syncNewUsersJob();
-  });
-
-  test("skips non-object userData", async () => {
-    const uid = "abcdefghijklmnopqrstuvwxyz12";
-    mockOnce.mockResolvedValue({
-      val: () => ({
-        [uid]: "not an object",
+        [uid]: { username: "player1", Score: 100 },
       }),
     });
 
     await syncNewUsersJob();
-    expect(mockCreate).not.toHaveBeenCalled();
-  });
 
-  test("truncates long usernames to 100 chars", async () => {
-    const uid = "abcdefghijklmnopqrstuvwxyz12";
-    const longName = "a".repeat(200);
-    mockOnce.mockResolvedValue({
-      val: () => ({
-        [uid]: { username: longName, Score: 0 },
-      }),
-    });
-    mockCreate.mockResolvedValue({});
-
-    await syncNewUsersJob();
-
-    const createArg = mockCreate.mock.calls[0][0];
-    expect(createArg.username.length).toBe(100);
-  });
-
-  test("handles missing username gracefully", async () => {
-    const uid = "abcdefghijklmnopqrstuvwxyz12";
-    mockOnce.mockResolvedValue({
-      val: () => ({
-        [uid]: { Score: 100 },
-      }),
-    });
-    mockCreate.mockResolvedValue({});
-
-    await syncNewUsersJob();
-
-    const createArg = mockCreate.mock.calls[0][0];
-    expect(createArg.username).toBe("");
+    expect(mockUpdateOne).toHaveBeenCalledWith(
+      {},
+      { $set: { "users.web2": 0, "users.web3": 1, "users.total": 1 } },
+      { upsert: true },
+    );
   });
 
   test("handles Firebase read error gracefully", async () => {
