@@ -59,7 +59,9 @@ const getRarityByToken = catchAsync(async (req, res, next) => {
     return next(new AppError("tokenId must be a valid positive integer", 400));
   }
 
-  const rarity = await NftRarity.findOne({ tokenId }).lean();
+  const rarity = await NftRarity.findOne({ tokenId })
+    .select("tokenId name rank rarityScore rarityTier percentile traitCount traits")
+    .lean();
   if (!rarity) {
     return next(new AppError("Rarity data not found for this token", 404));
   }

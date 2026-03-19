@@ -219,7 +219,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
           });
           results.weapons.push({
             tokenId: availableWeapon.tokenId,
-            name: availableWeapon.weaponName,
+            weaponName: availableWeapon.weaponName,
             category: weaponDef.category,
             txHash: receipt.hash,
             method: "transfer",
@@ -256,7 +256,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
           }
           results.weapons.push({
             tokenId,
-            name: weaponDef.name,
+            weaponName: weaponDef.name,
             category: weaponDef.category,
             txHash: receipt.hash,
             method: "mint",
@@ -292,7 +292,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
     claim.nftTokenIds = results.nfts.map((n) => n.tokenId).filter(Boolean);
     claim.weapons = results.weapons.map((w) => ({
       tokenId: w.tokenId,
-      name: w.name,
+      name: w.weaponName,
       category: w.category,
     }));
     claim.battleAmount = BATTLE_CLAIM_AMOUNT;
@@ -321,7 +321,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
     if (results.weapons.length) {
       claim.weapons = results.weapons.map((w) => ({
         tokenId: w.tokenId,
-        name: w.name,
+        name: w.weaponName,
         category: w.category,
       }));
     }

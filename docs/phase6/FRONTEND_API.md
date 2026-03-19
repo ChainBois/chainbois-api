@@ -128,6 +128,7 @@ GET /inventory/:address/weapons
       "category": "assault",
       "tier": "base",
       "imageUri": "",
+      "metadataUri": "",
       "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d"
     }
   ]
