@@ -584,7 +584,7 @@ const purchaseNft = catchAsync(async (req, res, next) => {
               currency: "AVAX",
               txHash: refundReceipt.hash,
               status: "confirmed",
-              metadata: { description: `Refund: NFT sold out. ${actualPaymentAmount} AVAX returned.`, reason: "NFT sold out", paymentTxHash: txHash },
+              metadata: { description: `Refund: NFT sold out. ${actualPaymentAmount} AVAX returned.`, reason: "NFT sold out", paymentTxHash: normalizedTxHash },
             });
           } catch (txErr) {
             console.error(`Failed to record refund transaction: ${txErr.message}`);

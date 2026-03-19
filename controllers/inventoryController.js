@@ -86,7 +86,7 @@ const getNfts = catchAsync(async (req, res, next) => {
   }
 
   const nfts = await ChainboiNft.find({ ownerAddress: address })
-    .select("tokenId level badge imageUri traits inGameStats contractAddress")
+    .select("tokenId level badge imageUri metadataUri traits inGameStats contractAddress")
     .lean();
 
   res.status(200).json({

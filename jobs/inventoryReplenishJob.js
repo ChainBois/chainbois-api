@@ -1,7 +1,15 @@
+const { ethers } = require("ethers");
 const ChainboiNft = require("../models/chainboiNftModel");
 const WeaponNft = require("../models/weaponNftModel");
 const Wallet = require("../models/walletModel");
-const { mintChainboiNft, mintWeaponNft, getChainboisTotalSupply, getWeaponTotalSupply } = require("../utils/contractUtils");
+const {
+  mintChainboiNft,
+  mintWeaponNft,
+  getChainboisTotalSupply,
+  getWeaponTotalSupply,
+  CHAINBOIS_NFT_ABI,
+  WEAPON_NFT_ABI,
+} = require("../utils/contractUtils");
 const { decrypt } = require("../utils/cryptUtils");
 const { sendDiscordAlert } = require("../utils/discordService");
 const {
@@ -13,12 +21,29 @@ const {
   getWeaponImageUri,
 } = require("../config/constants");
 
-const MINT_BATCH_SIZE = 5;
 const MINT_DELAY_MS = 3000;
 
 let isRunning = false;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Parse tokenId from a mint receipt's Transfer event.
+ */
+const getTokenIdFromReceipt = function (receipt, abi) {
+  const iface = new ethers.Interface(abi);
+  for (const log of receipt.logs) {
+    try {
+      const parsed = iface.parseLog({ topics: log.topics, data: log.data });
+      if (parsed && parsed.name === "Transfer") {
+        return Number(parsed.args.tokenId);
+      }
+    } catch {
+      // Not a matching event, skip
+    }
+  }
+  return null;
+};
 
 /**
  * Auto-replenish NFT and weapon inventory when store wallets run low.
@@ -79,11 +104,14 @@ const replenishNfts = async function (deployerKey) {
     try {
       const receipt = await mintChainboiNft(nftStore.address, deployerKey);
 
-      // Get tokenId from totalSupply
-      let tokenId = null;
-      try {
-        tokenId = await getChainboisTotalSupply();
-      } catch { /* ignore */ }
+      // Extract tokenId from Transfer event in receipt (safe against race conditions)
+      let tokenId = getTokenIdFromReceipt(receipt, CHAINBOIS_NFT_ABI);
+      // Fallback to totalSupply if event parsing fails
+      if (tokenId === null) {
+        try {
+          tokenId = await getChainboisTotalSupply();
+        } catch { /* ignore */ }
+      }
 
       if (tokenId !== null) {
         await ChainboiNft.create({
@@ -110,15 +138,19 @@ const replenishNfts = async function (deployerKey) {
 
   if (minted > 0) {
     console.log(`[Replenish] Minted ${minted} ChainBoi NFTs to nft_store`);
-    await sendDiscordAlert({
-      subject: "Inventory Replenishment",
-      status: "warning",
-      poolType: "NFT Store",
-      walletAddress: nftStore.address,
-      currentBalance: count + minted,
-      requiredAmount: threshold,
-      unitName: `ChainBoi NFTs (minted ${minted})`,
-    });
+    try {
+      await sendDiscordAlert({
+        subject: "Inventory Replenishment",
+        status: "warning",
+        poolType: "NFT Store",
+        walletAddress: nftStore.address,
+        currentBalance: count + minted,
+        requiredAmount: threshold,
+        unitName: `ChainBoi NFTs (minted ${minted})`,
+      });
+    } catch (e) {
+      console.error("[Replenish] Discord alert failed:", e.message);
+    }
   }
 };
 
@@ -171,10 +203,14 @@ const replenishWeapons = async function (deployerKey) {
     try {
       const receipt = await mintWeaponNft(weaponStore.address, weaponDef.name, deployerKey);
 
-      let tokenId = null;
-      try {
-        tokenId = await getWeaponTotalSupply();
-      } catch { /* ignore */ }
+      // Extract tokenId from Transfer event in receipt (safe against race conditions)
+      let tokenId = getTokenIdFromReceipt(receipt, WEAPON_NFT_ABI);
+      // Fallback to totalSupply if event parsing fails
+      if (tokenId === null) {
+        try {
+          tokenId = await getWeaponTotalSupply();
+        } catch { /* ignore */ }
+      }
 
       if (tokenId !== null) {
         await WeaponNft.create({
@@ -202,15 +238,19 @@ const replenishWeapons = async function (deployerKey) {
 
   if (minted > 0) {
     console.log(`[Replenish] Minted ${minted} weapons to weapon_store`);
-    await sendDiscordAlert({
-      subject: "Inventory Replenishment",
-      status: "warning",
-      poolType: "Weapon Store",
-      walletAddress: weaponStore.address,
-      currentBalance: minted,
-      requiredAmount: threshold,
-      unitName: `Weapons (minted ${minted})`,
-    });
+    try {
+      await sendDiscordAlert({
+        subject: "Inventory Replenishment",
+        status: "warning",
+        poolType: "Weapon Store",
+        walletAddress: weaponStore.address,
+        currentBalance: minted,
+        requiredAmount: threshold,
+        unitName: `Weapons (minted ${minted})`,
+      });
+    } catch (e) {
+      console.error("[Replenish] Discord alert failed:", e.message);
+    }
   }
 };
 
