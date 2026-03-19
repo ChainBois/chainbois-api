@@ -3,7 +3,7 @@ const AppError = require("../utils/appError");
 // Valid endpoint patterns for this API
 const validPatterns = [
   // Auth
-  /^\/api\/v1\/auth\/(create-user|login|me|logout)$/,
+  /^\/api\/v1\/auth\/(create-user|login|simulate|me|logout)$/,
   /^\/api\/v1\/auth\/check-user\/.+$/,
   // Game
   /^\/api\/v1\/game\/(verify-assets|set-avatar|info)$/,
@@ -22,7 +22,7 @@ const validPatterns = [
   // Leaderboard
   /^\/api\/v1\/leaderboard(\/.*)?$/,
   // Metadata (public, for marketplaces)
-  /^\/api\/v1\/metadata\/\d+(\.json)?$/,
+  /^\/api\/v1\/metadata\/(weapon\/)?\d+(\.json)?$/,
   // Airdrop
   /^\/api\/v1\/airdrop(\/.*)?$/,
   // Claim

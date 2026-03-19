@@ -6,6 +6,7 @@ const authController = require("../controllers/authController");
 
 router.post("/create-user", authLimiter, authController.createUser);
 router.get("/check-user/:email", authController.checkUser);
+router.post("/simulate", authLimiter, authController.simulateLogin);
 router.post("/login", authLimiter, decodeToken, authController.login);
 router.get("/me", decodeToken, authController.me);
 router.post("/logout", decodeToken, authController.logout);

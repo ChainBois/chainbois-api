@@ -1,5 +1,6 @@
 const { ethers } = require("ethers");
 const validator = require("validator");
+const axios = require("axios");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
@@ -78,11 +79,13 @@ const createUser = catchAsync(async (req, res, next) => {
   }
 
   // Write to Firebase Realtime DB using update (safe for retries)
+  // Both hasNFT and hasnft written for compatibility with different Unity game versions
   const db = getFirebaseDb();
   await db.ref(`${FIREBASE_PATHS.USERS}/${userRecord.uid}`).update({
     username: sanitizedUsername,
     Score: 0,
     hasNFT: false,
+    hasnft: false,
     level: 0,
   });
 
@@ -120,8 +123,9 @@ const login = catchAsync(async (req, res, next) => {
     return next(new AppError(banCheck.reason, 403));
   }
 
-  // Get Firebase user data for username
+  // Get Firebase user data for username (RTDB → Auth displayName → email prefix fallback)
   let firebaseUsername = "";
+  let firebaseEmail = "";
   try {
     const db = getFirebaseDb();
     const snapshot = await db.ref(`${FIREBASE_PATHS.USERS}/${uid}`).once("value");
@@ -131,6 +135,21 @@ const login = catchAsync(async (req, res, next) => {
     }
   } catch (e) {
     console.error("Failed to read Firebase user data:", e.message);
+  }
+
+  // Fallback: if RTDB has no username, try Firebase Auth record
+  if (!firebaseUsername) {
+    try {
+      const authRecord = await getFirebaseAuth().getUser(uid);
+      firebaseEmail = authRecord.email || "";
+      if (authRecord.displayName) {
+        firebaseUsername = authRecord.displayName;
+      } else if (authRecord.email) {
+        firebaseUsername = authRecord.email.split("@")[0];
+      }
+    } catch (e) {
+      console.error("Failed to read Firebase Auth record:", e.message);
+    }
   }
 
   // Find or create user in MongoDB (address-primary, uid fallback for web2→web3 upgrade)
@@ -146,6 +165,7 @@ const login = catchAsync(async (req, res, next) => {
       address: normalizedAddress,
       playerType: PLAYER_TYPE.WEB2,
       username: firebaseUsername,
+      email: firebaseEmail,
     });
     await PlatformMetrics.incrementUsers("web3");
   } else {
@@ -158,6 +178,9 @@ const login = catchAsync(async (req, res, next) => {
     }
     if (firebaseUsername && !user.username) {
       user.username = firebaseUsername;
+    }
+    if (firebaseEmail && !user.email) {
+      user.email = firebaseEmail;
     }
   }
 
@@ -196,6 +219,7 @@ const login = catchAsync(async (req, res, next) => {
       const db = getFirebaseDb();
       const fbUpdate = {
         hasNFT: assets.hasNft,
+        hasnft: assets.hasNft,
         level: user.level,
         weapons: assets.weapons.length > 0 ? assets.weapons.map((w) => w.weaponName) : null,
       };
@@ -250,6 +274,7 @@ const logout = catchAsync(async (req, res, next) => {
     const db = getFirebaseDb();
     await db.ref(`${FIREBASE_PATHS.USERS}/${uid}`).update({
       hasNFT: false,
+      hasnft: false,
       level: 0,
       weapons: null,
     });
@@ -290,10 +315,77 @@ const checkUser = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * POST /api/v1/auth/simulate
+ * Simulate login for testing — returns a valid Firebase ID token without
+ * needing the frontend Firebase Auth SDK or Thirdweb wallet connection.
+ *
+ * This endpoint exists so that developers can test authenticated endpoints
+ * (login, me, logout, verify-assets, training, etc.) directly from Postman
+ * or curl without going through the full browser-based auth flow.
+ *
+ * How it works:
+ * 1. Looks up the Firebase Auth user by email
+ * 2. Creates a Firebase custom token using the Admin SDK
+ * 3. Exchanges that custom token for a real ID token via the Firebase REST API
+ * 4. Returns the ID token, UID, and email
+ *
+ * The returned idToken is identical to what the frontend would get from
+ * firebase.auth().currentUser.getIdToken() — it works with the decodeToken
+ * middleware on all protected endpoints.
+ *
+ * Prerequisites:
+ * - The user must already exist in Firebase Auth (use POST /auth/create-user first)
+ * - FIREBASE_API_KEY must be set in .env (Firebase project's Web API key)
+ *
+ * No auth required. Rate limited.
+ */
+const simulateLogin = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email || !validator.isEmail(email)) {
+    return next(new AppError("Please provide a valid email address", 400));
+  }
+
+  // Look up user in Firebase Auth
+  let userRecord;
+  try {
+    userRecord = await getFirebaseAuth().getUserByEmail(email);
+  } catch (e) {
+    if (e.code === "auth/user-not-found") {
+      return next(new AppError("No user found with this email. Use POST /auth/create-user first.", 404));
+    }
+    throw e;
+  }
+
+  // Generate a custom token and exchange for an ID token
+  const customToken = await getFirebaseAuth().createCustomToken(userRecord.uid);
+
+  const apiKey = process.env.FIREBASE_API_KEY;
+  if (!apiKey) {
+    return next(new AppError("FIREBASE_API_KEY not configured on the server", 500));
+  }
+
+  const response = await axios.post(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`,
+    { token: customToken, returnSecureToken: true },
+  );
+
+  res.status(200).json({
+    success: true,
+    data: {
+      idToken: response.data.idToken,
+      uid: userRecord.uid,
+      email: userRecord.email,
+    },
+  });
+});
+
 module.exports = {
   createUser,
   login,
   me,
   logout,
   checkUser,
+  simulateLogin,
 };

@@ -64,6 +64,7 @@ const syncNewUsersJob = async function () {
         await db.ref(`${FIREBASE_PATHS.USERS}/${firebaseId}`).update({
           level: 0,
           hasNFT: false,
+          hasnft: false,
         });
 
         syncCount++;

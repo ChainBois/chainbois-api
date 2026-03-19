@@ -185,6 +185,7 @@ const backfillPurchaseRecords = async function (attempt) {
             const db = getFirebaseDb();
             await db.ref(`${FIREBASE_PATHS.USERS}/${user.uid}`).update({
               hasNFT: true,
+              hasnft: true,
               nftTokenId: attempt.tokenId,
               level: 0,
             });

@@ -1,6 +1,7 @@
 {
   "info": {
     "name": "ChainBois API - Phase 5: Armory + Points",
+    "description": "## Getting a Token for Authenticated Endpoints\nUse the Phase 1 Simulate Login endpoint: `POST /auth/simulate` with `{\"email\": \"your@email.com\"}` (no auth required). See docs/POSTMAN_TESTING_GUIDE.md for full instructions.\n\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

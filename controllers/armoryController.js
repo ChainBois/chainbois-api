@@ -703,6 +703,7 @@ const purchaseNft = catchAsync(async (req, res, next) => {
       const db = getFirebaseDb();
       await db.ref(`${FIREBASE_PATHS.USERS}/${user.uid}`).update({
         hasNFT: true,
+        hasnft: true,
         nftTokenId: availableNft.tokenId,
         level: 0,
       });

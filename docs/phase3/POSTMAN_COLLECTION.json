@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "ChainBois API - Phase 3: Training Room, Metadata & Airdrop",
-    "description": "Phase 3 endpoints: Training Room (NFT display, level-up, costs, eligibility), Dynamic Metadata (ERC-721 live metadata), and Airdrop/Rarity system.\n\nBase URL: https://test-2.ghettopigeon.com/api/v1\n\nContracts (Fuji Testnet):\n- ChainBoisNFT: 0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\n- WeaponNFT: 0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\n- BattleToken: 0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\n- Prize Pool: 0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
+    "description": "Phase 3 endpoints: Training Room (NFT display, level-up, costs, eligibility), Dynamic Metadata (ERC-721 live metadata), and Airdrop/Rarity system.\n\nBase URL: https://test-2.ghettopigeon.com/api/v1\n\nContracts (Fuji Testnet):\n- ChainBoisNFT: 0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\n- WeaponNFT: 0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\n- BattleToken: 0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\n- Prize Pool: 0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e\n\n## Getting a Token for Authenticated Endpoints\nUse the Phase 1 Simulate Login endpoint: `POST /auth/simulate` with `{\"email\": \"your@email.com\"}` (no auth required). See docs/POSTMAN_TESTING_GUIDE.md for full instructions.\n\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

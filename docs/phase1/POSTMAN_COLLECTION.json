@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "ChainBois API - Phase 1 (Auth + Game + Leaderboard)",
-    "description": "Phase 1 endpoints: Auth, Game, Leaderboard, Health & Settings.\n\nThe `base_url` is pre-set to the live testnet API at https://test-2.ghettopigeon.com/api/v1.\nSet the `firebase_token` variable after signing in via Firebase Auth.\n\nThe `test_address` is pre-set to the nft_store wallet which holds 50 ChainBoi NFTs on Fuji testnet.\n\n## How to Import\n1. Open Postman (desktop app or web)\n2. Click **Import** (top-left)\n3. Drag and drop this JSON file, or click **Upload Files** and select it\n4. The collection appears in the sidebar under **Collections**\n5. Click the collection name, then the **Variables** tab to review/set variables\n6. Set `firebase_token` (get via Firebase Auth SDK: `user.getIdToken()`)\n7. Optionally set `test_uid` (get from /auth/create-user response)\n\n## Snowtrace Explorer (Fuji Testnet)\n- BattleToken: https://testnet.snowtrace.io/address/0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\n- ChainBoisNFT: https://testnet.snowtrace.io/address/0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\n- WeaponNFT: https://testnet.snowtrace.io/address/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\n- NFT Store Wallet: https://testnet.snowtrace.io/address/0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0\n- Weapon Store: https://testnet.snowtrace.io/address/0xD40e6631617B7557C28789bAc01648A74753739C\n- Prize Pool: https://testnet.snowtrace.io/address/0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
+    "description": "Phase 1 endpoints: Auth, Game, Leaderboard, Health & Settings.\n\nThe `base_url` is pre-set to the live testnet API at https://test-2.ghettopigeon.com/api/v1.\n\n## Quick Start — Testing Authenticated Endpoints\n1. Import this collection into Postman\n2. Create a Postman Environment and set `base_url` and `test_address`\n3. Run **Create User** to register (or skip if user already exists)\n4. Run **Simulate Login** — this auto-stores the token in `{{firebase_token}}`\n5. Run **Login** — this links your wallet and creates your MongoDB user\n6. All other authenticated requests will use the stored token automatically\n\nTokens expire after 1 hour. Run Simulate Login again when you get 401.\n\n## How to Import\n1. Open Postman (desktop app or web)\n2. Click **Import** (top-left)\n3. Drag and drop this JSON file, or click **Upload Files** and select it\n4. The collection appears in the sidebar under **Collections**\n5. Create an Environment with the variables listed below\n\n## Pre-Configured Test User\n- Email: goonerlabs@gmail.com\n- Wallet: 0x5220C9d3Ed555C5eC1505609a9572dF7819dc329\n\n## Snowtrace Explorer (Fuji Testnet)\n- BattleToken: https://testnet.snowtrace.io/address/0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0\n- ChainBoisNFT: https://testnet.snowtrace.io/address/0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\n- WeaponNFT: https://testnet.snowtrace.io/address/0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\n- NFT Store Wallet: https://testnet.snowtrace.io/address/0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0\n- Weapon Store: https://testnet.snowtrace.io/address/0xD40e6631617B7557C28789bAc01648A74753739C\n- Prize Pool: https://testnet.snowtrace.io/address/0xc81F02E4bbA2F891E5D831f2dDDD9eDD61F3F92e",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -17,7 +17,7 @@
     },
     {
       "key": "test_address",
-      "value": "0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0",
+      "value": "0x5220C9d3Ed555C5eC1505609a9572dF7819dc329",
       "type": "string"
     },
     {
@@ -96,6 +96,61 @@
           ]
         },
         {
+          "name": "Simulate Login (Get Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.environment.set('firebase_token', data.idToken);",
+                  "    pm.environment.set('test_uid', data.uid);",
+                  "    console.log('Token stored! UID: ' + data.uid);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"goonerlabs@gmail.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/simulate",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "simulate"]
+            },
+            "description": "Get a valid Firebase ID token for testing without the frontend.\n\nThis endpoint looks up the Firebase Auth user by email, creates a custom token, and exchanges it for a real ID token via the Firebase REST API. The returned token works with all authenticated endpoints (login, me, logout, verify-assets, training, etc.).\n\nPrerequisites:\n- User must exist in Firebase Auth (use Create User first)\n- FIREBASE_API_KEY must be set in the server's .env\n\nThe Test script automatically stores the token in the {{firebase_token}} environment variable.\n\nNo auth required. Rate limited: 20 requests per 15 minutes.\nTokens expire after 1 hour — call this again when you get 401."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"idToken\": \"eyJhbGciOiJSUzI1NiIs...\",\n    \"uid\": \"FwXKsWYrXbNB2ZrUhLyRultXtNw1\",\n    \"email\": \"goonerlabs@gmail.com\"\n  }\n}"
+            },
+            {
+              "name": "User Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"No user found with this email. Use POST /auth/create-user first.\"\n}"
+            },
+            {
+              "name": "Invalid Email",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Please provide a valid email address\"\n}"
+            }
+          ]
+        },
+        {
           "name": "Login",
           "request": {
             "method": "POST",
@@ -112,7 +167,7 @@
               "host": ["{{base_url}}"],
               "path": ["auth", "login"]
             },
-            "description": "Login with Firebase Auth token + wallet address.\n\nLookup: address-primary, uid-fallback (for web2->web3 upgrade).\nChecks on-chain NFT ownership, syncs assets to Firebase for Unity game.\nAuto-upgrades WEB2->WEB3 when NFT detected, auto-downgrades when lost.\n\nRate limit: 20 requests per 15 minutes."
+            "description": "Login with Firebase Auth token + wallet address.\n\nLookup: address-primary, uid-fallback (for web2->web3 upgrade).\nChecks on-chain NFT ownership, syncs assets to Firebase for Unity game.\nAuto-upgrades WEB2->WEB3 when NFT detected, auto-downgrades when lost.\n\nThe login endpoint now has username fallbacks: if the Firebase RTDB has no username, it checks Firebase Auth's displayName, then falls back to the email prefix. This prevents empty usernames in the database.\n\nRate limit: 20 requests per 15 minutes."
           },
           "response": [
             {

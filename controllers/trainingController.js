@@ -375,6 +375,7 @@ const levelUp = catchAsync(async (req, res, next) => {
     const db = getFirebaseDb();
     await db.ref(`${FIREBASE_PATHS.USERS}/${req.user.uid}`).update({
       hasNFT: true,
+      hasnft: true,
       level: newLevel,
     });
   } catch (e) {

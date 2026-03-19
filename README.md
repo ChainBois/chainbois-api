@@ -154,7 +154,7 @@ Source code: [`contracts/`](contracts/) | ABIs: [`abis/`](abis/)
 
 | Group | Base Path | Key Endpoints |
 |-------|-----------|---------------|
-| Auth | `/api/v1/auth` | create-user, check-user, login, logout, me |
+| Auth | `/api/v1/auth` | create-user, check-user, simulate, login, logout, me |
 | Game | `/api/v1/game` | download, verify-assets, set-avatar, info |
 | Training | `/api/v1/training` | list NFTs, NFT details, level-up, costs, eligibility |
 | Tournaments | `/api/v1/tournaments` | list tiers, leaderboard, countdown, winners, history |

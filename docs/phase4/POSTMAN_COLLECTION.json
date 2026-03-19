@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "ChainBois API - Phase 4 (Battleground + Leaderboard)",
-    "description": "Tournament management, leaderboards, prize distribution, and real-time updates.\n\nAll tournament endpoints are public (no auth). User rank endpoint requires Firebase auth. Set `baseUrl` variable before running.",
+    "description": "Tournament management, leaderboards, prize distribution, and real-time updates.\n\nAll tournament endpoints are public (no auth). User rank endpoint requires Firebase auth. Set `baseUrl` variable before running.\n\n## Getting a Token for Authenticated Endpoints\nUse the Phase 1 Simulate Login endpoint: `POST /auth/simulate` with `{\"email\": \"your@email.com\"}` (no auth required). See docs/POSTMAN_TESTING_GUIDE.md for full instructions.\n\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

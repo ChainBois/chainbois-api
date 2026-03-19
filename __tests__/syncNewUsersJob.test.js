@@ -95,7 +95,7 @@ describe("syncNewUsersJob", () => {
     await syncNewUsersJob();
 
     expect(mockRef).toHaveBeenCalledWith(`users/${uid}`);
-    expect(mockUpdate).toHaveBeenCalledWith({ level: 0, hasNFT: false });
+    expect(mockUpdate).toHaveBeenCalledWith({ level: 0, hasNFT: false, hasnft: false });
   });
 
   test("handles duplicate key error gracefully", async () => {

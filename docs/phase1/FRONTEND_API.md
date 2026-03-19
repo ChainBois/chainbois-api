@@ -394,6 +394,77 @@ const handleRegister = async (email, password, username) => {
 
 ---
 
+### POST /auth/simulate
+
+Get a valid Firebase ID token for testing without the frontend auth flow.
+
+**Auth**: None (public endpoint)
+
+**When to use**: When testing authenticated endpoints from Postman, curl, or any HTTP client. This replaces the need to go through Firebase Auth SDK sign-in on the frontend.
+
+| Field | Type | Required | Validation |
+|-------|--------|----------|-------------------------------|
+| email | string | yes | Valid email format |
+
+**Request:**
+```json
+{
+  "email": "goonerlabs@gmail.com"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "idToken": "eyJhbGciOiJSUzI1NiIs...",
+    "uid": "FwXKsWYrXbNB2ZrUhLyRultXtNw1",
+    "email": "goonerlabs@gmail.com"
+  }
+}
+```
+
+**How it works:**
+1. Looks up the Firebase Auth user by email
+2. Creates a Firebase custom token via the Admin SDK
+3. Exchanges the custom token for a real ID token via the Firebase REST API
+4. Returns the ID token -- use it as `Authorization: Bearer <idToken>` on protected endpoints
+
+**Prerequisites:**
+- User must exist in Firebase Auth (use `POST /auth/create-user` first)
+- Token expires after 1 hour -- call again when you get 401
+
+**Errors:**
+- `404`: No user found with this email
+- `400`: Invalid email format
+
+**Example:**
+```javascript
+// From Postman or curl -- get a token for testing
+const getTestToken = async (email) => {
+  const { data } = await api.post("/auth/simulate", { email });
+  return data.data.idToken;
+};
+
+// Usage:
+const token = await getTestToken("goonerlabs@gmail.com");
+// Use as: Authorization: Bearer <token>
+```
+
+```bash
+# curl example:
+curl -X POST https://test-2.ghettopigeon.com/api/v1/auth/simulate \
+  -H "Content-Type: application/json" \
+  -d '{"email": "goonerlabs@gmail.com"}'
+
+# Then use the returned idToken:
+curl https://test-2.ghettopigeon.com/api/v1/auth/me \
+  -H "Authorization: Bearer <idToken from above>"
+```
+
+---
+
 ### POST /auth/login
 
 Login with wallet address. Checks on-chain NFT ownership, creates or updates the user in MongoDB, and writes asset data to Firebase RTDB for the Unity game.
@@ -1264,7 +1335,7 @@ Any EVM wallet works: MetaMask, Core, Rabby, etc. For testnet:
 
 ### Q: Where is the Postman collection?
 
-`docs/phase1/POSTMAN_COLLECTION.json` -- import this into Postman, set the `base_url` and `firebase_token` variables, and you can test all endpoints manually.
+`docs/phase1/POSTMAN_COLLECTION.json` -- import this into Postman, set the `base_url` and `firebase_token` variables, and you can test all endpoints manually. To get a `firebase_token` without the frontend auth flow, use `POST /auth/simulate` with your email (see Section 4).
 
 ### Q: What are the ChainBois NFT details?
 

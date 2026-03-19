@@ -52,6 +52,7 @@ const verifyAssets = catchAsync(async (req, res, next) => {
     const db = getFirebaseDb();
     const fbUpdate = {
       hasNFT: assets.hasNft,
+      hasnft: assets.hasNft,
       level: user.level,
       weapons: assets.weapons.length > 0 ? assets.weapons.map((w) => w.weaponName) : null,
     };
@@ -134,6 +135,7 @@ const setAvatar = catchAsync(async (req, res, next) => {
     const db = getFirebaseDb();
     await db.ref(`${FIREBASE_PATHS.USERS}/${req.user.uid}`).update({
       hasNFT: true,
+      hasnft: true,
       level: level,
     });
   } catch (e) {

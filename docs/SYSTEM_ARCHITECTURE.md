@@ -415,7 +415,7 @@ Uses in-memory alert deduplication (6-hour cooldown per wallet+severity) to prev
 
 ```javascript
 // config/rateLimiter.js — Redis-backed rate limiting
-authLimiter:      5 requests / 15 min (login, create-user)
+authLimiter:      5 requests / 15 min (login, create-user, simulate)
 purchaseLimiter:  3 requests / 1 min (weapon/NFT purchases)
 generalLimiter:   100 requests / 15 min (all other routes)
 ```
@@ -521,6 +521,7 @@ This creates a natural equilibrium — the system slows down but never stops. Th
 |--------|------|------|-------------|
 | GET | `/check-user/:email` | Public | Check if user exists |
 | POST | `/create-user` | Public | Create Firebase + MongoDB user |
+| POST | `/simulate` | Public | Get Firebase ID token for testing (no frontend needed) |
 | POST | `/login` | Firebase | Login, check assets, sync Firebase |
 | GET | `/me` | Firebase | Get user profile |
 | POST | `/logout` | Firebase | Logout + revoke tokens |
