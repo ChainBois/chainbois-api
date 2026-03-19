@@ -162,6 +162,7 @@ module.exports = {
     REFUND: "refund",
     TOKEN_BURN: "token_burn",
     TOKEN_RECYCLE: "token_recycle",
+    CLAIM: "claim",
   },
 
   // Rarity tier thresholds (percentile cutoffs)
@@ -301,7 +302,7 @@ module.exports = {
    * @returns {string} ipfs:// URI
    */
   getChainBoiImageUri: function (tokenId) {
-    return `ipfs://${this.CHAINBOIS_IMAGES_CID}/${tokenId}.png`;
+    return `ipfs://${module.exports.CHAINBOIS_IMAGES_CID}/${tokenId}.png`;
   },
 
   /**
@@ -310,10 +311,10 @@ module.exports = {
    * @returns {string} ipfs:// URI or empty string
    */
   getWeaponImageUri: function (weaponName) {
-    const num = this.WEAPON_FILE_MAP[weaponName];
+    const num = module.exports.WEAPON_FILE_MAP[weaponName];
     if (!num) return "";
     const normalized = String(weaponName).trim().replace(/\s/g, "-").replace(/&/g, "");
-    return `ipfs://${this.WEAPONS_IMAGES_CID}/${num}-${normalized}.jpeg`;
+    return `ipfs://${module.exports.WEAPONS_IMAGES_CID}/${num}-${normalized}.jpeg`;
   },
 
   // Trait types that are dynamically computed (not static NFT art traits)

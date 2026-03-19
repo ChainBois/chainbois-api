@@ -16,6 +16,7 @@ const transactionSchema = new mongoose.Schema(
         "refund",
         "token_burn",
         "token_recycle",
+        "claim",
       ],
       required: true,
     },

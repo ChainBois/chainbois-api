@@ -283,7 +283,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
       amount: BATTLE_CLAIM_AMOUNT,
       txHash: battleReceipt.hash,
     };
-    await recordTransaction(TRANSACTION_TYPES.AIRDROP, rewardsWallet.address, normalizedAddress, BATTLE_CLAIM_AMOUNT, battleReceipt.hash, "BATTLE", {
+    await recordTransaction(TRANSACTION_TYPES.CLAIM, rewardsWallet.address, normalizedAddress, BATTLE_CLAIM_AMOUNT, battleReceipt.hash, "BATTLE", {
       source: "starter_pack_claim",
     });
 
