@@ -214,7 +214,7 @@ All endpoints return a consistent response pattern:
 | Job | Schedule | Purpose |
 |-----|----------|---------|
 | syncScoresJob | Every 5 min | Sync game scores from Firebase → MongoDB, run anti-cheat |
-| syncNewUsersJob | Daily midnight | Detect Web2 players (playing without wallet) for metrics |
+| syncNewUsersJob | Daily midnight | Count game-only players (Firebase users not in MongoDB) for web2/web3 metrics |
 | tournamentJob | Hourly | Tournament lifecycle: create, end, auto-distribute prizes |
 | purchaseFailsafeJob | Every 5 min | Recover stuck NFT/weapon purchases, auto-refund |
 | failedPayoutJob | Every 6 hours | Retry failed tournament prize payouts |

@@ -206,17 +206,16 @@ This is the most common path. The user starts by playing the game and later visi
 1. User downloads and plays the game
 2. Game registers user via Firebase Auth SDK directly
 3. Game writes { username, Score } to Firebase RTDB
-4. Backend's syncNewUsersJob (runs every 1 min) detects the new UID in Firebase
-5. Backend creates a web2 user in MongoDB (no address, playerType: "web2")
-6. Backend writes { hasNFT: false, level: 0 } back to Firebase
+4. Game-only player is invisible to the backend (no MongoDB record)
+5. syncNewUsersJob (daily midnight) counts them for web2/web3 metrics only
 
     --- User later visits the website ---
 
-7. User signs in with Firebase (email/password) on the website
-8. User connects wallet via Thirdweb
-9. Frontend calls: POST /auth/login { address }
-   - Backend looks up user by address first (no match, since web2)
-   - Falls back to lookup by uid (finds the web2 user)
+6. User signs in with Firebase (email/password) on the website
+7. User connects wallet via Thirdweb
+8. Frontend calls: POST /auth/login { address }
+   - Backend creates a new MongoDB user (first login)
+   - Checks on-chain NFT ownership → upgrades to web3 if NFTs found
    - Links address to the user record
 10. Backend checks NFTs on-chain:
     - If NFT found: upgrades playerType "web2" -> "web3"
@@ -269,7 +268,7 @@ The backend uses **address-primary lookup with uid fallback**:
 1. First: `User.findOne({ address })` -- finds existing web3 users
 2. Fallback: `User.findOne({ uid })` -- finds web2 users who have never linked a wallet
 
-This allows web2 users created by the game (via syncNewUsersJob) to be found and upgraded when they later connect a wallet on the website.
+This dual lookup ensures that if a user changes wallets or previously logged in with a different address, they are still found by their Firebase UID.
 
 ---
 
@@ -1309,11 +1308,11 @@ Display the backend's message directly to the user. The `me` endpoint still retu
 
 ### Q: How does the game interact with the website?
 
-The game registers users via Firebase Auth SDK and writes `{ username, Score }` to Firebase RTDB. The backend's syncNewUsersJob (runs every 1 minute) detects new UIDs and creates web2 user records in MongoDB. When a user later visits the website and connects their wallet, the backend links their wallet address and upgrades them to web3 if they have an NFT. The game reads `{ hasNFT, level, weapons }` from Firebase RTDB to unlock content. The game never calls the API directly.
+The game registers users via Firebase Auth SDK and writes `{ username, Score }` to Firebase RTDB. Game-only players are invisible to the backend until they visit the website — `syncNewUsersJob` (daily midnight) only counts them for web2/web3 platform metrics. When a user visits the website and connects their wallet via login, the backend creates their MongoDB record and upgrades them to web3 if they own an NFT. The game reads `{ hasNFT, level, weapons }` from Firebase RTDB to unlock content. The game never calls the API directly.
 
 ### Q: Does the game register users via the API?
 
-**No.** The game uses the Firebase SDK directly to register users and write data to Firebase RTDB. The backend polls Firebase for new UIDs via `syncNewUsersJob` (every 1 minute) and creates corresponding records in MongoDB. This means game developers do not need to make any changes to integrate with the backend.
+**No.** The game uses the Firebase SDK directly to register users and write data to Firebase RTDB. Game-only players do not get MongoDB records — they remain invisible to the leaderboard and points system until they visit the website and log in. The `syncNewUsersJob` (daily midnight) only counts them for platform metrics. This means game developers do not need to make any changes to integrate with the backend.
 
 ### Q: What is the difference between "score" and "pointsBalance"?
 

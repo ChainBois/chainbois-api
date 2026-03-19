@@ -287,8 +287,8 @@ Request → logger → CORS → rateLimiter → JSON parser → validateEndpoint
 
 ```
 1. Player opens website → connects wallet (MetaMask/Core)
-2. Frontend: POST /auth/create-user { email, address }
-   → Backend creates Firebase user + MongoDB user
+2. Frontend: POST /auth/create-user { email, password, username }
+   → Backend creates Firebase Auth user + Firebase RTDB record
 3. Frontend: POST /auth/login { firebaseToken }
    → Backend checks on-chain NFTs (Glacier API)
    → Backend checks on-chain level (contract.getLevel)
@@ -372,7 +372,7 @@ All cron jobs run only on PM2 instance 0 (primary). Registered in `server.js`.
 
 | Job | File | Schedule | Purpose |
 |-----|------|----------|---------|
-| syncNewUsersJob | `jobs/syncNewUsersJob.js` | Daily midnight | Detect Web2 players (Firebase UIDs without MongoDB accounts) |
+| syncNewUsersJob | `jobs/syncNewUsersJob.js` | Daily midnight | Count game-only players (Firebase UIDs not in MongoDB) for web2/web3 metrics |
 | syncScoresJob | `jobs/syncScoresJob.js` | Every 5 min | Sync game scores Firebase → MongoDB, update leaderboards |
 | tournamentJob | `jobs/tournamentJob.js` | Every hour | Create/end tournaments, auto-distribute prizes |
 | purchaseFailsafeJob | `jobs/purchaseFailsafeJob.js` | Every 5 min | Recover stuck NFT/weapon purchases (PurchaseAttempt) |

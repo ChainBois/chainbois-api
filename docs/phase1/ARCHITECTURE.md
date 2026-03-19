@@ -70,7 +70,7 @@ chainbois-api/
 │   ├── scoreChangeModel.js   # Score deltas for time-period queries
 │   └── walletModel.js     # AES-encrypted wallet keys
 ├── jobs/
-│   ├── syncNewUsersJob.js # Cron: poll Firebase for new game players (1 min)
+│   ├── syncNewUsersJob.js # Cron: web2/web3 metrics count (daily midnight)
 │   └── syncScoresJob.js   # Cron: sync scores from Firebase to MongoDB (5 min)
 ├── utils/
 │   ├── appError.js        # Custom error class with statusCode

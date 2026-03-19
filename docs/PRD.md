@@ -298,7 +298,7 @@ chainbois-api/
 │   └── apiFeatures.js           # Query filtering/pagination
 │
 ├── jobs/
-│   ├── syncNewUsersJob.js       # Poll Firebase for new game users (every 1 min)
+│   ├── syncNewUsersJob.js       # Count game-only Firebase users for web2/web3 metrics (daily midnight)
 │   ├── syncScoresJob.js         # Sync scores from Firebase to MongoDB (every 5 min)
 │   ├── tournamentJob.js         # Tournament lifecycle cron
 │   ├── leaderboardResetJob.js   # Weekly leaderboard reset + auto prize distribution
@@ -644,7 +644,7 @@ chainbois-api/
 | POST | `/api/v1/game/end-session` | Clear Firebase flags on game exit | Firebase Token |
 
 **Cron Jobs (not endpoints - run on PM2 instance 0):**
-- `syncNewUsersJob` (every 1 min) - poll Firebase for new game users, create MongoDB records as `playerType: "web2"` (since they have no wallet yet). When a user later connects a wallet via the website, they upgrade to `playerType: "web3"` automatically. This requires ZERO game dev changes - any score appearing in Firebase for an unknown UID is simply a new Web2 player.
+- `syncNewUsersJob` (daily midnight) - counts Firebase UIDs not in MongoDB to update web2/web3 platform metrics. Game-only players remain invisible to the leaderboard and points system until they visit the website, connect a wallet, and log in — at which point the login endpoint creates their MongoDB record and syncs their data.
 - `syncScoresJob` (every 5 min) - sync scores from Firebase to MongoDB, update leaderboard
 
 ### 6.3 Training Room
@@ -829,7 +829,7 @@ No LevelUp, PrizeDistribution, or PointsConversion contracts needed - the backen
 **Deliverables:**
 - Auth controller (createUser, login with Firebase + wallet, logout)
 - Game controller (verify assets, set avatar, end session)
-- Cron: syncNewUsersJob (poll Firebase every 1 min)
+- Cron: syncNewUsersJob (web2/web3 metrics count, daily midnight)
 - Cron: syncScoresJob (sync scores every 5 min)
 - Firebase writes: hasNFT, level, weapons (game reads these)
 - Web2 player support (track progress in DB, no wallet needed)
@@ -1090,7 +1090,7 @@ Users can list/sell NFTs on Joepegs. We just link to it. No custom marketplace.
 
 **How Web2 players are detected (ZERO game dev changes needed):**
 
-The game writes scores to Firebase for all players. The `syncNewUsersJob` cron (every 1 min) polls Firebase and finds UIDs that don't exist in MongoDB yet. These are automatically created as `playerType: "web2"` because they have no wallet address associated. No game code changes required - the distinction is simply: registered in MongoDB with a wallet = Web3, without a wallet = Web2.
+The `syncNewUsersJob` cron (daily midnight) counts Firebase UIDs that don't exist in MongoDB — these are game-only players. This count is used for web2/web3 platform metrics only. Game-only players are NOT created in MongoDB — they remain invisible to the leaderboard and points system until they visit the website and connect a wallet. When they log in via the website, the login endpoint creates their MongoDB record, syncs their game data, and upgrades them to `playerType: "web3"` if they own an NFT.
 
 **Upgrade flow:**
 1. Web2 player plays with limited access (4 characters, basic weapons)

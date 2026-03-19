@@ -77,8 +77,8 @@ Phase 1 implements the core authentication loop and game-to-backend integration:
 |  +------------------------+             |         v                        |
 |  |   Background Jobs       |<------------+                                  |
 |  |                         |  Polls Firebase daily (midnight)               |
-|  | - syncNewUsers          |  Detects unregistered players                  |
-|  |   (daily cron)         |  Creates as WEB2 in MongoDB                    |
+|  | - syncNewUsers          |  Counts game-only players                      |
+|  |   (daily cron)         |  Updates web2/web3 metrics                     |
 |  |                         |                                                |
 |  | - syncScores            |  Polls Firebase every 5 min                    |
 |  |   (5 min cron)         |  Updates score, highScore, points              |
@@ -222,9 +222,9 @@ This is the most complex endpoint. Full flow:
 
 ### syncNewUsersJob (Daily at Midnight)
 
-**Purpose**: Auto-detect players who started playing via Unity but haven't connected a wallet yet.
+**Purpose**: Update web2/web3 platform metrics.
 
-The game writes to Firebase via Firebase SDK. This cron job polls Firebase, detects new UIDs not in MongoDB, and creates WEB2 user records. This is how web2 players enter the system. Also increments platform metrics (`PlatformMetrics.incrementUsers("web2")`) for each new user.
+Counts Firebase UIDs that don't have a corresponding MongoDB record — these are game-only players who registered via Unity but haven't visited the website yet. The count is used to set the `users.web2` metric. Game-only players are NOT created in MongoDB — they remain invisible to the leaderboard and points system until they visit the website, connect a wallet, and log in.
 
 ### syncScoresJob (Every 5 Minutes)
 
@@ -279,8 +279,9 @@ Threat score thresholds:
                     |  (from game)  |
                     +------+--------+
                            |
-                    syncNewUsersJob
-                    detects Firebase UID
+                    Visits website,
+                    connects wallet,
+                    calls /auth/login
                            |
                            v
                     +---------------+
@@ -398,7 +399,7 @@ __tests__/
   nftUtils.test.js               <- lookupNftAssets (with/without NFTs)
   retryHelper.test.js            <- Retry with backoff
   scoreChangeModel.test.js       <- ScoreChange model validation
-  syncNewUsersJob.test.js        <- Firebase -> MongoDB new user sync
+  syncNewUsersJob.test.js        <- Web2/web3 metrics count
   syncScoresJob.test.js          <- Score sync + anti-cheat validation
   validateEndpoint.test.js       <- Unknown route handling
 ```
@@ -415,7 +416,7 @@ __tests__/
 - [x] Character unlock system (army ranks: Private through Field Marshal)
 - [x] Weapon system (30 weapons across 7 categories)
 - [x] Firebase RTDB sync for Unity game
-- [x] Background job: sync new users (daily at midnight)
+- [x] Background job: web2/web3 metrics count (daily at midnight)
 - [x] Background job: sync scores (5 min) with ScoreChange tracking + NFT stats propagation
 - [x] Anti-cheat: velocity, session, daily cap, threat scoring, bans
 - [x] Rate limiting (auth: 20/15min, general: 10,000/1hr)

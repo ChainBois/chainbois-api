@@ -165,4 +165,4 @@ New `tokenomics` subdocument:
 | purchaseFailsafeJob | Every 5m | Recover stuck purchases |
 | failedPayoutJob | Every 6h | Retry failed prize payouts |
 | syncScoresJob | Every 5m | Firebase → MongoDB score sync |
-| syncNewUsersJob | Daily midnight | Web2 player detection |
+| syncNewUsersJob | Daily midnight | Web2/web3 metrics count |
