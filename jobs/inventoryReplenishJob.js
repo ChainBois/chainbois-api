@@ -110,7 +110,15 @@ const replenishNfts = async function (deployerKey) {
 
   if (minted > 0) {
     console.log(`[Replenish] Minted ${minted} ChainBoi NFTs to nft_store`);
-    await sendDiscordAlert(`[Replenish] Minted ${minted} ChainBoi NFTs to nft_store (was ${count}, now ${count + minted})`);
+    await sendDiscordAlert({
+      subject: "Inventory Replenishment",
+      status: "warning",
+      poolType: "NFT Store",
+      walletAddress: nftStore.address,
+      currentBalance: count + minted,
+      requiredAmount: threshold,
+      unitName: `ChainBoi NFTs (minted ${minted})`,
+    });
   }
 };
 
@@ -194,7 +202,15 @@ const replenishWeapons = async function (deployerKey) {
 
   if (minted > 0) {
     console.log(`[Replenish] Minted ${minted} weapons to weapon_store`);
-    await sendDiscordAlert(`[Replenish] Minted ${minted} weapons to weapon_store`);
+    await sendDiscordAlert({
+      subject: "Inventory Replenishment",
+      status: "warning",
+      poolType: "Weapon Store",
+      walletAddress: weaponStore.address,
+      currentBalance: minted,
+      requiredAmount: threshold,
+      unitName: `Weapons (minted ${minted})`,
+    });
   }
 };
 
