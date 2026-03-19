@@ -1094,7 +1094,7 @@
           try {
             const checkRes = await fetch(API_BASE + '/claim/check/' + encodeURIComponent(address));
             const checkData = await checkRes.json();
-            if (checkData.claimed) {
+            if (checkData.data && checkData.data.claimed) {
               showAlreadyClaimed(checkData.data);
             }
           } catch (e) {
@@ -1117,7 +1117,7 @@
         try {
           const res = await fetch(API_BASE + '/claim/check/' + encodeURIComponent(address));
           const data = await res.json();
-          if (data.claimed && data.data && data.data.status === 'completed') {
+          if (data.data && data.data.claimed && data.data.status === 'completed') {
             showAlreadyClaimed(data.data);
           }
         } catch (e) {

@@ -21,7 +21,7 @@ const createNotificationKey = function (subject) {
  * Send a structured alert to Discord
  * @param {Object} options
  * @param {string} options.subject - Alert title
- * @param {string} options.status - 'critical' or 'warning'
+ * @param {string} options.status - 'critical', 'warning', 'success', or 'info'
  * @param {string} options.poolType - Type of pool
  * @param {string} options.walletAddress - Wallet address
  * @param {number} options.currentBalance - Current balance
@@ -56,14 +56,29 @@ const sendDiscordAlert = async function (options) {
     }
   }
 
-  const isCritical = status === "critical";
-  const color = isCritical ? 0xd32f2f : 0xffa500;
-  const title = isCritical
-    ? `🚨 CRITICAL ALERT: ${subject}`
-    : `⚠️ Low Balance Warning: ${subject}`;
-  const description = isCritical
-    ? `**${subject}** has been flagged due to insufficient funds.`
-    : `**${subject}** is running low on funds. Please top up soon.`;
+  let color, title, description;
+  switch (status) {
+    case "critical":
+      color = 0xd32f2f;
+      title = `🚨 CRITICAL ALERT: ${subject}`;
+      description = `**${subject}** has been flagged due to insufficient funds.`;
+      break;
+    case "success":
+      color = 0x4caf50;
+      title = `✅ Success: ${subject}`;
+      description = `**${subject}** completed successfully.`;
+      break;
+    case "info":
+      color = 0x2196f3;
+      title = `ℹ️ Info: ${subject}`;
+      description = `**${subject}** — informational notice.`;
+      break;
+    default: // "warning" and any other value
+      color = 0xffa500;
+      title = `⚠️ Low Balance Warning: ${subject}`;
+      description = `**${subject}** is running low on funds. Please top up soon.`;
+      break;
+  }
 
   const payload = {
     username: DISCORD_USERNAME,

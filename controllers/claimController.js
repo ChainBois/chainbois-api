@@ -288,7 +288,7 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
     });
 
     // 9. Update claim record
-    claim.status = "completed";
+    claim.status = results.weapons.length < weaponDefs.length ? "partial" : "completed";
     claim.nftTokenIds = results.nfts.map((n) => n.tokenId).filter(Boolean);
     claim.weapons = results.weapons.map((w) => ({
       tokenId: w.tokenId,
@@ -307,8 +307,10 @@ const claimStarterPack = catchAsync(async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Starter pack claimed successfully!",
-      data: results,
+      data: {
+        message: "Starter pack claimed successfully!",
+        ...results,
+      },
     });
   } catch (err) {
     // Partial success handling
@@ -355,14 +357,16 @@ const checkClaim = catchAsync(async (req, res, next) => {
   if (!claim) {
     return res.status(200).json({
       success: true,
-      claimed: false,
+      data: {
+        claimed: false,
+      },
     });
   }
 
   return res.status(200).json({
     success: true,
-    claimed: true,
     data: {
+      claimed: true,
       status: claim.status,
       nftTokenIds: claim.nftTokenIds,
       weapons: claim.weapons,
