@@ -23,6 +23,13 @@ const handleValidationErrorDB = function (err) {
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
 
+  // Ensure CORS headers on error responses for cross-origin routes (faucet, metadata)
+  if (req.originalUrl && (req.originalUrl.startsWith("/api/v1/claim") || req.originalUrl.startsWith("/api/v1/metadata"))) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  }
+
   if (process.env.NODE_ENV === "development") {
     return res.status(err.statusCode).json({
       success: false,
