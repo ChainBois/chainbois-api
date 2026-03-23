@@ -809,6 +809,7 @@
 
         connectedProvider = provider;
         connectedAddress = accounts[0];
+        document.getElementById('claimBtn').disabled = false;
 
         await ensureFujiNetwork();
         updateWalletUI();
@@ -822,7 +823,13 @@
         if (err.code !== 4001) {
           console.error('Wallet connect failed:', err);
         }
-        btnText.textContent = 'Connect Wallet';
+        // Connection failed — reset UI but keep wallet if accounts were obtained
+        if (!connectedAddress) {
+          btnText.textContent = 'Connect Wallet';
+        } else {
+          // Chain switch was rejected but wallet is connected — still enable claim
+          updateWalletUI();
+        }
       } finally {
         btn.disabled = false;
       }
