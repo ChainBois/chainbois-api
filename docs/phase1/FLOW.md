@@ -184,9 +184,8 @@ This is the most complex endpoint. Full flow:
 10. Return { user, assets, weapons }
 
 **Key behaviors:**
-- First login creates user in MongoDB
-- If user has NFT -> `playerType: "web3"`, unlocks premium features
-- If user loses NFT (sold/transferred) -> auto-downgrade to `"web2"`
+- First login creates user in MongoDB as `playerType: "web3"` (connecting wallet = permanent web3)
+- No downgrade — users remain web3 even if NFT is sold/transferred
 - Firebase RTDB updated for Unity game to read
 - Address collision prevented (one wallet per user)
 
@@ -275,8 +274,9 @@ Threat score thresholds:
 
 ```
                     +---------------+
-                    |  NEW PLAYER   |
-                    |  (from game)  |
+                    |  GAME-ONLY    |
+                    |  (Firebase    |
+                    |   only)       |
                     +------+--------+
                            |
                     Visits website,
@@ -285,40 +285,19 @@ Threat score thresholds:
                            |
                            v
                     +---------------+
-                    |    WEB2       |
-                    |  (no wallet)  |
-                    |               |
-                    | Can play game |
-                    | Earns points  |
-                    | NO tokens     |
-                    | NO tourneys   |
-                    +------+--------+
-                           |
-                    User connects wallet
-                    + owns ChainBoi NFT (CB)
-                    (login detects on-chain)
-                           |
-                           v
-                    +---------------+
                     |    WEB3       |
-                    | (has wallet   |
-                    |  + NFT)       |
+                    | (permanent)   |
                     |               |
                     | Full access   |
                     | Tournaments   |
                     | Points->$BTLR |
                     | Level-up      |
-                    +------+--------+
-                           |
-                    Sells/transfers NFT
-                    (next login detects
-                     NFT is gone)
-                           |
-                           v
                     +---------------+
-                    |  WEB2 again   |
-                    | (downgraded)  |
-                    +---------------+
+
+    Connecting a wallet = permanent WEB3.
+    No downgrade if NFT is sold/transferred.
+    Game-only players (no wallet) are invisible
+    to the platform until they connect.
 ```
 
 ---

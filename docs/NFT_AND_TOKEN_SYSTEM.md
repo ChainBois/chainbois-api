@@ -104,8 +104,8 @@ Complete documentation of the NFT lifecycle, weapon system, $BATTLE token, metad
 7. SECONDARY MARKET
    Users can trade NFTs freely on Joepegs, Campfire, etc.
    When new owner logs in, backend detects new ownership
-   Previous owner auto-downgraded to WEB2
-   New owner auto-upgraded to WEB3
+   Previous owner remains WEB3 (no downgrade — wallet connected = permanent web3)
+   New owner becomes WEB3 on first wallet connect + login
 ```
 
 ### What an NFT Gives You

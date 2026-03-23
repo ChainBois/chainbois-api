@@ -1086,23 +1086,21 @@ Users can list/sell NFTs on Joepegs. We just link to it. No custom marketplace.
 10. User exits game → backend clears Firebase flags
 ```
 
-### 13.2 Web2 → Web3 Detection & Upgrade
+### 13.2 Game-Only → Web3 Transition
 
-**How Web2 players are detected (ZERO game dev changes needed):**
+**How game-only players are detected (ZERO game dev changes needed):**
 
-The `syncNewUsersJob` cron (daily midnight) counts Firebase UIDs that don't exist in MongoDB — these are game-only players. This count is used for web2/web3 platform metrics only. Game-only players are NOT created in MongoDB — they remain invisible to the leaderboard and points system until they visit the website and connect a wallet. When they log in via the website, the login endpoint creates their MongoDB record, syncs their game data, and upgrades them to `playerType: "web3"` if they own an NFT.
+The `syncNewUsersJob` cron (daily midnight) counts Firebase UIDs that don't exist in MongoDB — these are game-only players. This count is used for web2/web3 platform metrics only. Game-only players are NOT created in MongoDB — they remain invisible to the leaderboard and points system until they visit the website and connect a wallet. When they log in via the website, the login endpoint creates their MongoDB record as `playerType: "web3"` (connecting a wallet = permanent web3 status).
 
-**Upgrade flow:**
-1. Web2 player plays with limited access (4 characters, basic weapons)
-2. Progress tracked in MongoDB (points, scores, games played)
-3. Player acquires a ChainBoi NFT (buy on Joepegs, claim from our claim page, etc.)
-4. Player visits website, connects wallet, logs in
-5. Backend detects NFT in wallet during login
-6. `playerType` updated from `"web2"` → `"web3"` automatically
-7. Accumulated points become convertible to $BATTLE
-8. Progress data written to NFT metadata
-9. Full character/weapon access based on NFT level
-10. Firebase updated with `hasNFT: true, level: N` → game unlocks content
+**Transition flow:**
+1. Game-only player plays with limited access (4 characters, basic weapons)
+2. Player visits website, connects wallet (auto-switches to Fuji via EIP-3085/EIP-3326)
+3. Login creates MongoDB record as `playerType: "web3"` — permanent, no downgrade
+4. Backend checks on-chain NFT ownership during login
+5. If NFT found: `hasNft: true`, level set from contract, characters/weapons unlocked
+6. Accumulated points become convertible to $BATTLE
+7. Progress data written to NFT metadata
+8. Firebase updated with `hasNFT: true, level: N` → game unlocks content
 
 ---
 
