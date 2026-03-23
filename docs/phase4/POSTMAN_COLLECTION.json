@@ -19,7 +19,19 @@
             "method": "GET",
             "url": "{{baseUrl}}/tournaments",
             "description": "Returns all 7 tournament levels with current status, prize pools, and player counts."
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/tournaments"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":[{\"level\":1,\"status\":\"active\",\"startTime\":\"2026-03-18T17:00:00.000Z\",\"endTime\":\"2026-03-23T17:00:00.000Z\",\"cooldownEndTime\":\"2026-03-25T17:00:00.000Z\",\"prizePool\":2,\"prizeDistribution\":{\"first\":1,\"second\":0.7,\"third\":0,\"thirdBattle\":100},\"playerCount\":0,\"rank\":\"Corporal\"}]}"
+            }
+          ]
         },
         {
           "name": "Tournament Detail (Level 1)",
@@ -51,7 +63,19 @@
             "method": "GET",
             "url": "{{baseUrl}}/tournaments/1/countdown",
             "description": "Time remaining for the current tournament phase."
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/tournaments/1/countdown"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"level\":1,\"status\":\"active\",\"timeRemaining\":17921,\"startTime\":\"2026-03-18T17:00:00.000Z\",\"endTime\":\"2026-03-23T17:00:00.000Z\",\"cooldownEndTime\":\"2026-03-25T17:00:00.000Z\"}}"
+            }
+          ]
         },
         {
           "name": "Tournament Winners (Level 1)",
@@ -66,7 +90,26 @@
               ]
             },
             "description": "Current and past winners for a tournament level."
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/tournaments/1/winners?weeks=4",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tournaments", "1", "winners"],
+                  "query": [
+                    { "key": "weeks", "value": "4" }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"level\":1,\"current\":null,\"history\":[]}}"
+            }
+          ]
         },
         {
           "name": "Tournament History",
@@ -96,7 +139,19 @@
             "method": "GET",
             "url": "{{baseUrl}}/leaderboard",
             "description": "Global leaderboard across all players."
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/leaderboard"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"period\":\"all\",\"startDate\":null,\"endDate\":null,\"currentPage\":1,\"totalPages\":1,\"totalUsers\":6,\"leaderboard\":[{\"uid\":\"1HWKQWlrcMgmlyNeGJR9pz5sPB63\",\"username\":\"ghettopigeons\",\"scoreGained\":4800,\"currentScore\":4800,\"rank\":1},{\"uid\":\"qJCPRZDw5AYYpAT60pS5chT3b8t1\",\"username\":\"chainboisgame\",\"scoreGained\":4200,\"currentScore\":4200,\"rank\":2},{\"uid\":\"b5kSescbmUXlQEhsn8YcWPSOa462\",\"username\":\"dostandgooner\",\"scoreGained\":3500,\"currentScore\":3500,\"rank\":3}]}}"
+            }
+          ]
         },
         {
           "name": "Global Leaderboard (This Week)",
@@ -111,7 +166,19 @@
           "request": {
             "method": "GET",
             "url": "{{baseUrl}}/leaderboard/24hours"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/leaderboard/24hours"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"period\":\"24hours\",\"startDate\":\"2026-03-22T12:00:00.000Z\",\"endDate\":\"2026-03-23T12:00:00.000Z\",\"currentPage\":1,\"totalPages\":1,\"totalUsers\":6,\"leaderboard\":[{\"uid\":\"1HWKQWlrcMgmlyNeGJR9pz5sPB63\",\"username\":\"ghettopigeons\",\"scoreGained\":4800,\"currentScore\":4800,\"rank\":1},{\"uid\":\"qJCPRZDw5AYYpAT60pS5chT3b8t1\",\"username\":\"chainboisgame\",\"scoreGained\":4200,\"currentScore\":4200,\"rank\":2},{\"uid\":\"b5kSescbmUXlQEhsn8YcWPSOa462\",\"username\":\"dostandgooner\",\"scoreGained\":3500,\"currentScore\":3500,\"rank\":3}]}}"
+            }
+          ]
         },
         {
           "name": "User Rank (All Time)",
@@ -122,7 +189,22 @@
               { "key": "Authorization", "value": "Bearer {{idToken}}" }
             ],
             "description": "Get a specific user's rank. Requires auth."
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/leaderboard/rank/1HWKQWlrcMgmlyNeGJR9pz5sPB63",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{idToken}}" }
+                ]
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"uid\":\"1HWKQWlrcMgmlyNeGJR9pz5sPB63\",\"period\":\"all\",\"rank\":1,\"scoreGained\":4800,\"currentScore\":4800}}"
+            }
+          ]
         },
         {
           "name": "User Rank (This Week)",

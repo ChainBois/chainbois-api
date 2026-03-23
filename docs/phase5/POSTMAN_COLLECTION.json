@@ -28,9 +28,13 @@
           "response": [
             {
               "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/armory/weapons"
+              },
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"assault\": [\n      {\n        \"tokenId\": 1,\n        \"weaponName\": \"AR M4 MK18\",\n        \"category\": \"assault\",\n        \"tier\": \"base\",\n        \"price\": 1,\n        \"imageUri\": \"\",\n        \"contractAddress\": \"0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\",\n        \"metadataUri\": \"https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json\"\n      }\n    ]\n  }\n}"
+              "body": "{\"success\":true,\"data\":{\"assault\":[{\"tokenId\":74,\"weaponName\":\"AR M4 MK18\",\"category\":\"assault\",\"price\":0,\"blueprintTier\":\"base\",\"imageUri\":\"ipfs://...\"}],\"smg\":[],\"shotgun\":[],\"sniper\":[],\"pistol\":[],\"melee\":[],\"launcher\":[],\"special\":[]}}"
             }
           ]
         },
@@ -40,7 +44,19 @@
             "method": "GET",
             "url": "{{baseUrl}}/armory/weapons/assault",
             "description": "List weapons in a specific category"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/armory/weapons/assault"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":[{\"tokenId\":74,\"weaponName\":\"AR M4 MK18\",\"category\":\"assault\",\"price\":0,\"blueprintTier\":\"base\",\"imageUri\":\"ipfs://...\"}]}"
+            }
+          ]
         },
         {
           "name": "Weapon Detail",
@@ -52,9 +68,13 @@
           "response": [
             {
               "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/armory/weapon/1"
+              },
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 1,\n    \"weaponName\": \"AR M4 MK18\",\n    \"category\": \"assault\",\n    \"tier\": \"base\",\n    \"price\": 1,\n    \"currency\": \"BATTLE\",\n    \"available\": true,\n    \"description\": \"\",\n    \"imageUri\": \"\",\n    \"contractAddress\": \"0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\",\n    \"metadataUri\": \"https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json\",\n    \"paymentAddress\": \"0xD40e6631617B7557C28789bAc01648A74753739C\"\n  }\n}"
+              "body": "{\"success\":true,\"data\":{\"tokenId\":1,\"weaponName\":\"AR M4 MK18\",\"category\":\"assault\",\"tier\":\"base\",\"price\":1,\"currency\":\"BATTLE\",\"available\":true,\"description\":\"\",\"imageUri\":\"\",\"contractAddress\":\"0xa2AFf3105668124A187b1212Ab850bf8b98dD07d\",\"metadataUri\":\"https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json\",\"paymentAddress\":\"0xD40e6631617B7557C28789bAc01648A74753739C\"}}"
             }
           ]
         },
@@ -68,9 +88,13 @@
           "response": [
             {
               "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/armory/nfts"
+              },
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"nfts\": [\n      {\n        \"tokenId\": 5,\n        \"level\": 0,\n        \"badge\": \"private\",\n        \"imageUri\": \"ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/5.png\",\n        \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n        \"metadataUri\": \"https://test-2.ghettopigeon.com/api/v1/metadata/5.json\",\n        \"traits\": [\n          {\"trait_type\": \"Background\", \"value\": \"Combat Red\"},\n          {\"trait_type\": \"Skin\", \"value\": \"Pale Recruit\"},\n          {\"trait_type\": \"Weapon\", \"value\": \"War Bow\"},\n          {\"trait_type\": \"Suit\", \"value\": \"Covert Ops Carbon Suit\"},\n          {\"trait_type\": \"Eyes\", \"value\": \"Battle Hardened\"},\n          {\"trait_type\": \"Mouth\", \"value\": \"Viking Beard\"},\n          {\"trait_type\": \"Helmet\", \"value\": \"Cryo Enforcer\"},\n          {\"trait_type\": \"Level\", \"value\": 0},\n          {\"trait_type\": \"Rank\", \"value\": \"Private\"},\n          {\"trait_type\": \"Kills\", \"value\": 0},\n          {\"trait_type\": \"Score\", \"value\": 0},\n          {\"trait_type\": \"Games Played\", \"value\": 0}\n        ]\n      }\n    ],\n    \"price\": 0.001,\n    \"currency\": \"AVAX\",\n    \"available\": 45,\n    \"paymentAddress\": \"0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0\"\n  }\n}"
+              "body": "{\"success\":true,\"data\":{\"nfts\":[{\"tokenId\":5,\"level\":0,\"badge\":\"private\",\"imageUri\":\"ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/5.png\",\"contractAddress\":\"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\"metadataUri\":\"https://test-2.ghettopigeon.com/api/v1/metadata/5.json\",\"traits\":[{\"trait_type\":\"Background\",\"value\":\"Combat Red\"},{\"trait_type\":\"Skin\",\"value\":\"Pale Recruit\"},{\"trait_type\":\"Weapon\",\"value\":\"War Bow\"},{\"trait_type\":\"Suit\",\"value\":\"Covert Ops Carbon Suit\"},{\"trait_type\":\"Eyes\",\"value\":\"Battle Hardened\"},{\"trait_type\":\"Mouth\",\"value\":\"Viking Beard\"},{\"trait_type\":\"Helmet\",\"value\":\"Cryo Enforcer\"},{\"trait_type\":\"Level\",\"value\":0},{\"trait_type\":\"Rank\",\"value\":\"Private\"},{\"trait_type\":\"Kills\",\"value\":0},{\"trait_type\":\"Score\",\"value\":0},{\"trait_type\":\"Games Played\",\"value\":0}]}],\"nftPrice\":0.001}}"
             }
           ]
         },
@@ -78,15 +102,19 @@
           "name": "ChainBoi NFT Detail",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/armory/nft/1",
+            "url": "{{baseUrl}}/armory/nft/19",
             "description": "Single NFT details + payment address"
           },
           "response": [
             {
               "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/armory/nft/19"
+              },
               "status": "OK",
               "code": 200,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"tokenId\": 5,\n    \"level\": 0,\n    \"badge\": \"private\",\n    \"traits\": [\n      {\"trait_type\": \"Background\", \"value\": \"Combat Red\"},\n      {\"trait_type\": \"Skin\", \"value\": \"Pale Recruit\"},\n      {\"trait_type\": \"Weapon\", \"value\": \"War Bow\"},\n      {\"trait_type\": \"Suit\", \"value\": \"Covert Ops Carbon Suit\"},\n      {\"trait_type\": \"Eyes\", \"value\": \"Battle Hardened\"},\n      {\"trait_type\": \"Mouth\", \"value\": \"Viking Beard\"},\n      {\"trait_type\": \"Helmet\", \"value\": \"Cryo Enforcer\"},\n      {\"trait_type\": \"Level\", \"value\": 0},\n      {\"trait_type\": \"Rank\", \"value\": \"Private\"},\n      {\"trait_type\": \"Kills\", \"value\": 0},\n      {\"trait_type\": \"Score\", \"value\": 0},\n      {\"trait_type\": \"Games Played\", \"value\": 0}\n    ],\n    \"imageUri\": \"ipfs://bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4/5.png\",\n    \"contractAddress\": \"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\n    \"metadataUri\": \"https://test-2.ghettopigeon.com/api/v1/metadata/5.json\",\n    \"price\": 0.001,\n    \"currency\": \"AVAX\",\n    \"available\": true,\n    \"paymentAddress\": \"0x469622d0FB5ED43B2e7C45E98D355F2cf03816a0\"\n  }\n}"
+              "body": "{\"success\":true,\"data\":{\"tokenId\":19,\"contractAddress\":\"0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b\",\"level\":0,\"badge\":\"trainee\",\"traits\":[],\"imageUri\":\"ipfs://...\",\"metadataUri\":\"ipfs://...\",\"price\":0.001,\"currency\":\"AVAX\",\"available\":true,\"paymentAddress\":\"0x469622d0fb5ed43b2e7c45e98d355f2cf03816a0\"}}"
             }
           ]
         },
@@ -126,7 +154,19 @@
             "method": "GET",
             "url": "{{baseUrl}}/armory/balance/{{userAddress}}",
             "description": "Get points + $BATTLE balance for a wallet"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/armory/balance/0x4af91587d9d2bc5439ec3ff3cf49e85c52a40566"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"address\":\"0x4af91587d9d2bc5439ec3ff3cf49e85c52a40566\",\"pointsBalance\":4800,\"battleBalance\":1000,\"battleBalanceRaw\":\"1000.0\"}}"
+            }
+          ]
         }
       ]
     },
@@ -139,7 +179,19 @@
             "method": "GET",
             "url": "{{baseUrl}}/points/{{userAddress}}",
             "description": "Get points balance and conversion info"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/points/0x4af91587d9d2bc5439ec3ff3cf49e85c52a40566"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"address\":\"0x4af91587d9d2bc5439ec3ff3cf49e85c52a40566\",\"pointsBalance\":4800,\"conversionRate\":1,\"maxConvertible\":4800}}"
+            }
+          ]
         },
         {
           "name": "Convert Points to $BATTLE",
@@ -151,10 +203,29 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"address\": \"{{userAddress}}\",\n  \"amount\": 100\n}"
+              "raw": "{\n  \"address\": \"0x4af91587d9d2bc5439ec3ff3cf49e85c52a40566\",\n  \"amount\": 100\n}"
             },
             "description": "Convert points to $BATTLE tokens (dynamic rate based on rewards pool health tier)"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{baseUrl}}/points/convert",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"address\":\"0x4af91587d9d2bc5439ec3ff3cf49e85c52a40566\",\"amount\":100}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"message\":\"Converted 100 points to 100 $BATTLE\",\"pointsDeducted\":100,\"battleTokensReceived\":100,\"conversionRate\":1,\"newPointsBalance\":4700,\"txHash\":\"0xfd068d...\"}}"
+            }
+          ]
         },
         {
           "name": "Points History",
@@ -162,7 +233,19 @@
             "method": "GET",
             "url": "{{baseUrl}}/points/history/{{userAddress}}?page=1&limit=20",
             "description": "View points conversion and purchase history"
-          }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/points/history/0x4af91587d9d2bc5439ec3ff3cf49e85c52a40566?page=1&limit=20"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\"success\":true,\"data\":{\"history\":[{\"type\":\"points_conversion\",\"amount\":100,\"currency\":\"BATTLE\",\"txHash\":\"0xfd068d...\",\"status\":\"confirmed\",\"metadata\":{\"description\":\"Converted 100 points to 100 BATTLE tokens (rate: 1).\",\"pointsDeducted\":100,\"battleReceived\":100,\"conversionRate\":1}}]}}"
+            }
+          ]
         }
       ]
     }
