@@ -1,6 +1,7 @@
 const Wallet = require("../models/walletModel");
 const Transaction = require("../models/transactionModel");
 const FailedPayout = require("../models/failedPayoutModel");
+const Tournament = require("../models/tournamentModel");
 const WeeklyLeaderboard = require("../models/weeklyLeaderboardModel");
 const LeaderboardHistory = require("../models/leaderboardHistoryModel");
 const { sendAvax, getAvaxBalance } = require("../utils/avaxUtils");
@@ -24,8 +25,8 @@ const {
 const distributePrizes = async function (tournament) {
   const results = { winners: [], errors: [] };
 
-  // Idempotency check: skip if prizes already distributed
-  if (tournament.winners && tournament.winners.length > 0 && tournament.winners.some((w) => w.paid)) {
+  // Idempotency check: skip if prizes already distributed (any winners recorded means distribution ran)
+  if (tournament.winners && tournament.winners.length > 0) {
     console.log(`Tournament L${tournament.level} W${tournament.weekNumber}: Prizes already distributed, skipping`);
     return results;
   }
@@ -250,82 +251,102 @@ const distributePrizes = async function (tournament) {
  * Retry failed prize payouts.
  * Attempts to resend prizes that failed during tournament distribution.
  */
+let _retryRunning = false;
 const retryFailedPayouts = async function () {
-  const failedPayouts = await FailedPayout.find({
-    resolved: false,
-    retryCount: { $lt: 5 },
-  });
-
-  if (failedPayouts.length === 0) return;
-
-  console.log(`Retrying ${failedPayouts.length} failed payouts...`);
-
-  const prizePoolWallet = await Wallet.findOne({ role: WALLET_ROLES.PRIZE_POOL }).select("+key +iv");
-  const rewardsWallet = await Wallet.findOne({ role: WALLET_ROLES.REWARDS }).select("+key +iv");
-
-  let prizePoolKey = null;
-  let rewardsKey = null;
-
-  if (prizePoolWallet) {
-    try { prizePoolKey = await decrypt(prizePoolWallet.key, prizePoolWallet.iv); } catch (e) { /* */ }
+  if (_retryRunning) {
+    console.log("[FailedPayout] Retry already in progress, skipping");
+    return;
   }
-  if (rewardsWallet) {
-    try { rewardsKey = await decrypt(rewardsWallet.key, rewardsWallet.iv); } catch (e) { /* */ }
-  }
+  _retryRunning = true;
+  try {
+    const failedPayouts = await FailedPayout.find({
+      resolved: false,
+      retryCount: { $lt: 5 },
+    });
 
-  for (const payout of failedPayouts) {
-    try {
-      let receipt;
+    if (failedPayouts.length === 0) return;
 
-      if (payout.currency === "AVAX") {
-        if (!prizePoolWallet || !prizePoolKey) throw new Error("Prize pool wallet/key unavailable");
-        receipt = await sendAvax(prizePoolKey, payout.address, String(payout.amount));
-      } else {
-        if (!rewardsWallet || !rewardsKey) throw new Error("Rewards wallet/key unavailable");
-        receipt = await transferBattleTokens(payout.address, payout.amount, rewardsKey);
-      }
+    console.log(`Retrying ${failedPayouts.length} failed payouts...`);
 
-      payout.resolved = true;
-      payout.resolvedTxHash = receipt.hash;
-      await payout.save();
+    const prizePoolWallet = await Wallet.findOne({ role: WALLET_ROLES.PRIZE_POOL }).select("+key +iv");
+    const rewardsWallet = await Wallet.findOne({ role: WALLET_ROLES.REWARDS }).select("+key +iv");
 
-      await Transaction.create({
-        type: TRANSACTION_TYPES.PRIZE_PAYOUT,
-        fromAddress: payout.currency === "AVAX" ? prizePoolWallet.address : rewardsWallet.address,
-        toAddress: payout.address,
-        amount: payout.amount,
-        currency: payout.currency,
-        txHash: receipt.hash,
-        status: "confirmed",
-        metadata: {
-          description: `Prize payout retry: ${payout.amount} ${payout.currency} for tournament ${payout.tournamentId}.`,
-          tournamentId: payout.tournamentId,
-          retryOf: payout._id,
-        },
-      });
+    let prizePoolKey = null;
+    let rewardsKey = null;
 
-      console.log(`  Resolved payout ${payout._id}: ${payout.amount} ${payout.currency} -> ${payout.address}`);
-    } catch (e) {
-      payout.retryCount += 1;
-      payout.lastRetry = new Date();
-      payout.reason = e.message;
-      await payout.save();
+    if (prizePoolWallet) {
+      try { prizePoolKey = await decrypt(prizePoolWallet.key, prizePoolWallet.iv); } catch (e) { /* */ }
+    }
+    if (rewardsWallet) {
+      try { rewardsKey = await decrypt(rewardsWallet.key, rewardsWallet.iv); } catch (e) { /* */ }
+    }
 
-      console.error(`  Retry failed for ${payout._id}: ${e.message} (attempt ${payout.retryCount}/5)`);
+    for (const payout of failedPayouts) {
+      try {
+        let receipt;
 
-      // Critical alert if max retries reached
-      if (payout.retryCount >= 5) {
-        sendDiscordAlert({
-          subject: `Prize Payout Permanently Failed`,
-          status: "critical",
-          poolType: payout.currency === "AVAX" ? "Prize Pool" : "Rewards",
-          walletAddress: payout.address,
-          currentBalance: 0,
-          requiredAmount: payout.amount,
-          unitName: payout.currency,
-        }).catch(() => {});
+        if (payout.currency === "AVAX") {
+          if (!prizePoolWallet || !prizePoolKey) throw new Error("Prize pool wallet/key unavailable");
+          receipt = await sendAvax(prizePoolKey, payout.address, String(payout.amount));
+        } else {
+          if (!rewardsWallet || !rewardsKey) throw new Error("Rewards wallet/key unavailable");
+          receipt = await transferBattleTokens(payout.address, payout.amount, rewardsKey);
+        }
+
+        payout.resolved = true;
+        payout.resolvedTxHash = receipt.hash;
+        await payout.save();
+
+        // Update tournament winners to reflect successful retry
+        try {
+          await Tournament.updateOne(
+            { _id: payout.tournamentId, "winners.address": payout.address },
+            { $set: { "winners.$.paid": true, "winners.$.txHash": receipt.hash, "winners.$.paidAt": new Date() } }
+          );
+        } catch (e) {
+          console.error(`Failed to update tournament winners after retry: ${e.message}`);
+        }
+
+        await Transaction.create({
+          type: TRANSACTION_TYPES.PRIZE_PAYOUT,
+          fromAddress: payout.currency === "AVAX" ? prizePoolWallet.address : rewardsWallet.address,
+          toAddress: payout.address,
+          amount: payout.amount,
+          currency: payout.currency,
+          txHash: receipt.hash,
+          status: "confirmed",
+          metadata: {
+            description: `Prize payout retry: ${payout.amount} ${payout.currency} for tournament ${payout.tournamentId}.`,
+            tournamentId: payout.tournamentId,
+            retryOf: payout._id,
+          },
+        });
+
+        console.log(`  Resolved payout ${payout._id}: ${payout.amount} ${payout.currency} -> ${payout.address}`);
+      } catch (e) {
+        payout.retryCount += 1;
+        payout.lastRetry = new Date();
+        payout.reason = e.message;
+        await payout.save();
+
+        console.error(`  Retry failed for ${payout._id}: ${e.message} (attempt ${payout.retryCount}/5)`);
+
+        // Critical alert if max retries reached
+        if (payout.retryCount >= 5) {
+          sendDiscordAlert({
+            subject: `Prize Payout Permanently Failed`,
+            status: "critical",
+            poolType: payout.currency === "AVAX" ? "Prize Pool" : "Rewards",
+            walletAddress: payout.address,
+            currentBalance: 0,
+            requiredAmount: payout.amount,
+            unitName: payout.currency,
+          }).catch(() => {});
+        }
       }
     }
+  } finally {
+    _retryRunning = false;
   }
 };
 

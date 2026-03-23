@@ -153,7 +153,7 @@ const listNfts = catchAsync(async (req, res) => {
     return res.status(200).json({ success: true, data: { nfts: [], price: 0, available: 0 } });
   }
 
-  const settings = await Settings.findOne();
+  const settings = await Settings.getCached();
   const nftPrice = settings && settings.nftPrice != null ? settings.nftPrice : 0.001;
 
   const nfts = await ChainboiNft.find({
@@ -202,7 +202,7 @@ const getNftDetail = catchAsync(async (req, res, next) => {
     return next(new AppError("Armory is temporarily unavailable", 503));
   }
 
-  const settings = await Settings.findOne();
+  const settings = await Settings.getCached();
   const nftPrice = settings && settings.nftPrice != null ? settings.nftPrice : 0.001;
   const isAvailable = nft.ownerAddress === nftStoreWallet.address.toLowerCase();
 
@@ -254,7 +254,7 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
   }
 
   // 3. Check armory is not closed during cooldown
-  const settings = await Settings.findOne();
+  const settings = await Settings.getCached();
   if (settings && settings.armoryClosedDuringCooldown) {
     const cooldownTournament = await Tournament.findOne({ status: "cooldown" });
     if (cooldownTournament) {
@@ -311,7 +311,11 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
   const receipt = await provider.getTransactionReceipt(txHash);
   if (!receipt || receipt.status !== 1) {
     // Rollback — payment not valid, no PurchaseAttempt needed
-    await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
+    try {
+      await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
+    } catch (rollbackErr) {
+      console.error(`Rollback failed after invalid payment (weapon ${weapon._id}): ${rollbackErr.message}`);
+    }
     return next(new AppError("Transaction not found or failed on-chain", 400));
   }
 
@@ -339,7 +343,11 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
 
   if (!paymentVerified) {
     // Rollback — payment not valid, no PurchaseAttempt needed
-    await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
+    try {
+      await WeaponNft.findByIdAndUpdate(weapon._id, { ownerAddress: weaponStoreWallet.address.toLowerCase() });
+    } catch (rollbackErr) {
+      console.error(`Rollback failed after payment verification failure (weapon ${weapon._id}): ${rollbackErr.message}`);
+    }
     return next(new AppError("Payment not verified: must be a $BATTLE transfer to the weapon store wallet for the correct amount", 400));
   }
 
@@ -493,7 +501,7 @@ const purchaseNft = catchAsync(async (req, res, next) => {
   }
 
   // 3. Get price from settings
-  const settings = await Settings.findOne();
+  const settings = await Settings.getCached();
   const nftPrice = settings && settings.nftPrice != null ? settings.nftPrice : 0.001;
 
   // 4. Replay protection — check Transaction AND PurchaseAttempt
@@ -670,14 +678,26 @@ const purchaseNft = catchAsync(async (req, res, next) => {
   attempt.transferTxHash = transferReceipt.hash;
   await attempt.save();
 
-  // 10. Update user (upgrade to web3 if currently web2)
-  user.hasNft = true;
-  user.nftTokenId = availableNft.tokenId;
-  user.level = 0;
-  if (user.playerType === PLAYER_TYPE.WEB2) {
-    user.playerType = PLAYER_TYPE.WEB3;
+  // 10. Update user (upgrade to web3 if currently web2, preserve level if already has NFT)
+  try {
+    const isFirstNft = !user.hasNft;
+    user.hasNft = true;
+    user.nftTokenId = availableNft.tokenId;
+    if (isFirstNft) {
+      user.level = 0;
+    }
+    if (user.playerType === PLAYER_TYPE.WEB2) {
+      user.playerType = PLAYER_TYPE.WEB3;
+    }
+    await user.save();
+  } catch (e) {
+    // NFT already transferred on-chain — log but don't fail the request
+    console.error(`Failed to update user after NFT purchase (NFT already transferred): ${e.message}`, {
+      address: normalizedAddress,
+      tokenId: availableNft.tokenId,
+      transferTxHash: transferReceipt.hash,
+    });
   }
-  await user.save();
 
   // 11. Record transaction (non-fatal)
   try {

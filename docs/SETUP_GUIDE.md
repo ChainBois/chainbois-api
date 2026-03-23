@@ -263,6 +263,14 @@ Ensure `config/chainbois-firebase-config.json` exists and matches your Firebase 
 ### Minting fails mid-batch
 Just re-run the mint script. It reads `totalSupply()` from the contract and skips already-minted tokens.
 
+## Frontend Integration
+
+For frontend wallet connection and automatic chain switching (Fuji/Mainnet):
+- [Wallet Connect & Chain Switching Flow](WALLET_CONNECT_FLOW.md) — full user flow for faucet and website
+- [Chain Switching Guide](CHAIN_SWITCHING_GUIDE.md) — technical implementation with EIP-3085/3326
+
+The faucet and website automatically prompt users to add and switch to Avalanche Fuji — no manual network configuration needed.
+
 ## Project Structure
 
 ```

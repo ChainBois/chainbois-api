@@ -148,8 +148,10 @@ const tournamentJob = async function () {
         console.error(`Prize distribution failed for L${tournament.level}: ${e.message}`);
       }
 
-      // Always save cooldown status, even if distribution returned early (0 players) or failed
-      await tournament.save();
+      // Save cooldown status only if distributePrizes didn't already save (e.g., 0 players or error)
+      if (!tournament.winners || tournament.winners.length === 0) {
+        await tournament.save();
+      }
     }
 
     // Step 4: Complete cooldown tournaments

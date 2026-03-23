@@ -608,6 +608,8 @@ This creates a natural equilibrium — the system slows down but never stops. Th
 
 The claim endpoint has cross-origin headers (`Access-Control-Allow-Origin: *`) to support the Vercel-hosted faucet page at [chainbois-testnet-faucet.vercel.app](https://chainbois-testnet-faucet.vercel.app). Only one claim per wallet (enforced by unique index). Claims are serialized via an in-memory lock to prevent nonce collisions. Auto-mints new assets if platform stores are empty.
 
+The faucet features **wallet connect with auto chain switching** — users click Connect Wallet and the page automatically prompts their wallet (MetaMask, Core, Phantom, etc.) to add and switch to Avalanche Fuji via EIP-3085/EIP-3326. Manual address entry is available as a fallback. See [Wallet Connect Flow](WALLET_CONNECT_FLOW.md) for details.
+
 ### System
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|

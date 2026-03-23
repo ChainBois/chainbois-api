@@ -31,6 +31,7 @@ const syncScoresJob = async function () {
     const firebaseUsers = snapshot.val();
 
     if (!firebaseUsers) {
+      console.log("[ScoreSync] No Firebase users found at path:", FIREBASE_PATHS.USERS);
       return;
     }
 
@@ -39,7 +40,10 @@ const syncScoresJob = async function () {
       ([id, data]) => id && typeof id === "string" && id.length >= 20 && data && typeof data === "object"
     );
 
-    if (firebaseEntries.length === 0) return;
+    if (firebaseEntries.length === 0) {
+      console.log("[ScoreSync] No valid Firebase entries found");
+      return;
+    }
 
     const firebaseIds = firebaseEntries.map(([id]) => id);
 
@@ -53,6 +57,8 @@ const syncScoresJob = async function () {
     // Index into Maps for O(1) lookup
     const userMap = new Map(users.map((u) => [u.uid, u]));
     const profileMap = new Map(securityProfiles.map((p) => [p.uid, p]));
+
+    console.log(`[ScoreSync] Firebase entries: ${firebaseEntries.length} | MongoDB users matched: ${users.length} | Unmatched (web2-only): ${firebaseEntries.length - users.length}`);
 
     // Build level-to-tournament map
     const tournamentByLevel = {};
@@ -213,8 +219,10 @@ const syncScoresJob = async function () {
       }
     }
 
-    if (updatedCount > 0) {
-      console.log(`Score sync complete: ${updatedCount} users updated`);
+    if (updatedCount === 0) {
+      console.log("[ScoreSync] No score changes detected (all deltas <= 0 or users skipped)");
+    } else {
+      console.log(`[ScoreSync] Complete: ${updatedCount} users updated`);
 
       // Emit real-time leaderboard updates via Socket.IO
       try {

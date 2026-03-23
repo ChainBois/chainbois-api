@@ -69,15 +69,22 @@ const tokenomicsJob = async function () {
     }
 
     // 7. Recycle remaining to rewards wallet
+    // Re-read actual on-chain balance after burn to avoid float rounding overflow
     let recycleTxHash = "";
+    let actualRecycleAmount = recycleAmount;
     if (recycleAmount > 0) {
       try {
-        const recycleReceipt = await transferBattleTokens(rewardsWallet.address, recycleAmount, weaponStoreKey);
-        recycleTxHash = recycleReceipt.hash;
-        console.log(`[Tokenomics] Recycled ${recycleAmount} BATTLE to rewards (tx: ${recycleTxHash})`);
+        const postBurnBalance = parseFloat(await getBattleBalance(weaponStore.address));
+        // Use the actual remaining balance — safer than pre-computed recycleAmount
+        actualRecycleAmount = Math.round(Math.min(recycleAmount, postBurnBalance) * 100) / 100;
+        if (actualRecycleAmount > 0) {
+          const recycleReceipt = await transferBattleTokens(rewardsWallet.address, actualRecycleAmount, weaponStoreKey);
+          recycleTxHash = recycleReceipt.hash;
+          console.log(`[Tokenomics] Recycled ${actualRecycleAmount} BATTLE to rewards (tx: ${recycleTxHash})`);
+        }
       } catch (e) {
         console.error(`[Tokenomics] Recycle transfer failed: ${e.message}`);
-        // Burn already happened, log the partial success
+        actualRecycleAmount = 0; // Record actual recycled amount as 0 on failure
       }
     }
 
@@ -99,7 +106,7 @@ const tokenomicsJob = async function () {
       year: now.getFullYear(),
       sweepAmount: weaponStoreBalance,
       burnAmount,
-      recycleAmount,
+      recycleAmount: actualRecycleAmount,
       burnTxHash,
       recycleTxHash,
       healthTier: tier,
@@ -131,12 +138,12 @@ const tokenomicsJob = async function () {
         type: TRANSACTION_TYPES.TOKEN_RECYCLE,
         fromAddress: weaponStore.address,
         toAddress: rewardsWallet.address,
-        amount: recycleAmount,
+        amount: actualRecycleAmount,
         currency: "BATTLE",
         txHash: recycleTxHash,
         status: "confirmed",
         metadata: {
-          description: `Auto-recycle: ${recycleAmount} BATTLE returned to rewards wallet. Health tier: ${tier}.`,
+          description: `Auto-recycle: ${actualRecycleAmount} BATTLE returned to rewards wallet. Health tier: ${tier}.`,
           healthTier: tier,
           sweepAmount: weaponStoreBalance,
         },

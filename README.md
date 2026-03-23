@@ -12,22 +12,21 @@ This repository contains the backend API that powers the entire platform — han
 
 ## For Judges & Testers: Getting Started
 
-### Step 1: Set Up MetaMask for Fuji Testnet
+### Step 1: Install a Wallet
 
-1. Install [MetaMask](https://metamask.io/) browser extension
-2. Open MetaMask → Click the network dropdown → **Add Network** → **Add a network manually**
-3. Enter these details:
-   - **Network Name**: Avalanche Fuji Testnet
-   - **RPC URL**: `https://api.avax-test.network/ext/bc/C/rpc`
-   - **Chain ID**: `43113`
-   - **Currency Symbol**: AVAX
-   - **Explorer URL**: `https://testnet.snowtrace.io`
-4. Click **Save** and switch to the Fuji Testnet network
-5. Get free testnet AVAX from the [Avalanche Faucet](https://core.app/tools/testnet-faucet/) (needed for level-ups)
+Install any of these browser wallet extensions:
+- [MetaMask](https://metamask.io/) (most popular)
+- [Core Wallet](https://core.app/) (Avalanche's native wallet)
+- [Phantom](https://phantom.app/) (supports EVM chains)
+- [Coinbase Wallet](https://www.coinbase.com/wallet) or [Trust Wallet](https://trustwallet.com/)
+
+> **No manual network setup needed.** Both the faucet and the website will automatically prompt your wallet to add and switch to the Avalanche Fuji Testnet — just click Approve when prompted.
+
+Get free testnet AVAX from the [Avalanche Faucet](https://core.app/tools/testnet-faucet/) (needed for level-ups).
 
 ### Step 2: Claim Your Free Starter Pack
 
-Visit the **[Testnet Starter Pack](https://chainbois-testnet-faucet.vercel.app)** page and paste your Fuji Testnet wallet address. You'll receive:
+Visit the **[Testnet Starter Pack](https://chainbois-testnet-faucet.vercel.app)** and click **Connect Wallet**. The faucet will automatically add the Fuji Testnet to your wallet if needed and switch to it. You'll receive:
 - **2 ChainBoi NFTs** (ERC-721 soldier characters)
 - **8 Weapon NFTs** (one from each category: Assault, SMG, LMG, Marksman, Handgun, Launcher, Shotgun, Melee)
 - **1,000 $BATTLE tokens**
@@ -59,7 +58,7 @@ curl -OJ https://test-2.ghettopigeon.com/api/v1/game/download/apk
 1. Open the game and create an account
 2. **Mobile (APK)**: The game has a button that redirects you to the website to connect your wallet
 3. **PC**: Navigate manually to [https://chainbois-true.vercel.app/access-request](https://chainbois-true.vercel.app/access-request) to connect your wallet
-4. Connect the same MetaMask wallet you used to claim the starter pack
+4. Connect the same wallet you used to claim the starter pack — the website will auto-switch to Fuji if needed
 5. The backend verifies your on-chain NFTs and syncs your assets (characters, weapons, level) to the game via Firebase
 
 ### Step 5: Play & Earn
@@ -204,6 +203,8 @@ All endpoints return a consistent response pattern:
 | [NFT & Token System](docs/NFT_AND_TOKEN_SYSTEM.md) | NFT mechanics, character unlocks, token flows, metadata system |
 | [Tokenomics Architecture](docs/TOKENOMICS_ARCHITECTURE.md) | Dynamic burn/recycle system, health tiers, sweep mechanics |
 | [Product Requirements](docs/PRD.md) | Full PRD with requirements, flows, and data models |
+| [Wallet Connect & Chain Switching](docs/WALLET_CONNECT_FLOW.md) | Full flow: auto network add/switch for faucet and frontend |
+| [Chain Switching Guide](docs/CHAIN_SWITCHING_GUIDE.md) | Technical implementation guide for EIP-3085/3326 integration |
 | [Post-Hackathon Roadmap](docs/POST_HACKATHON_ROADMAP.md) | Mainnet launch, armor, battle pass, marketplace, cross-chain |
 | [Setup Guide](docs/SETUP_GUIDE.md) | Development environment setup |
 
@@ -297,7 +298,7 @@ npm start              # Production (PM2 cluster)
 ## Testing
 
 ```bash
-npm test                  # Run all tests (263 tests)
+npm test                  # Run all tests (258 tests)
 npm test -- --verbose     # Verbose output
 npm test -- <testfile>    # Run specific test
 ```

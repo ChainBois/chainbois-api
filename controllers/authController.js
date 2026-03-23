@@ -163,7 +163,7 @@ const login = catchAsync(async (req, res, next) => {
     user = await User.create({
       uid,
       address: normalizedAddress,
-      playerType: PLAYER_TYPE.WEB2,
+      playerType: PLAYER_TYPE.WEB3,
       username: firebaseUsername,
       email: firebaseEmail,
     });
@@ -199,14 +199,9 @@ const login = catchAsync(async (req, res, next) => {
       user.level = 0;
     }
 
-    // Upgrade web2 -> web3 if user now has NFT
-    if (user.playerType === PLAYER_TYPE.WEB2 && assets.hasNft) {
+    // Ensure wallet-connected users are always web3 (connecting wallet = web3, permanent)
+    if (user.playerType === PLAYER_TYPE.WEB2) {
       user.playerType = PLAYER_TYPE.WEB3;
-    }
-    // Downgrade web3 -> web2 if NFT was transferred away
-    if (user.playerType === PLAYER_TYPE.WEB3 && !assets.hasNft) {
-      user.playerType = PLAYER_TYPE.WEB2;
-      user.nftTokenId = null;
     }
   }
 

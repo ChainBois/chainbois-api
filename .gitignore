@@ -265,3 +265,7 @@ ghetto-pigeons.postman_collection.json
 
 postman-docs/
 ChainBois.apk
+
+# Test data (sensitive)
+test-accounts.json
+PHASE5_TESTING_PLAN.md

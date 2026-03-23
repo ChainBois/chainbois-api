@@ -1327,10 +1327,10 @@ The Firebase SDK handles token refresh automatically. Tokens last 1 hour. If you
 
 ### Q: What wallet should I use for testing?
 
-Any EVM wallet works: MetaMask, Core, Rabby, etc. For testnet:
-1. Add Avalanche Fuji network to your wallet (Chain ID: 43113, RPC: `https://api.avax-test.network/ext/bc/C/rpc`)
-2. The backend team can provide test wallet addresses that already have NFTs
-3. Or get testnet AVAX from https://faucet.avax.network/ and buy/receive NFTs
+Any EVM wallet works: MetaMask, Core, Phantom, Coinbase Wallet, Trust Wallet, etc. For testnet:
+1. The website and faucet **automatically add and switch to Avalanche Fuji** — no manual network setup needed. Just click Approve when your wallet prompts you.
+2. Claim a free starter pack (2 NFTs + 8 weapons + 1000 $BATTLE) at https://chainbois-testnet-faucet.vercel.app
+3. Get testnet AVAX from https://core.app/tools/testnet-faucet/ (needed for level-ups)
 
 ### Q: Where is the Postman collection?
 

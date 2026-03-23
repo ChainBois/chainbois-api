@@ -108,12 +108,25 @@ const computeMetrics = catchAsync(async (req, res) => {
     status: "completed",
   });
 
-  const participantAgg = await Tournament.aggregate([
-    { $match: { status: "completed" } },
-    { $group: { _id: null, totalWinners: { $sum: { $size: "$winners" } }, totalTournaments: { $sum: 1 } } },
-  ]);
-  const totalParticipants =
-    participantAgg[0] ? participantAgg[0].totalWinners : 0;
+  // Count unique participants from WeeklyLeaderboard for completed tournaments
+  const WeeklyLeaderboard = require("../models/weeklyLeaderboardModel");
+  const completedTournamentsList = await Tournament.find({ status: "completed" }).select("year weekNumber level").lean();
+  let totalParticipants = 0;
+  if (completedTournamentsList.length > 0) {
+    const participantAgg = await WeeklyLeaderboard.aggregate([
+      {
+        $match: {
+          $or: completedTournamentsList.map((t) => ({
+            year: t.year,
+            weekNumber: t.weekNumber,
+            tournamentLevel: t.level,
+          })),
+        },
+      },
+      { $group: { _id: null, total: { $sum: 1 } } },
+    ]);
+    totalParticipants = participantAgg[0] ? participantAgg[0].total : 0;
+  }
 
   const prizeAgg = await Transaction.aggregate([
     { $match: { type: "prize_payout", status: "confirmed" } },

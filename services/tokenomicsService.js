@@ -83,7 +83,9 @@ const getAdjustedAirdropAmount = function (baseAmount, rewardsBalance) {
 const getSweepSplit = function (sweepAmount, rewardsBalance) {
   const rates = getTokenomicsRates(rewardsBalance);
   const burnAmount = Math.round(sweepAmount * rates.burnRate * 100) / 100;
-  const recycleAmount = Math.round((sweepAmount - burnAmount) * 100) / 100;
+  // Derive recycleAmount as remainder to prevent burnAmount + recycleAmount > sweepAmount from float imprecision
+  const rawRecycle = sweepAmount - burnAmount;
+  const recycleAmount = Math.max(Math.round(rawRecycle * 100) / 100, 0);
 
   return {
     burnAmount,

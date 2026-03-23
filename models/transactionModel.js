@@ -40,7 +40,7 @@ const transactionSchema = new mongoose.Schema(
     },
     txHash: {
       type: String,
-      default: "",
+      default: null,
     },
     status: {
       type: String,

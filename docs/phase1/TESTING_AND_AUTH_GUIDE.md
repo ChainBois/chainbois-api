@@ -199,7 +199,7 @@ POST /auth/simulate  →  { "email": "goonerlabs@gmail.com" }
 POST /auth/login     →  { "address": "0x5220C9d3Ed555C5eC1505609a9572dF7819dc329" }
 ```
 
-To get NFTs for this wallet, use the faucet at: `chainbois-testnet-faucet.vercel.app`
+To get NFTs for this wallet, use the faucet at: `chainbois-testnet-faucet.vercel.app` — click **Connect Wallet** and the faucet will automatically add Avalanche Fuji to your wallet and switch to it. Or enter the address manually.
 
 ---
 

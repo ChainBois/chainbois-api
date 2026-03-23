@@ -199,7 +199,7 @@ Firebase ID tokens expire after **1 hour**. When you get a 401 "Token has expire
 | "No user found with this email" on `/simulate` | Call `/auth/create-user` first |
 | "Token has expired" (401) | Call `/simulate` again for a fresh token |
 | "This wallet address is already linked to another account" | Use a different wallet address, or delete the other user |
-| Empty `assets` array on login | Your wallet doesn't own any ChainBoi NFTs — use the faucet at `chainbois-testnet-faucet.vercel.app` |
+| Empty `assets` array on login | Your wallet doesn't own any ChainBoi NFTs — use the faucet at `chainbois-testnet-faucet.vercel.app` (click Connect Wallet — auto-switches to Fuji) |
 | "FIREBASE_API_KEY not configured" | Server-side issue — check `.env` has `FIREBASE_API_KEY` set |
 
 ---

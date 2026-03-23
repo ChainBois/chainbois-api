@@ -66,6 +66,14 @@ const getLeaderboard = catchAsync(async (req, res, next) => {
   let startDate = req.query.startDate ? new Date(req.query.startDate) : null;
   let endDate = req.query.endDate ? new Date(req.query.endDate) : null;
 
+  // Validate custom dates
+  if (startDate && isNaN(startDate.getTime())) {
+    return next(new AppError("Invalid startDate format", 400));
+  }
+  if (endDate && isNaN(endDate.getTime())) {
+    return next(new AppError("Invalid endDate format", 400));
+  }
+
   // If no custom range, parse period
   if (!startDate && !endDate) {
     const parsed = parseTimePeriod(period);
@@ -108,12 +116,13 @@ const getLeaderboard = catchAsync(async (req, res, next) => {
 
     const pipeline = [
       { $match: matchStage },
+      { $sort: { timestamp: 1 } },
       {
         $group: {
           _id: "$uid",
           username: { $last: "$username" },
           scoreGained: { $sum: "$scoreChange" },
-          currentScore: { $max: "$score" },
+          currentScore: { $last: "$score" },
         },
       },
       { $sort: { scoreGained: -1 } },
@@ -196,11 +205,12 @@ const getUserRank = catchAsync(async (req, res, next) => {
           timestamp: { $gte: startDate, $lte: endDate },
         },
       },
+      { $sort: { timestamp: 1 } },
       {
         $group: {
           _id: "$uid",
           scoreGained: { $sum: "$scoreChange" },
-          currentScore: { $max: "$score" },
+          currentScore: { $last: "$score" },
         },
       },
     ]);
