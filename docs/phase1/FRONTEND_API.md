@@ -558,9 +558,11 @@ Login with wallet address. Checks on-chain NFT ownership, creates or updates the
         "tokenId": 1,
         "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
         "weaponName": "RENETTI",
+        "name": "RENETTI",
         "category": "handgun",
         "tier": "base",
-        "imageUri": "ipfs://...",
+        "imageUri": "ipfs://bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/01-RENETTI.jpeg",
+        "imageUrl": "https://gateway.pinata.cloud/ipfs/bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/01-RENETTI.jpeg",
         "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json"
       }
     ]
@@ -788,9 +790,11 @@ Re-check on-chain NFT ownership and sync to Firebase. Call this when the user ex
         "tokenId": 1,
         "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
         "weaponName": "RENETTI",
+        "name": "RENETTI",
         "category": "handgun",
         "tier": "base",
-        "imageUri": "ipfs://...",
+        "imageUri": "ipfs://bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/01-RENETTI.jpeg",
+        "imageUrl": "https://gateway.pinata.cloud/ipfs/bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/01-RENETTI.jpeg",
         "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json"
       }
     ]
@@ -1382,9 +1386,11 @@ interface WeaponObject {
   tokenId: number;
   contractAddress: string;   // "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d"
   weaponName: string;        // e.g., "RENETTI"
+  name: string;              // alias for weaponName (always identical)
   category: string;          // e.g., "handgun"
   tier: string;              // e.g., "base"
-  imageUri: string;          // IPFS URI
+  imageUri: string;          // IPFS URI (ipfs://...)
+  imageUrl: string;          // Pre-resolved HTTP gateway URL — use directly in <img src>
   metadataUri: string;       // metadata endpoint URL
 }
 

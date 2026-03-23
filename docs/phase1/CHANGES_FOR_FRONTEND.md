@@ -66,7 +66,7 @@ This document summarizes all breaking and non-breaking changes to Phase 1 API re
 ]
 ```
 
-**Impact:** `weapon.name` is now `weapon.weaponName`. Full token data now included.
+**Impact:** `weapon.name` is now `weapon.weaponName`. Full token data now included. **Update:** `name` is also returned as an alias for `weaponName`, along with `imageUrl` (pre-resolved HTTP gateway URL). See [FRONTEND_WEAPON_IMAGE_FIX.md](../FRONTEND_WEAPON_IMAGE_FIX.md) for details.
 
 ### 3. Leaderboard responses wrapped in `data` envelope
 

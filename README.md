@@ -203,8 +203,9 @@ All endpoints return a consistent response pattern:
 | [NFT & Token System](docs/NFT_AND_TOKEN_SYSTEM.md) | NFT mechanics, character unlocks, token flows, metadata system |
 | [Tokenomics Architecture](docs/TOKENOMICS_ARCHITECTURE.md) | Dynamic burn/recycle system, health tiers, sweep mechanics |
 | [Product Requirements](docs/PRD.md) | Full PRD with requirements, flows, and data models |
-| [Wallet Connect & Chain Switching](docs/WALLET_CONNECT_FLOW.md) | Full flow: auto network add/switch for faucet and frontend |
-| [Chain Switching Guide](docs/CHAIN_SWITCHING_GUIDE.md) | Technical implementation guide for EIP-3085/3326 integration |
+| [Wallet Connect & Chain Switching](docs/WALLET_CONNECT_FLOW.md) | Website wallet architecture, ChainEnforcer, UX flow, mainnet transition |
+| [Chain Switching Guide](docs/CHAIN_SWITCHING_GUIDE.md) | Copy-paste chain parameters and EIP-3085/3326 code patterns |
+| [Weapon Image Fix](docs/FRONTEND_WEAPON_IMAGE_FIX.md) | Frontend guide: weapon image resolution fix with before/after code |
 | [Post-Hackathon Roadmap](docs/POST_HACKATHON_ROADMAP.md) | Mainnet launch, armor, battle pass, marketplace, cross-chain |
 | [Setup Guide](docs/SETUP_GUIDE.md) | Development environment setup |
 
