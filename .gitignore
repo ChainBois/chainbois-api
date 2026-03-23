@@ -268,4 +268,5 @@ ChainBois.apk
 
 # Test data (sensitive)
 test-accounts.json
+generated-wallets.json
 PHASE5_TESTING_PLAN.md
