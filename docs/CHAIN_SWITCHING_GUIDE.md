@@ -290,34 +290,28 @@ Replace the wallet address input section. Currently:
 Replace with:
 
 ```html
-<div class="wallet-section">
-  <div class="wallet-row">
-    <button id="connectWalletBtn" class="btn btn-connect" onclick="connectWallet()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
-        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
-      </svg>
-      <span id="connectBtnText">Connect Wallet</span>
-    </button>
-    <span class="network-badge" id="networkBadge" style="display:none;">
-      <span class="network-dot"></span>
-      <span id="networkName">—</span>
-    </span>
-  </div>
-  <div id="connectedAddress" class="connected-address" style="display:none;">
-    <span id="displayAddress"></span>
-    <button class="btn-disconnect" onclick="disconnectWallet()" title="Disconnect">✕</button>
-  </div>
-  <div class="manual-fallback">
-    <button class="link-btn" onclick="toggleManualInput()">Or enter address manually</button>
-    <div id="manualInputSection" style="display:none;">
-      <input type="text" class="form-input" id="walletAddress" placeholder="0x..."
-             maxlength="42" spellcheck="false" autocomplete="off">
-    </div>
+<div class="wallet-row">
+  <button class="btn-connect" id="connectWalletBtn" onclick="connectWallet()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+    </svg>
+    <span id="connectBtnText">Connect Wallet</span>
+  </button>
+  <div class="network-badge" id="networkBadge" style="display:none;">
+    <span class="network-dot" id="networkDot"></span>
+    <span id="networkName"></span>
   </div>
 </div>
+<div class="connected-address" id="connectedAddress" style="display:none;">
+  <span id="displayAddress"></span>
+  <button class="btn-disconnect" onclick="disconnectWallet()" title="Disconnect">&times;</button>
+</div>
+<input type="hidden" id="walletAddress">
+<!-- Claim button starts disabled — enabled when wallet connects -->
+<button class="claim-btn" id="claimBtn" onclick="handleClaim()" disabled>Claim Starter Pack</button>
 ```
+
+Wallet connection is required — there is no manual address input fallback.
 
 #### Step 3: Add CSS Styles
 
@@ -389,12 +383,6 @@ Add these styles inside the existing `<style>` block:
   font-size: 1.1rem; padding: 0 0.25rem; opacity: 0.7;
 }
 .btn-disconnect:hover { opacity: 1; }
-.manual-fallback { text-align: center; }
-.link-btn {
-  background: none; border: none; color: #888; cursor: pointer;
-  font-size: 0.85rem; text-decoration: underline; padding: 0.25rem;
-}
-.link-btn:hover { color: #bbb; }
 ```
 
 #### Step 4: Add JavaScript
@@ -441,6 +429,7 @@ async function connectWallet() {
 
     connectedProvider = provider;
     connectedAddress = accounts[0];
+    document.getElementById('claimBtn').disabled = false; // Enable claim button immediately
 
     // Switch to Fuji if not already on it
     await ensureFujiNetwork();
@@ -448,24 +437,22 @@ async function connectWallet() {
     // Update UI
     updateWalletUI();
 
-    // Populate the hidden input for the claim flow
-    const input = document.getElementById('walletAddress');
-    if (input) {
-      input.value = connectedAddress;
-      input.dispatchEvent(new Event('input'));
-    }
+    // Check if this wallet already claimed
+    checkClaimStatus(connectedAddress);
 
     // Listen for chain/account changes
     provider.on('chainChanged', handleChainChanged);
     provider.on('accountsChanged', handleAccountsChanged);
 
   } catch (err) {
-    if (err.code === 4001) {
+    if (err.code !== 4001) {
+      console.error('Wallet connect failed:', err);
+    }
+    if (!connectedAddress) {
       btnText.textContent = 'Connect Wallet';
     } else {
-      console.error('Wallet connection failed:', err);
-      btnText.textContent = 'Connect Wallet';
-      showError('Failed to connect wallet: ' + (err.message || 'Unknown error'));
+      // Chain switch rejected but wallet is connected — still enable claim
+      updateWalletUI();
     }
   } finally {
     btn.disabled = false;
@@ -512,17 +499,10 @@ function handleChainChanged(chainIdHex) {
 }
 
 function handleAccountsChanged(accounts) {
-  if (!accounts || accounts.length === 0) {
-    disconnectWallet();
-    return;
-  }
+  if (!accounts || accounts.length === 0) { disconnectWallet(); return; }
   connectedAddress = accounts[0];
   updateWalletUI();
-  const input = document.getElementById('walletAddress');
-  if (input) {
-    input.value = connectedAddress;
-    input.dispatchEvent(new Event('input'));
-  }
+  checkClaimStatus(connectedAddress);
 }
 
 function disconnectWallet() {
@@ -532,38 +512,38 @@ function disconnectWallet() {
   }
   connectedProvider = null;
   connectedAddress = null;
-
   document.getElementById('connectBtnText').textContent = 'Connect Wallet';
   document.getElementById('connectWalletBtn').classList.remove('connected');
   document.getElementById('connectedAddress').style.display = 'none';
   document.getElementById('networkBadge').style.display = 'none';
-
-  const input = document.getElementById('walletAddress');
-  if (input) {
-    input.value = '';
-    input.dispatchEvent(new Event('input'));
-  }
+  document.getElementById('claimBtn').disabled = true;
 }
 
 function updateWalletUI() {
   if (!connectedAddress) return;
-
-  const btn = document.getElementById('connectWalletBtn');
-  const btnText = document.getElementById('connectBtnText');
-  const addrDisplay = document.getElementById('connectedAddress');
-  const displayAddr = document.getElementById('displayAddress');
-
+  var btn = document.getElementById('connectWalletBtn');
   btn.classList.add('connected');
-  btnText.textContent = 'Connected';
-  displayAddr.textContent = connectedAddress.slice(0, 6) + '...' + connectedAddress.slice(-4);
-  addrDisplay.style.display = 'flex';
-
-  // Update network badge
+  document.getElementById('connectBtnText').textContent = 'Connected';
+  document.getElementById('claimBtn').disabled = false;
+  document.getElementById('displayAddress').textContent =
+    connectedAddress.slice(0, 6) + '...' + connectedAddress.slice(-4);
+  document.getElementById('connectedAddress').style.display = 'flex';
   if (connectedProvider) {
-    connectedProvider.request({ method: 'eth_chainId' }).then(chainIdHex => {
-      updateNetworkBadge(parseInt(chainIdHex, 16));
+    connectedProvider.request({ method: 'eth_chainId' }).then(function (hex) {
+      updateNetworkBadge(parseInt(hex, 16));
     });
   }
+}
+
+async function checkClaimStatus(address) {
+  if (!isValidAddress(address)) return;
+  try {
+    var res = await fetch(API_BASE + '/claim/check/' + encodeURIComponent(address));
+    var data = await res.json();
+    if (data.data && data.data.claimed && data.data.status === 'completed') {
+      showAlreadyClaimed(data.data);
+    }
+  } catch (e) { /* non-critical */ }
 }
 
 function updateNetworkBadge(chainId) {
@@ -585,31 +565,18 @@ function updateNetworkBadge(chainId) {
   }
 }
 
-function toggleManualInput() {
-  const section = document.getElementById('manualInputSection');
-  section.style.display = section.style.display === 'none' ? 'block' : 'none';
-}
-
-// Show error helper (integrate with existing showError if it exists)
-function showError(msg) {
-  const existing = document.querySelector('.error-card');
-  if (existing) existing.remove();
-  // Use existing error display mechanism or console
-  console.error('[Wallet]', msg);
-  alert(msg); // Replace with your toast/notification system
-}
 ```
 
-#### Step 5: Update `handleClaim()` to use connected wallet
+#### Step 5: Update `handleClaim()` to require wallet connection
 
-In the existing `handleClaim()` function, change the address retrieval:
+In the existing `handleClaim()` function, change the address retrieval to require a connected wallet:
 
 ```javascript
-// Before:
-const address = document.getElementById('walletAddress').value.trim();
-
-// After:
-const address = connectedAddress || document.getElementById('walletAddress').value.trim();
+const address = connectedAddress;
+if (!address || !isValidAddress(address)) {
+  alert('Please connect your wallet first.');
+  return;
+}
 ```
 
 ---
@@ -628,12 +595,13 @@ const address = connectedAddress || document.getElementById('walletAddress').val
 
 ### Faucet
 
-- [ ] Click "Connect Wallet" with MetaMask → should connect and populate address
-- [ ] Connect on wrong network → should prompt to switch to Fuji
-- [ ] Switch accounts in wallet → address should update
-- [ ] Click disconnect → should clear address
-- [ ] Use "enter address manually" fallback → should work as before
-- [ ] Claim with connected wallet → should use connected address
+- [ ] Claim button starts disabled before wallet connect
+- [ ] Click "Connect Wallet" with MetaMask → should connect, show address, enable Claim button
+- [ ] Connect on wrong network → should auto-prompt to switch to Fuji
+- [ ] Connect with wallet that already claimed → should show "Already Claimed" view
+- [ ] Switch accounts in wallet → address should update, claim status re-checked
+- [ ] Click disconnect → should clear address, disable Claim button
+- [ ] Claim with connected wallet → should show progress, then results with weapons displayed
 - [ ] Page reload → wallet should not auto-reconnect (stateless)
 
 ---
@@ -664,7 +632,7 @@ The faucet is testnet-only by design, so no mainnet toggle needed.
 | Auto chain switch on connect | Already handled by `<ConnectButton chain={avalancheFuji}>` + add `ChainEnforcer` component for edge cases | New: `ensureFujiNetwork()` after `eth_requestAccounts` |
 | Wrong network detection | Add `NetworkSwitcher` component using `useActiveWalletChain()` | New: `handleChainChanged` listener + badge UI |
 | Add network if missing | Handled by Thirdweb internally | New: fallback from `wallet_switchEthereumChain` error 4902 to `wallet_addEthereumChain` |
-| Wallet Connect button | Already exists (`<ConnectButton>`) | New: replace text input with Connect button + manual fallback |
+| Wallet Connect button | Already exists (`<ConnectButton>`) | Connect Wallet button required (no manual input), Claim disabled until connected |
 | Works with MetaMask | Yes | Yes |
 | Works with Core Wallet | Yes | Yes |
 | Works with Phantom | Yes | Yes |

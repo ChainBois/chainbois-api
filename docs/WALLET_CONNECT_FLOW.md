@@ -49,27 +49,23 @@ Immediately after connecting, the faucet checks which network the wallet is on.
 - Fuji is added to their wallet AND auto-switched
 - User never types anything — all details are sent programmatically
 
-### Step 4: Address Auto-Populated
+### Step 4: Ready to Claim
 
 Once connected + on Fuji:
-- The wallet address is automatically filled in
+- The wallet address displays as `0x8e63...C2B` with a disconnect (×) button
 - Network badge shows green "Fuji Testnet"
-- The connected address displays as `0x8e63...C2B` with a disconnect (×) button
-- The manual address input field is also populated (as fallback)
+- The **Claim Starter Pack** button becomes active (it is disabled until a wallet is connected)
+- If this wallet has already claimed, the "Already Claimed" view is shown automatically
 
 ### Step 5: Claim Starter Pack
 
-User clicks "Claim Starter Pack" — uses the connected wallet address automatically.
+User clicks "Claim Starter Pack" — the button shows a live timer while assets are being sent on-chain. Results display each asset with its name, image, token ID, and transaction hash (linked to Snowtrace explorer). Weapons are shown individually with images and tx links.
 
 ### Ongoing Monitoring
 
-- If the user **switches accounts** in their wallet → address auto-updates on the page
+- If the user **switches accounts** in their wallet → address auto-updates, claim status re-checked
 - If the user **switches to wrong network** in their wallet → auto-prompts to switch back to Fuji
-- If the user **disconnects** from wallet → UI resets to "Connect Wallet" state
-
-### Manual Fallback
-
-Below the Connect button, there's "or enter manually" with a text input for users on mobile browsers or without browser wallet extensions.
+- If the user **disconnects** from wallet → UI resets, Claim button disabled
 
 ---
 
