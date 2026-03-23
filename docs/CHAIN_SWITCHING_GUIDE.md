@@ -4,7 +4,7 @@
 
 This guide covers two features:
 1. **Auto chain switching** — automatically prompt users to add/switch to Avalanche Fuji (testnet) or mainnet
-2. **Wallet Connect on faucet** — replace manual address input with a proper wallet connection
+2. **Wallet Connect on faucet** — wallet connection required with EIP-6963 multi-wallet chooser (no manual address input)
 
 Both use the same underlying Web3 standards (EIP-3085 + EIP-3326) and work across MetaMask, Core Wallet, Phantom, Coinbase Wallet, Trust Wallet, etc.
 

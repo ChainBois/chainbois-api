@@ -172,10 +172,12 @@ Done — user is on Fuji, address available
 
 **Faucet (`testnet-faucet/index.html`):**
 - Added ethers.js v6 via CDN for wallet provider detection
-- Added Connect Wallet button with auto chain switch
-- Added network badge (green/red indicator)
-- Added account/chain change listeners
-- Kept manual address input as fallback
+- EIP-6963 multi-wallet discovery with legacy fallback — chooser modal when 2+ wallets installed
+- Connect Wallet button with auto chain switch (EIP-3085/EIP-3326)
+- Claim button disabled until wallet connected (no manual address input)
+- Network badge (green/red indicator)
+- Account/chain change listeners with auto claim-status check
+- CORS headers on error responses via global error handler
 
 **Frontend (`chainbois-frontend/src/context/ThirdwebProviders.js`):**
 - Added `ChainEnforcer` component

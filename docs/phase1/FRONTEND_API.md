@@ -573,8 +573,8 @@ Login with wallet address. Checks on-chain NFT ownership, creates or updates the
 - Finds existing web2 user by uid if address lookup fails (web2 to web3 upgrade)
 - Links wallet address to user
 - Writes `{ hasNFT, level, weapons }` to Firebase RTDB (for Unity game)
-- Auto-upgrades WEB2 to WEB3 when NFT detected
-- Auto-downgrades WEB3 to WEB2 when NFT lost
+- All wallet-connected users are created as WEB3 (connecting a wallet = permanent web3 status)
+- Does NOT downgrade back to WEB2 if NFT is sold/transferred
 
 **Errors:**
 - `400`: "Please provide a valid EVM wallet address"
@@ -1211,10 +1211,10 @@ if (user.playerType === "web3") {
 ### Auto-Detection
 
 The backend automatically manages player type:
-- **Upgrade to WEB3**: User logs in with wallet, backend detects ChainBoi NFT (CB) on-chain
-- **Downgrade to WEB2**: User logs in, backend detects NFT was sold/transferred
+- **WEB3**: All users who connect a wallet are permanently WEB3. Connecting a wallet = web3 status, regardless of NFT ownership.
+- **WEB2**: Game-only players who have never connected a wallet (only exist in Firebase, not in MongoDB).
 
-You do not need to implement any detection logic. Just read `user.playerType` from the API response.
+There is no downgrade from WEB3 to WEB2 — once a user connects a wallet, they remain web3 even if they sell their NFTs. You do not need to implement any detection logic. Just read `user.playerType` from the API response.
 
 ---
 
