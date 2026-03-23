@@ -690,7 +690,7 @@
         </div>
         <input type="hidden" id="walletAddress">
       </div>
-      <button class="claim-btn" id="claimBtn" onclick="handleClaim()">
+      <button class="claim-btn" id="claimBtn" onclick="handleClaim()" disabled>
         Claim Starter Pack
       </button>
       <div class="form-hint">
@@ -877,6 +877,7 @@
       document.getElementById('connectWalletBtn').classList.remove('connected');
       document.getElementById('connectedAddress').style.display = 'none';
       document.getElementById('networkBadge').style.display = 'none';
+      document.getElementById('claimBtn').disabled = true;
     }
 
     function updateWalletUI() {
@@ -884,6 +885,7 @@
       var btn = document.getElementById('connectWalletBtn');
       btn.classList.add('connected');
       document.getElementById('connectBtnText').textContent = 'Connected';
+      document.getElementById('claimBtn').disabled = false;
       document.getElementById('displayAddress').textContent =
         connectedAddress.slice(0, 6) + '...' + connectedAddress.slice(-4);
       document.getElementById('connectedAddress').style.display = 'flex';
