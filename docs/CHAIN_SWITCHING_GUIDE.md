@@ -1,46 +1,36 @@
-# Avalanche Network Auto-Switch & Wallet Connect Guide
+# Chain Switching — Technical Reference
 
-## Overview
-
-This guide covers two features:
-1. **Auto chain switching** — automatically prompt users to add/switch to Avalanche Fuji (testnet) or mainnet
-2. **Wallet Connect on faucet** — wallet connection required with EIP-6963 multi-wallet chooser (no manual address input)
-
-Both use the same underlying Web3 standards (EIP-3085 + EIP-3326) and work across MetaMask, Core Wallet, Phantom, Coinbase Wallet, Trust Wallet, etc.
-
-> **This is frontend-only.** The wallet provider (`window.ethereum`) only exists in the user's browser — there is no backend API for chain switching.
+> **Purpose:** Copy-paste-ready chain parameters and code patterns for Avalanche network switching. Use as a quick reference when building new components or tools. For the full website wallet architecture, see [WALLET_CONNECT_FLOW.md](./WALLET_CONNECT_FLOW.md).
 
 ---
 
-## Part 1: Chain Parameters
+## Chain Parameters
 
-### Avalanche Fuji Testnet (Current)
+### Avalanche Fuji Testnet (current)
 
 ```javascript
+// Thirdweb v5 (used in the website)
+import { avalancheFuji } from 'thirdweb/chains'  // chain ID 43113
+
+// EIP-3085 format (for raw provider calls)
 const AVALANCHE_FUJI = {
-  chainId: '0xA869',           // 43113 in decimal
+  chainId: '0xA869',                    // 43113 decimal
   chainName: 'Avalanche Fuji C-Chain',
-  nativeCurrency: {
-    name: 'Avalanche',
-    symbol: 'AVAX',
-    decimals: 18,
-  },
+  nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
   rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
   blockExplorerUrls: ['https://testnet.snowscan.xyz'],
 };
 ```
 
-### Avalanche C-Chain Mainnet (For Production)
+### Avalanche C-Chain Mainnet (for production)
 
 ```javascript
+import { avalanche } from 'thirdweb/chains'  // chain ID 43114
+
 const AVALANCHE_MAINNET = {
-  chainId: '0xA86A',           // 43114 in decimal
+  chainId: '0xA86A',                    // 43114 decimal
   chainName: 'Avalanche C-Chain',
-  nativeCurrency: {
-    name: 'Avalanche',
-    symbol: 'AVAX',
-    decimals: 18,
-  },
+  nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
   rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
   blockExplorerUrls: ['https://snowscan.xyz'],
 };
@@ -48,594 +38,86 @@ const AVALANCHE_MAINNET = {
 
 ---
 
-## Part 2: How It Works (EIP-3085 + EIP-3326)
+## Pattern: Chain Enforcement (Thirdweb v5 / React)
 
-The standard pattern across ALL EVM wallets (MetaMask, Core, Phantom EVM, Coinbase, Trust):
-
-1. **Try `wallet_switchEthereumChain`** — asks the wallet to switch to a chain it already knows
-2. **If error 4902** (chain not found) — call `wallet_addEthereumChain` to add it, which also switches to it
-3. **If error 4001** — user rejected, show a message
+Already implemented in `src/context/ThirdwebProviders.js` — wraps the entire app and auto-switches to Fuji:
 
 ```javascript
-async function switchToAvalanche(testnet = true) {
-  const params = testnet ? AVALANCHE_FUJI : AVALANCHE_MAINNET;
-
-  // Detect available wallet provider
-  const provider = window.ethereum || window.avalanche;
-  if (!provider) {
-    throw new Error('No wallet detected. Please install MetaMask or Core Wallet.');
-  }
-
-  try {
-    await provider.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: params.chainId }],
-    });
-  } catch (error) {
-    if (error.code === 4902 || error.message?.includes('Unrecognized chain')) {
-      // Chain not added — add it (this also switches to it)
-      await provider.request({
-        method: 'wallet_addEthereumChain',
-        params: [params],
-      });
-    } else if (error.code === 4001) {
-      throw new Error('You rejected the network switch. Please switch to Avalanche Fuji manually.');
-    } else {
-      throw error;
-    }
-  }
-}
-```
-
-### Wallet Compatibility
-
-| Wallet | `wallet_switchEthereumChain` | `wallet_addEthereumChain` | Provider Object |
-|--------|------|------|------|
-| MetaMask | Yes | Yes | `window.ethereum` |
-| Core Wallet | Yes | Yes | `window.ethereum` or `window.avalanche` |
-| Phantom (EVM) | Yes | Yes | `window.ethereum` (when EVM mode selected) |
-| Coinbase Wallet | Yes | Yes | `window.ethereum` |
-| Trust Wallet | Yes | Yes | `window.ethereum` |
-| WalletConnect | Yes (via modal) | Yes (via modal) | Via WalletConnect provider |
-
-All major EVM wallets implement these EIPs. The code above works universally.
-
----
-
-## Part 3: Frontend Integration (ChainBois Website)
-
-### Current Setup
-
-The frontend uses **Thirdweb v5** with these key files:
-- `src/context/ThirdwebProviders.js` — wraps app with `ThirdwebProvider`, hardcodes `avalancheFuji`
-- `src/lib/thirdwebWallets.js` — wallet list (MetaMask, Keplr, Phantom, Coinbase, Trust)
-- `src/components/ConnectWalletButton/ConnectWalletButton.jsx` — renders `<ConnectButton>`
-
-### What Thirdweb v5 Already Handles
-
-Thirdweb v5's `<ConnectButton>` with the `chain` prop **already handles chain switching automatically** for supported wallets. When you set `chain={avalancheFuji}`, the ConnectButton:
-1. Detects the user's current chain after connection
-2. If not on Fuji, prompts them to switch
-3. If Fuji isn't added, adds it first
-
-**This means the main frontend likely already works.** However, to add an explicit network toggle (mainnet ↔ testnet), or to handle edge cases where auto-switch fails, add this:
-
-### Option A: Add a Network Switch Button (Recommended)
-
-Create a new component `src/components/NetworkSwitcher/NetworkSwitcher.jsx`:
-
-```jsx
-'use client';
-
-import { useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
-import { avalancheFuji, avalanche } from 'thirdweb/chains';
-
-const NETWORKS = [
-  { chain: avalancheFuji, label: 'Fuji Testnet', color: '#e74c3c' },
-  { chain: avalanche, label: 'Mainnet', color: '#2ecc71' },
-];
-
-export default function NetworkSwitcher() {
-  const activeChain = useActiveWalletChain();
-  const switchChain = useSwitchActiveWalletChain();
-
-  const isTestnet = activeChain?.id === avalancheFuji.id;
-  const isMainnet = activeChain?.id === avalanche.id;
-  const isWrongNetwork = activeChain && !isTestnet && !isMainnet;
-
-  const handleSwitch = async (chain) => {
-    try {
-      await switchChain(chain);
-    } catch (err) {
-      console.error('Failed to switch network:', err);
-      // Fallback to raw EIP-3085/3326 if thirdweb fails
-      await rawSwitchChain(chain.id === avalancheFuji.id);
-    }
-  };
-
-  if (!activeChain) return null; // No wallet connected
-
-  return (
-    <div className="network-switcher">
-      {isWrongNetwork && (
-        <div className="wrong-network-banner">
-          Wrong network detected. Please switch to Avalanche.
-          <button onClick={() => handleSwitch(avalancheFuji)}>
-            Switch to Fuji Testnet
-          </button>
-        </div>
-      )}
-      {!isWrongNetwork && (
-        <div className="network-indicator">
-          <span className="network-dot" style={{ backgroundColor: isTestnet ? '#e74c3c' : '#2ecc71' }} />
-          {isTestnet ? 'Fuji Testnet' : 'Mainnet'}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Fallback for wallets where thirdweb's switchChain doesn't work
-async function rawSwitchChain(testnet = true) {
-  const params = testnet
-    ? {
-        chainId: '0xA869',
-        chainName: 'Avalanche Fuji C-Chain',
-        nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
-        rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
-        blockExplorerUrls: ['https://testnet.snowscan.xyz'],
-      }
-    : {
-        chainId: '0xA86A',
-        chainName: 'Avalanche C-Chain',
-        nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
-        rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
-        blockExplorerUrls: ['https://snowscan.xyz'],
-      };
-
-  const provider = window.ethereum || window.avalanche;
-  if (!provider) throw new Error('No wallet detected');
-
-  try {
-    await provider.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: params.chainId }],
-    });
-  } catch (error) {
-    if (error.code === 4902 || error.message?.includes('Unrecognized chain')) {
-      await provider.request({
-        method: 'wallet_addEthereumChain',
-        params: [params],
-      });
-    } else {
-      throw error;
-    }
-  }
-}
-```
-
-### Option B: Ensure ThirdwebProviders.js Forces Chain Switch
-
-Update `src/context/ThirdwebProviders.js` to include `switchActiveWalletChain` in a useEffect:
-
-```jsx
-'use client';
-
-import { ThirdwebProvider, AutoConnect, ChainProvider, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
-import { avalancheFuji } from 'thirdweb/chains';
-import { thirdwebClient } from '@/lib';
-import { thirdwebWallets, thirdwebAppMetadata } from '@/lib/thirdwebWallets';
-import { useEffect } from 'react';
+import { useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react'
+import { avalancheFuji } from 'thirdweb/chains'
 
 function ChainEnforcer({ children }) {
-  const activeChain = useActiveWalletChain();
-  const switchChain = useSwitchActiveWalletChain();
+  const activeChain = useActiveWalletChain()
+  const switchChain = useSwitchActiveWalletChain()
 
   useEffect(() => {
     if (activeChain && activeChain.id !== avalancheFuji.id) {
-      switchChain(avalancheFuji).catch(console.error);
+      switchChain(avalancheFuji).catch(console.error)
     }
-  }, [activeChain, switchChain]);
+  }, [activeChain, switchChain])
 
-  return children;
-}
-
-export default function ThirdwebProviders({ children }) {
-  return (
-    <ThirdwebProvider>
-      <AutoConnect
-        client={thirdwebClient}
-        wallets={thirdwebWallets}
-        appMetadata={thirdwebAppMetadata}
-        chain={avalancheFuji}
-      />
-      <ChainProvider chain={avalancheFuji}>
-        <ChainEnforcer>
-          {children}
-        </ChainEnforcer>
-      </ChainProvider>
-    </ThirdwebProvider>
-  );
+  return children
 }
 ```
 
-This automatically switches the user to Fuji whenever they connect on a different chain.
+Uses EIP-3085/3326 under the hood via Thirdweb.
 
 ---
 
-## Part 4: Faucet — Add Wallet Connect + Chain Switching
+## Pattern: Switch or Add Chain (Vanilla JS)
 
-The faucet is a single vanilla HTML file. We'll add wallet connection using **ethers.js v6 via CDN** (lightweight, no framework needed).
-
-### Changes to `/testnet-faucet/index.html`
-
-#### Step 1: Add ethers.js CDN
-
-Add this in the `<head>` section, after the Google Fonts link:
-
-```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"
-        integrity="sha512-MnL/RLBFjLMRG/sPGvJPsSOXEHwSJCQcOWTlLJo0IBk/nRl+q/vqJFi7VkAbFqoP4GtZcJJFBo6bPIJEHEvzg=="
-        crossorigin="anonymous"></script>
-```
-
-#### Step 2: Add Connect Wallet Button
-
-Replace the wallet address input section. Currently:
-
-```html
-<input type="text" class="form-input" id="walletAddress" placeholder="0x..." ...>
-```
-
-Replace with:
-
-```html
-<div class="wallet-row">
-  <button class="btn-connect" id="connectWalletBtn" onclick="connectWallet()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
-    </svg>
-    <span id="connectBtnText">Connect Wallet</span>
-  </button>
-  <div class="network-badge" id="networkBadge" style="display:none;">
-    <span class="network-dot" id="networkDot"></span>
-    <span id="networkName"></span>
-  </div>
-</div>
-<div class="connected-address" id="connectedAddress" style="display:none;">
-  <span id="displayAddress"></span>
-  <button class="btn-disconnect" onclick="disconnectWallet()" title="Disconnect">&times;</button>
-</div>
-<input type="hidden" id="walletAddress">
-<!-- Claim button starts disabled — enabled when wallet connects -->
-<button class="claim-btn" id="claimBtn" onclick="handleClaim()" disabled>Claim Starter Pack</button>
-```
-
-Wallet connection is required — there is no manual address input fallback.
-
-#### Step 3: Add CSS Styles
-
-Add these styles inside the existing `<style>` block:
-
-```css
-.wallet-section {
-  margin-bottom: 1.5rem;
-}
-.wallet-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-.btn-connect {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex: 1;
-}
-.btn-connect:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
-.btn-connect:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
-.btn-connect.connected {
-  background: linear-gradient(135deg, #27ae60, #229954);
-}
-.network-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.75rem;
-  background: rgba(255,255,255,0.08);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  color: #ccc;
-  white-space: nowrap;
-}
-.network-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: #e74c3c;
-}
-.network-dot.correct { background: #2ecc71; }
-.connected-address {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: rgba(39,174,96,0.1);
-  border: 1px solid rgba(39,174,96,0.3);
-  border-radius: 8px;
-  font-family: monospace;
-  font-size: 0.85rem;
-  color: #2ecc71;
-  margin-bottom: 0.75rem;
-}
-.connected-address span { flex: 1; overflow: hidden; text-overflow: ellipsis; }
-.btn-disconnect {
-  background: none; border: none; color: #e74c3c; cursor: pointer;
-  font-size: 1.1rem; padding: 0 0.25rem; opacity: 0.7;
-}
-.btn-disconnect:hover { opacity: 1; }
-```
-
-#### Step 4: Add JavaScript
-
-Add this script block before the closing `</body>` tag (or inside the existing `<script>`):
+For standalone pages or tools outside of the Thirdweb React app (e.g., the testnet faucet uses this pattern):
 
 ```javascript
-// --- Avalanche Fuji chain parameters ---
-const FUJI_CHAIN = {
-  chainId: '0xA869',
-  chainName: 'Avalanche Fuji C-Chain',
-  nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
-  rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
-  blockExplorerUrls: ['https://testnet.snowscan.xyz'],
-};
-const FUJI_CHAIN_ID = 43113;
-
-let connectedProvider = null;
-let connectedAddress = null;
-
-// --- EIP-6963 Multi-Wallet Discovery ---
-const discoveredWallets = new Map();
-
-window.addEventListener('eip6963:announceProvider', (event) => {
-  const { info, provider } = event.detail;
-  if (info && provider) discoveredWallets.set(info.rdns, { info, provider });
-});
-window.dispatchEvent(new Event('eip6963:requestProvider'));
-
-// Legacy fallback for older wallets (runs after 200ms)
-setTimeout(() => {
-  if (window.ethereum?.isMetaMask && !discoveredWallets.has('io.metamask'))
-    discoveredWallets.set('io.metamask', { info: { name: 'MetaMask', rdns: 'io.metamask', icon: '' }, provider: window.ethereum });
-  if (window.phantom?.ethereum && !discoveredWallets.has('app.phantom'))
-    discoveredWallets.set('app.phantom', { info: { name: 'Phantom', rdns: 'app.phantom', icon: '' }, provider: window.phantom.ethereum });
-  if (window.avalanche && !discoveredWallets.has('app.core.extension'))
-    discoveredWallets.set('app.core.extension', { info: { name: 'Core', rdns: 'app.core.extension', icon: '' }, provider: window.avalanche });
-  if (discoveredWallets.size === 0 && window.ethereum)
-    discoveredWallets.set('unknown', { info: { name: 'Browser Wallet', rdns: 'unknown', icon: '' }, provider: window.ethereum });
-}, 200);
-
-async function connectWallet() {
-  const wallets = Array.from(discoveredWallets.values());
-  if (wallets.length === 0) { alert('No wallet detected.'); return; }
-
-  // Show chooser modal if multiple wallets, auto-select if only one
-  const chosen = wallets.length === 1 ? wallets[0] : await showWalletChooserModal(wallets);
-  if (!chosen) return;
-
-  const btn = document.getElementById('connectWalletBtn');
-  const btnText = document.getElementById('connectBtnText');
-  btn.disabled = true;
-  btnText.textContent = 'Connecting...';
+async function ensureChain(provider, chainParams, expectedChainId) {
+  const currentHex = await provider.request({ method: 'eth_chainId' });
+  if (parseInt(currentHex, 16) === expectedChainId) return;
 
   try {
-    const accounts = await chosen.provider.request({ method: 'eth_requestAccounts' });
-    if (!accounts || accounts.length === 0) throw new Error('No accounts returned');
-
-    connectedProvider = chosen.provider;
-    connectedAddress = accounts[0];
-    document.getElementById('claimBtn').disabled = false;
-
-    await ensureFujiNetwork();
-    updateWalletUI();
-    checkClaimStatus(connectedAddress);
-
-    chosen.provider.on('chainChanged', handleChainChanged);
-    chosen.provider.on('accountsChanged', handleAccountsChanged);
-  } catch (err) {
-    if (err.code !== 4001) console.error('Wallet connect failed:', err);
-    if (!connectedAddress) { btnText.textContent = 'Connect Wallet'; }
-    else { updateWalletUI(); }
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-async function ensureFujiNetwork() {
-  if (!connectedProvider) return;
-
-  const chainId = await connectedProvider.request({ method: 'eth_chainId' });
-  const currentChainId = parseInt(chainId, 16);
-
-  if (currentChainId === FUJI_CHAIN_ID) return; // Already on Fuji
-
-  try {
-    await connectedProvider.request({
+    await provider.request({
       method: 'wallet_switchEthereumChain',
-      params: [{ chainId: FUJI_CHAIN.chainId }],
+      params: [{ chainId: chainParams.chainId }],
     });
   } catch (error) {
-    // Chain not added — add it (error 4902, or some wallets use different codes)
-    if (error.code === 4902 || error.data?.originalError?.code === 4902 ||
-        error.message?.includes('Unrecognized chain') || error.message?.includes('wallet_addEthereumChain')) {
-      await connectedProvider.request({
+    if (error.code === 4902 ||
+        error.data?.originalError?.code === 4902 ||
+        error.message?.includes('Unrecognized chain')) {
+      // Chain not in wallet — add it (also switches automatically)
+      await provider.request({
         method: 'wallet_addEthereumChain',
-        params: [FUJI_CHAIN],
+        params: [chainParams],
       });
     } else if (error.code === 4001) {
-      showError('Please switch to Avalanche Fuji Testnet to use the faucet.');
-      throw error;
+      throw new Error('User rejected the network switch.');
     } else {
       throw error;
     }
   }
 }
 
-function handleChainChanged(chainIdHex) {
-  const chainId = parseInt(chainIdHex, 16);
-  updateNetworkBadge(chainId);
-  if (chainId !== FUJI_CHAIN_ID) {
-    showError('Please switch to Avalanche Fuji Testnet.');
-    ensureFujiNetwork().catch(console.error);
-  }
-}
-
-function handleAccountsChanged(accounts) {
-  if (!accounts || accounts.length === 0) { disconnectWallet(); return; }
-  connectedAddress = accounts[0];
-  updateWalletUI();
-  checkClaimStatus(connectedAddress);
-}
-
-function disconnectWallet() {
-  if (connectedProvider) {
-    connectedProvider.removeListener('chainChanged', handleChainChanged);
-    connectedProvider.removeListener('accountsChanged', handleAccountsChanged);
-  }
-  connectedProvider = null;
-  connectedAddress = null;
-  document.getElementById('connectBtnText').textContent = 'Connect Wallet';
-  document.getElementById('connectWalletBtn').classList.remove('connected');
-  document.getElementById('connectedAddress').style.display = 'none';
-  document.getElementById('networkBadge').style.display = 'none';
-  document.getElementById('claimBtn').disabled = true;
-}
-
-function updateWalletUI() {
-  if (!connectedAddress) return;
-  var btn = document.getElementById('connectWalletBtn');
-  btn.classList.add('connected');
-  document.getElementById('connectBtnText').textContent = 'Connected';
-  document.getElementById('claimBtn').disabled = false;
-  document.getElementById('displayAddress').textContent =
-    connectedAddress.slice(0, 6) + '...' + connectedAddress.slice(-4);
-  document.getElementById('connectedAddress').style.display = 'flex';
-  if (connectedProvider) {
-    connectedProvider.request({ method: 'eth_chainId' }).then(function (hex) {
-      updateNetworkBadge(parseInt(hex, 16));
-    });
-  }
-}
-
-async function checkClaimStatus(address) {
-  if (!isValidAddress(address)) return;
-  try {
-    var res = await fetch(API_BASE + '/claim/check/' + encodeURIComponent(address));
-    var data = await res.json();
-    if (data.data && data.data.claimed && data.data.status === 'completed') {
-      showAlreadyClaimed(data.data);
-    }
-  } catch (e) { /* non-critical */ }
-}
-
-function updateNetworkBadge(chainId) {
-  const badge = document.getElementById('networkBadge');
-  const dot = badge.querySelector('.network-dot');
-  const name = document.getElementById('networkName');
-
-  badge.style.display = 'inline-flex';
-
-  if (chainId === FUJI_CHAIN_ID) {
-    dot.classList.add('correct');
-    name.textContent = 'Fuji Testnet';
-  } else if (chainId === 43114) {
-    dot.classList.remove('correct');
-    name.textContent = 'Mainnet (wrong)';
-  } else {
-    dot.classList.remove('correct');
-    name.textContent = 'Wrong Network';
-  }
-}
-
+// Usage:
+await ensureChain(window.ethereum, AVALANCHE_FUJI, 43113);
 ```
 
-#### Step 5: Update `handleClaim()` to require wallet connection
+### Error Codes
 
-In the existing `handleClaim()` function, change the address retrieval to require a connected wallet:
-
-```javascript
-const address = connectedAddress;
-if (!address || !isValidAddress(address)) {
-  alert('Please connect your wallet first.');
-  return;
-}
-```
+| Code | Meaning | Action |
+|------|---------|--------|
+| `4001` | User rejected | Show message, don't retry |
+| `4902` | Chain not in wallet | Fall back to `wallet_addEthereumChain` |
+| `-32002` | Request already pending | Wallet has an open popup — wait |
 
 ---
 
-## Part 5: Testing Checklist
+## Wallet Compatibility
 
-### Frontend (ChainBois Website)
+| Wallet | Switch | Add | Provider |
+|--------|:---:|:---:|------|
+| MetaMask | Yes | Yes | `window.ethereum` |
+| Core Wallet | Yes | Yes | `window.ethereum` or `window.avalanche` |
+| Phantom (EVM) | Yes | Yes | `window.phantom.ethereum` |
+| Coinbase Wallet | Yes | Yes | `window.ethereum` |
+| Trust Wallet | Yes | Yes | `window.ethereum` |
+| WalletConnect | Yes | Yes | Via WalletConnect provider |
 
-- [ ] Connect with MetaMask on Ethereum mainnet → should auto-switch to Fuji
-- [ ] Connect with MetaMask that has never seen Fuji → should prompt to add network
-- [ ] Connect with Core Wallet → should work identically
-- [ ] Connect with Phantom (EVM mode) → should work
-- [ ] Connect with Coinbase Wallet → should work
-- [ ] Switch to wrong network while connected → should prompt to switch back
-- [ ] Reject the switch prompt → should show "wrong network" indicator
-
-### Faucet
-
-- [ ] Claim button starts disabled before wallet connect
-- [ ] Click "Connect Wallet" with MetaMask → should connect, show address, enable Claim button
-- [ ] Connect on wrong network → should auto-prompt to switch to Fuji
-- [ ] Connect with wallet that already claimed → should show "Already Claimed" view
-- [ ] Switch accounts in wallet → address should update, claim status re-checked
-- [ ] Click disconnect → should clear address, disable Claim button
-- [ ] Claim with connected wallet → should show progress, then results with weapons displayed
-- [ ] Page reload → wallet should not auto-reconnect (stateless)
-
----
-
-## Part 6: Production Toggle (Mainnet vs Testnet)
-
-For production, change the chain config based on environment:
-
-### Frontend (Next.js)
-
-In `src/context/ThirdwebProviders.js`:
-```javascript
-import { avalanche, avalancheFuji } from 'thirdweb/chains';
-
-const activeChain = process.env.NEXT_PUBLIC_NETWORK === 'mainnet' ? avalanche : avalancheFuji;
-```
-
-### Faucet
-
-The faucet is testnet-only by design, so no mainnet toggle needed.
-
----
-
-## Summary
-
-| Feature | Frontend (Thirdweb v5) | Faucet (Vanilla JS) |
-|---------|----------------------|---------------------|
-| Auto chain switch on connect | Already handled by `<ConnectButton chain={avalancheFuji}>` + add `ChainEnforcer` component for edge cases | New: `ensureFujiNetwork()` after `eth_requestAccounts` |
-| Wrong network detection | Add `NetworkSwitcher` component using `useActiveWalletChain()` | New: `handleChainChanged` listener + badge UI |
-| Add network if missing | Handled by Thirdweb internally | New: fallback from `wallet_switchEthereumChain` error 4902 to `wallet_addEthereumChain` |
-| Wallet Connect button | Already exists (`<ConnectButton>`) | Connect Wallet button required (no manual input), Claim disabled until connected |
-| Works with MetaMask | Yes | Yes |
-| Works with Core Wallet | Yes | Yes |
-| Works with Phantom | Yes | Yes |
-| Works with Coinbase | Yes | Yes |
-| Works with Trust | Yes | Yes |
+All major EVM wallets support EIP-3085/3326. The patterns above work universally.

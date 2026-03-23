@@ -23,6 +23,7 @@ const {
   PLAYER_TYPE,
   buildCurrentTraits,
   RANK_NAMES,
+  buildWeaponResponse,
 } = require("../config/constants");
 const { ethers } = require("ethers");
 
@@ -49,16 +50,7 @@ const listWeapons = catchAsync(async (req, res) => {
   }
   for (const w of weapons) {
     if (grouped[w.category]) {
-      grouped[w.category].push({
-        tokenId: w.tokenId,
-        contractAddress: process.env.WEAPON_NFT_ADDRESS,
-        weaponName: w.weaponName,
-        category: w.category,
-        tier: w.blueprintTier,
-        price: w.price,
-        imageUri: w.imageUri || "",
-        metadataUri: w.metadataUri || "",
-      });
+      grouped[w.category].push(buildWeaponResponse(w, { price: w.price }));
     }
   }
 
@@ -87,16 +79,7 @@ const listWeaponsByCategory = catchAsync(async (req, res, next) => {
     .select("tokenId weaponName category blueprintTier price imageUri metadataUri")
     .lean();
 
-  const data = weapons.map((w) => ({
-    tokenId: w.tokenId,
-    contractAddress: process.env.WEAPON_NFT_ADDRESS,
-    weaponName: w.weaponName,
-    category: w.category,
-    tier: w.blueprintTier,
-    price: w.price,
-    imageUri: w.imageUri || "",
-    metadataUri: w.metadataUri || "",
-  }));
+  const data = weapons.map((w) => buildWeaponResponse(w, { price: w.price }));
 
   res.status(200).json({ success: true, data });
 });
@@ -126,20 +109,13 @@ const getWeaponDetail = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    data: {
-      tokenId: weapon.tokenId,
-      contractAddress: process.env.WEAPON_NFT_ADDRESS,
-      weaponName: weapon.weaponName,
-      category: weapon.category,
-      tier: weapon.blueprintTier,
+    data: buildWeaponResponse(weapon, {
       price: weapon.price,
       currency: "BATTLE",
       available: isAvailable,
       description: def ? def.description : "",
-      imageUri: weapon.imageUri || "",
-      metadataUri: weapon.metadataUri || "",
       paymentAddress: weaponStoreWallet.address,
-    },
+    }),
   });
 });
 

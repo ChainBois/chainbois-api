@@ -25,10 +25,12 @@ Returns weapons available for purchase, grouped by category. Only shows weapons 
       {
         "tokenId": 1,
         "weaponName": "AR M4 MK18",
+        "name": "AR M4 MK18",
         "category": "assault",
         "tier": "base",
         "price": 1,
-        "imageUri": "",
+        "imageUri": "ipfs://bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/02-AR-M4-MK18.jpeg",
+        "imageUrl": "https://gateway.pinata.cloud/ipfs/bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/02-AR-M4-MK18.jpeg",
         "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
         "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json"
       }
@@ -43,6 +45,11 @@ Returns weapons available for purchase, grouped by category. Only shows weapons 
   }
 }
 ```
+
+**Image Fields:**
+- `imageUri` — Raw IPFS URI (`ipfs://...`). Use this for on-chain references or if you handle IPFS resolution yourself.
+- `imageUrl` — Pre-resolved HTTP gateway URL. **Use this directly in `<img>` tags** — no conversion needed.
+- `name` — Alias for `weaponName`. Both fields are always present and identical.
 
 ### 2. List Weapons by Category (Public)
 
@@ -67,13 +74,15 @@ Returns weapon info + payment address for purchase.
   "data": {
     "tokenId": 1,
     "weaponName": "AR M4 MK18",
+    "name": "AR M4 MK18",
     "category": "assault",
     "tier": "base",
     "price": 1,
     "currency": "BATTLE",
     "available": true,
     "description": "",
-    "imageUri": "",
+    "imageUri": "ipfs://bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/02-AR-M4-MK18.jpeg",
+    "imageUrl": "https://gateway.pinata.cloud/ipfs/bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/02-AR-M4-MK18.jpeg",
     "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
     "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/1.json",
     "paymentAddress": "0xD40e..."

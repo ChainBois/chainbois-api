@@ -52,9 +52,11 @@ Returns all owned assets categorized: ChainBois, weapons, and balances.
       {
         "tokenId": 2,
         "weaponName": "AR M4 MK18",
+        "name": "AR M4 MK18",
         "category": "assault",
         "tier": "base",
-        "imageUri": "",
+        "imageUri": "ipfs://bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/02-AR-M4-MK18.jpeg",
+        "imageUrl": "https://gateway.pinata.cloud/ipfs/bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/02-AR-M4-MK18.jpeg",
         "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d",
         "metadataUri": "https://test-2.ghettopigeon.com/api/v1/metadata/weapon/2.json"
       }
@@ -125,15 +127,22 @@ GET /inventory/:address/weapons
     {
       "tokenId": 2,
       "weaponName": "AR M4 MK18",
+      "name": "AR M4 MK18",
       "category": "assault",
       "tier": "base",
-      "imageUri": "",
+      "imageUri": "ipfs://bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/02-AR-M4-MK18.jpeg",
+      "imageUrl": "https://gateway.pinata.cloud/ipfs/bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe/02-AR-M4-MK18.jpeg",
       "metadataUri": "",
       "contractAddress": "0xa2AFf3105668124A187b1212Ab850bf8b98dD07d"
     }
   ]
 }
 ```
+
+**Image Fields (all weapon endpoints):**
+- `imageUri` — Raw IPFS URI (`ipfs://...`). Use for on-chain references or custom IPFS resolution.
+- `imageUrl` — Pre-resolved HTTP gateway URL. **Use this directly in `<img>` tags.**
+- `name` — Alias for `weaponName`. Both fields always present and identical.
 
 ### 4. Transaction History (Public)
 

@@ -1,210 +1,167 @@
-# Wallet Connect & Chain Switch — Full Flow Document
+# Wallet Connect & Chain Switching — How It Works
 
-## How It Works (Non-Technical)
-
-When a user visits the faucet or the ChainBois website, they click **"Connect Wallet"**. Everything that follows is automatic — the user just clicks "Approve" on wallet popups. No manual configuration needed.
+> **Purpose:** Reference for the frontend developer explaining how wallet connection and Avalanche Fuji network enforcement work on the ChainBois website. Read this to understand the wallet UX, debug connection issues, modify wallet behavior, or prepare for mainnet.
 
 ---
 
-## Faucet Flow (chainbois-testnet-faucet.vercel.app)
+## Architecture
 
-### Step 1: User Clicks "Connect Wallet"
-
-The faucet page shows a red **Connect Wallet** button with a wallet icon. The Claim Starter Pack button is disabled until a wallet is connected.
-
-### Step 2: Wallet Selection
-
-**If only one wallet is installed:** The wallet connects directly — no extra steps.
-
-**If multiple wallets are installed (e.g., MetaMask + Core + Phantom):** A chooser modal appears showing all detected wallets with their icons and names. The user clicks their preferred wallet.
-
-Wallet detection uses **EIP-6963** (Multi Injected Provider Discovery) — the modern standard supported by MetaMask, Core, Phantom, Coinbase Wallet, and others. Legacy fallback detection catches older wallets that don't support EIP-6963.
-
-### Step 3: Wallet Connect Popup
-
-The chosen wallet shows its connection popup:
-> **"chainbois-testnet-faucet.vercel.app wants to connect to your wallet"**
-> → User clicks **Connect**
-
-### Step 3: Automatic Network Check
-
-Immediately after connecting, the faucet checks which network the wallet is on.
-
-**Scenario A — Already on Fuji:**
-- Green dot + "Fuji Testnet" badge appears
-- Wallet address shows as `0x8e63...C2B`
-- User can claim immediately
-- No extra popups
-
-**Scenario B — On wrong network (e.g., Ethereum, Avalanche Mainnet):**
-- Wallet popup appears automatically:
-  > **"Allow this site to switch the network?"**
-  > Network: Avalanche Fuji C-Chain
-  > → User clicks **Switch Network** (one click)
-- Network switches instantly, green badge appears
-
-**Scenario C — Fuji not in wallet at all (first time):**
-- Wallet popup appears automatically:
-  > **"Allow this site to add a network?"**
-  > Network name: Avalanche Fuji C-Chain
-  > RPC URL: https://api.avax-test.network/ext/bc/C/rpc
-  > Chain ID: 43113
-  > Currency: AVAX
-  > Block Explorer: https://testnet.snowscan.xyz
-  > → User clicks **Approve** (one click)
-- Fuji is added to their wallet AND auto-switched
-- User never types anything — all details are sent programmatically
-
-### Step 4: Ready to Claim
-
-Once connected + on Fuji:
-- The wallet address displays as `0x8e63...C2B` with a disconnect (×) button
-- Network badge shows green "Fuji Testnet"
-- The **Claim Starter Pack** button becomes active (it is disabled until a wallet is connected)
-- If this wallet has already claimed, the "Already Claimed" view is shown automatically
-
-### Step 5: Claim Starter Pack
-
-User clicks "Claim Starter Pack" — the button shows a live timer while assets are being sent on-chain. Results display each asset with its name, image, token ID, and transaction hash (linked to Snowtrace explorer). Weapons are shown individually with images and tx links.
-
-### Ongoing Monitoring
-
-- If the user **switches accounts** in their wallet → address auto-updates, claim status re-checked
-- If the user **switches to wrong network** in their wallet → auto-prompts to switch back to Fuji
-- If the user **disconnects** from wallet → UI resets, Claim button disabled
-
----
-
-## Frontend Flow (ChainBois Website — chain-bois.vercel.app)
-
-### How Thirdweb v5 Handles It
-
-The main website uses Thirdweb v5 SDK which has **built-in chain enforcement**:
-
-1. `<ConnectButton chain={avalancheFuji}>` — tells Thirdweb that Fuji is the target chain
-2. `<AutoConnect chain={avalancheFuji}>` — on page reload, auto-reconnects to Fuji
-3. `<ChainProvider chain={avalancheFuji}>` — all chain-aware hooks default to Fuji
-4. `<ChainEnforcer>` — custom component that auto-switches if user drifts to wrong chain
-
-### User Experience
-
-1. User clicks the ConnectWalletButton → Thirdweb modal shows supported wallets
-2. User selects MetaMask/Core/Phantom/Coinbase/Trust → wallet popup for connection
-3. Thirdweb automatically:
-   - Detects current chain
-   - If not Fuji → sends `wallet_switchEthereumChain` (popup: "Switch network?")
-   - If Fuji unknown → sends `wallet_addEthereumChain` (popup: "Add network?")
-   - Switches to Fuji
-4. `ChainEnforcer` component monitors for chain changes during the session:
-   - If user manually switches to Ethereum in MetaMask → auto-prompts back to Fuji
-5. User is now on Fuji with their address available throughout the app
-
----
-
-## Technical Details
-
-### What Happens Under the Hood
+The website uses Thirdweb v5 (`^5.105.41`) with chain enforcement built into the React provider tree:
 
 ```
-User clicks "Connect"
-  ↓
-Browser calls: window.ethereum.request({ method: 'eth_requestAccounts' })
-  ↓
-Wallet shows: "Connect to this site?" → User clicks Approve
-  ↓
-Browser calls: window.ethereum.request({ method: 'eth_chainId' })
-  ↓
-Returns: "0x1" (Ethereum) — NOT Fuji (0xA869)
-  ↓
-Browser calls: window.ethereum.request({
-  method: 'wallet_switchEthereumChain',
-  params: [{ chainId: '0xA869' }]
-})
-  ↓
-Wallet shows: "Switch to Avalanche Fuji C-Chain?" → User clicks Switch
-  ↓
-  ↓ (OR if Fuji not in wallet → error 4902)
-  ↓
-Browser calls: window.ethereum.request({
-  method: 'wallet_addEthereumChain',
-  params: [{
-    chainId: '0xA869',
-    chainName: 'Avalanche Fuji C-Chain',
-    nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
-    rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
-    blockExplorerUrls: ['https://testnet.snowscan.xyz']
-  }]
-})
-  ↓
-Wallet shows: "Add Avalanche Fuji C-Chain?" → User clicks Approve
-  ↓
-Network added + switched automatically
-  ↓
-Done — user is on Fuji, address available
+ContextWrapper.jsx
+  └─ ThirdwebProviders.js (exported as `Providers`)
+       ├─ <ThirdwebProvider>
+       ├─ <AutoConnect chain={avalancheFuji} wallets={...} />
+       ├─ <ChainProvider chain={avalancheFuji}>
+       │    └─ <ChainEnforcer>        ← auto-switches to Fuji
+       │         └─ <SessionContextProvider>
+       │              └─ <AuthContextProvider>
+       │                   └─ <MainContextProvider>
+       │                        └─ app content
+       └─ </ThirdwebProvider>
 ```
 
-### Wallet Compatibility
-
-| Wallet | Tested | Notes |
-|--------|--------|-------|
-| MetaMask | ✅ | Full support, most common |
-| Core Wallet | ✅ | Avalanche's native wallet, also uses `window.ethereum` |
-| Phantom | ✅ | Needs EVM mode enabled (auto-detects for EVM chains) |
-| Coinbase Wallet | ✅ | Browser extension + mobile both work |
-| Trust Wallet | ✅ | Mobile + browser extension |
-| Keplr | ⚠️ | Cosmos wallet, limited EVM support |
-| WalletConnect | ✅ | Works via QR code modal (mobile wallets) |
-
-### Error Handling
-
-| Error Code | Meaning | What We Do |
-|------------|---------|------------|
-| 4001 | User rejected the popup | Show message, don't retry |
-| 4902 | Chain not in wallet | Fall back to `wallet_addEthereumChain` |
-| -32002 | Request already pending | Wallet has an open popup, wait |
-| -32602 | Invalid parameters | Should never happen (our params are correct) |
+Target chain: **Avalanche Fuji** (chain ID 43113 / `0xA869`), hardcoded via `import { avalancheFuji } from 'thirdweb/chains'`.
 
 ---
 
-## For the Frontend Developer
+## Key Files
 
-### Files Modified
+**`src/context/ThirdwebProviders.js`** — Chain configuration + ChainEnforcer
 
-**Faucet (`testnet-faucet/index.html`):**
-- Added ethers.js v6 via CDN for wallet provider detection
-- EIP-6963 multi-wallet discovery with legacy fallback — chooser modal when 2+ wallets installed
-- Connect Wallet button with auto chain switch (EIP-3085/EIP-3326)
-- Claim button disabled until wallet connected (no manual address input)
-- Network badge (green/red indicator)
-- Account/chain change listeners with auto claim-status check
-- CORS headers on error responses via global error handler
+```javascript
+import { avalancheFuji } from 'thirdweb/chains'
 
-**Frontend (`chainbois-frontend/src/context/ThirdwebProviders.js`):**
-- Added `ChainEnforcer` component
-- Uses `useActiveWalletChain()` + `useSwitchActiveWalletChain()` from Thirdweb v5
-- Auto-switches when user drifts to wrong chain mid-session
+// Auto-switches to Fuji if user connects on any other chain
+function ChainEnforcer({ children }) {
+  const activeChain = useActiveWalletChain()
+  const switchChain = useSwitchActiveWalletChain()
 
-### No Changes Needed
+  useEffect(() => {
+    if (activeChain && activeChain.id !== avalancheFuji.id) {
+      switchChain(avalancheFuji).catch((err) => {
+        console.error('Failed to auto-switch to Fuji:', err)
+      })
+    }
+  }, [activeChain, switchChain])
 
-- `ConnectWalletButton.jsx` — already passes `chain={avalancheFuji}` to `<ConnectButton>`
-- `thirdwebWallets.js` — wallet list already includes MetaMask, Phantom, Coinbase, Trust
-- Backend — no changes needed (chain switching is entirely frontend)
+  return children
+}
+```
+
+Chain is hardcoded to `avalancheFuji` in three places: `<AutoConnect>`, `<ChainProvider>`, and `<ChainEnforcer>`. There is no env var override — see "Mainnet Transition" below for how to change this.
+
+**`src/lib/thirdwebWallets.js`** — Wallet list + app metadata
+
+```javascript
+export const thirdwebWallets = [
+  createWallet('io.metamask'),
+  createWallet('app.keplr'),
+  createWallet('app.phantom'),
+  createWallet('com.coinbase.wallet'),
+  createWallet('com.trustwallet.app'),
+]
+
+export const thirdwebAppMetadata = {
+  name: 'ChainBois',
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://chain-bois.vercel.app',
+  description: 'ChainBois gaming platform',
+  logoUrl: 'https://chain-bois.vercel.app/img/CB.svg',
+}
+```
+
+**`src/components/ConnectWalletButton/ConnectWalletButton.jsx`** — Connect button UI
+
+- Renders Thirdweb's `<ConnectButton>` with `chain={avalancheFuji}`
+- Shows `$BATTLE` token balance via `useWalletBalance()` on Fuji
+- `BATTLE_TOKEN` address: `0xcC704c908A37A78d944a8310F8ebc0c0456CbeC0` (from `src/constants/index.js`)
+
+**`src/context/Auth.js`** — Uses `useActiveAccount().address` for all API calls
+
+**`src/components/AuthGate/AuthGate.jsx`** — Requires both NextAuth session AND wallet connection
 
 ---
 
-## For Production (Mainnet Switch)
+## User Experience Flow
 
-When ready to go to mainnet:
+1. User clicks the ConnectWalletButton
+2. Thirdweb modal shows supported wallets (MetaMask, Phantom, Coinbase, Trust, Keplr)
+3. User selects wallet → wallet popup: "Connect to this site?" → user approves
+4. Thirdweb detects current chain automatically
+5. If not on Fuji → `ChainEnforcer` fires `useSwitchActiveWalletChain(avalancheFuji)`
+   - Under the hood: `wallet_switchEthereumChain` (EIP-3326)
+   - If Fuji unknown to wallet: `wallet_addEthereumChain` (EIP-3085)
+   - Wallet popup: "Switch network?" or "Add network?" → user approves
+6. User is now on Fuji with address available via `useActiveAccount()`
+7. If user manually switches to wrong chain mid-session → `ChainEnforcer` auto-prompts back
 
-**Faucet:** The faucet is testnet-only — no mainnet version needed.
+---
 
-**Frontend:** Change `avalancheFuji` to `avalanche` in:
-1. `src/context/ThirdwebProviders.js` — import and all 3 references
-2. `src/components/ConnectWalletButton/ConnectWalletButton.jsx` — import and all references
-3. `src/constants/index.js` — update `BATTLE_TOKEN` to mainnet contract address
+## What Does NOT Exist
 
-Or better, make it environment-driven:
+- **No `NetworkSwitcher` component** — there is no manual network toggle UI. Chain enforcement is fully automatic via `ChainEnforcer`.
+- **No raw `window.ethereum` calls** — all wallet interaction goes through Thirdweb hooks.
+- **No env var for chain selection** — Fuji is hardcoded (see "Mainnet Transition" below).
+
+---
+
+## Wallet Compatibility (Tested)
+
+| Wallet | Supported | Notes |
+|--------|-----------|-------|
+| MetaMask | Yes | Most common, full EIP support |
+| Core Wallet | Yes | Avalanche's native wallet |
+| Phantom | Yes | Needs EVM mode (auto-detects for EVM chains) |
+| Coinbase Wallet | Yes | Browser extension + mobile |
+| Trust Wallet | Yes | Mobile + browser extension |
+| Keplr | Yes | Cosmos wallet, limited EVM support |
+| WalletConnect | Yes | QR code modal for mobile wallets — handled by Thirdweb |
+
+---
+
+## Mainnet Transition
+
+When ready to move from Fuji testnet to Avalanche mainnet:
+
+### Avalanche Mainnet Parameters
+
+```javascript
+// Chain ID: 43114 / 0xA86A
+import { avalanche } from 'thirdweb/chains'
+```
+
+### Files to Change
+
+**`src/context/ThirdwebProviders.js`** — Make chain env-driven:
+
 ```javascript
 import { avalanche, avalancheFuji } from 'thirdweb/chains'
 const activeChain = process.env.NEXT_PUBLIC_NETWORK === 'mainnet' ? avalanche : avalancheFuji
 ```
+
+Replace all 3 references to `avalancheFuji` with `activeChain`:
+1. `<AutoConnect chain={activeChain} ...>`
+2. `<ChainProvider chain={activeChain}>`
+3. `ChainEnforcer` comparison: use `activeChain` variable instead of the hardcoded import
+
+**`src/components/ConnectWalletButton/ConnectWalletButton.jsx`:**
+- `<ConnectButton chain={activeChain} ...>`
+- `useWalletBalance({ chain: activeChain, ... })`
+
+**`src/constants/index.js`:**
+- `BATTLE_TOKEN` → mainnet contract address (different from testnet)
+
+---
+
+## Testing Checklist
+
+- [ ] Connect with MetaMask on Ethereum mainnet → should auto-prompt switch to Fuji
+- [ ] Connect with wallet that has never seen Fuji → should prompt to add + switch
+- [ ] Connect with Core Wallet → should work identically to MetaMask
+- [ ] Connect with Phantom (EVM mode) → should work
+- [ ] Connect with Coinbase Wallet → should work
+- [ ] Switch to wrong network mid-session → `ChainEnforcer` should auto-prompt switch back
+- [ ] Reject the switch prompt → should log error to console (no user-facing crash)
+- [ ] Disconnect wallet → auth state should clear
+- [ ] Reload page → should auto-reconnect via `<AutoConnect>`

@@ -6,7 +6,7 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { getBattleBalance } = require("../utils/contractUtils");
 const { ethers } = require("ethers");
-const { RANK_NAMES, TRANSACTION_TYPES, buildCurrentTraits } = require("../config/constants");
+const { RANK_NAMES, TRANSACTION_TYPES, buildCurrentTraits, buildWeaponResponse } = require("../config/constants");
 
 /**
  * GET /api/v1/inventory/:address
@@ -53,15 +53,7 @@ const getInventory = catchAsync(async (req, res, next) => {
         }),
         stats: nft.inGameStats || {},
       })),
-      weapons: weapons.map((w) => ({
-        tokenId: w.tokenId,
-        contractAddress: w.contractAddress || process.env.WEAPON_NFT_ADDRESS,
-        weaponName: w.weaponName,
-        category: w.category,
-        tier: w.blueprintTier,
-        imageUri: w.imageUri || "",
-        metadataUri: w.metadataUri || "",
-      })),
+      weapons: weapons.map((w) => buildWeaponResponse(w)),
       balances: {
         points: user ? user.pointsBalance : 0,
         battle: parseFloat(battleBalance),
@@ -125,15 +117,7 @@ const getWeapons = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    data: weapons.map((w) => ({
-      tokenId: w.tokenId,
-      contractAddress: w.contractAddress || process.env.WEAPON_NFT_ADDRESS,
-      weaponName: w.weaponName,
-      category: w.category,
-      tier: w.blueprintTier,
-      imageUri: w.imageUri || "",
-      metadataUri: w.metadataUri || "",
-    })),
+    data: weapons.map((w) => buildWeaponResponse(w)),
   });
 });
 

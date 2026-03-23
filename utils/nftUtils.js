@@ -2,7 +2,7 @@ const { getErc721Balances } = require("./avaxUtils");
 const { getNftLevel } = require("./contractUtils");
 const ChainboiNft = require("../models/chainboiNftModel");
 const WeaponNft = require("../models/weaponNftModel");
-const { RANK_NAMES, buildCurrentTraits } = require("../config/constants");
+const { RANK_NAMES, buildCurrentTraits, buildWeaponResponse } = require("../config/constants");
 
 /**
  * Look up NFT assets for an address and return full enriched data
@@ -10,6 +10,7 @@ const { RANK_NAMES, buildCurrentTraits } = require("../config/constants");
  * @param {string} address - Wallet address
  * @returns {Promise<Object>} { hasNft, nfts: [...], weapons: [...] }
  */
+
 const lookupNftAssets = async function (address) {
   const result = { hasNft: false, nfts: [], weapons: [] };
 
@@ -84,15 +85,15 @@ const lookupNftAssets = async function (address) {
 
           result.weapons = weaponTokenIds.map((tokenId) => {
             const db = wMap[tokenId] || {};
-            return {
+            return buildWeaponResponse({
               tokenId,
               contractAddress: weaponAddress,
               weaponName: db.weaponName || `Weapon #${tokenId}`,
               category: db.category || "",
-              tier: db.blueprintTier || "base",
+              blueprintTier: db.blueprintTier || "base",
               imageUri: db.imageUri || "",
               metadataUri: db.metadataUri || "",
-            };
+            });
           });
         }
       } catch (e) {

@@ -317,6 +317,44 @@ module.exports = {
     return `ipfs://${module.exports.WEAPONS_IMAGES_CID}/${num}-${normalized}.jpeg`;
   },
 
+  /**
+   * Default IPFS gateway for resolving ipfs:// URIs to HTTP URLs.
+   */
+  IPFS_GATEWAY: "https://gateway.pinata.cloud/ipfs",
+
+  /**
+   * Convert an ipfs:// URI to an HTTP gateway URL.
+   * @param {string} ipfsUri - e.g. "ipfs://CID/file.jpeg"
+   * @returns {string} HTTP URL or empty string
+   */
+  resolveIpfsUrl: function (ipfsUri) {
+    if (!ipfsUri || !ipfsUri.startsWith("ipfs://")) return "";
+    return `${module.exports.IPFS_GATEWAY}/${ipfsUri.slice(7)}`;
+  },
+
+  /**
+   * Build a standardized weapon response object.
+   * Adds `name` (alias for weaponName) and `imageUrl` (resolved HTTP gateway URL).
+   * @param {object} w - weapon record (from DB or mapped)
+   * @param {object} [extra] - additional fields to merge
+   * @returns {object}
+   */
+  buildWeaponResponse: function (w, extra) {
+    const imageUri = w.imageUri || "";
+    return {
+      tokenId: w.tokenId,
+      contractAddress: w.contractAddress || process.env.WEAPON_NFT_ADDRESS,
+      weaponName: w.weaponName,
+      name: w.weaponName,
+      category: w.category,
+      tier: w.blueprintTier || w.tier || "base",
+      imageUri,
+      imageUrl: module.exports.resolveIpfsUrl(imageUri),
+      metadataUri: w.metadataUri || "",
+      ...extra,
+    };
+  },
+
   // Trait types that are dynamically computed (not static NFT art traits)
   DYNAMIC_TRAIT_TYPES: new Set(["Level", "Rank", "Kills", "Score", "Games Played"]),
 
