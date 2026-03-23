@@ -252,9 +252,20 @@
       font-size: 16px; padding: 2px 4px; opacity: 0.6; transition: opacity 0.2s;
     }
     .btn-disconnect:hover { opacity: 1; }
-    .wallet-divider {
-      text-align: center; color: var(--text-muted); font-size: 12px;
-      margin: 12px 0; text-transform: uppercase; letter-spacing: 1px;
+    .weapon-name {
+      font-size: 11px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .weapon-tx {
+      font-size: 10px;
+      display: block;
+    }
+    .weapon-tx a {
+      color: var(--text-muted);
+    }
+    .weapon-tx a:hover {
+      color: var(--chain-red);
     }
 
     .claim-btn {
@@ -677,21 +688,13 @@
           <span id="displayAddress"></span>
           <button class="btn-disconnect" onclick="disconnectWallet()" title="Disconnect">&times;</button>
         </div>
-        <div class="wallet-divider">or enter manually</div>
-        <input
-          type="text"
-          class="form-input"
-          id="walletAddress"
-          placeholder="0x..."
-          autocomplete="off"
-          spellcheck="false"
-        >
+        <input type="hidden" id="walletAddress">
       </div>
       <button class="claim-btn" id="claimBtn" onclick="handleClaim()">
         Claim Starter Pack
       </button>
       <div class="form-hint">
-        Connect your wallet or paste your Fuji Testnet address. The faucet will auto-switch your wallet to the correct network.
+        Connect your wallet to claim. The faucet will automatically add Avalanche Fuji to your wallet if needed.
       </div>
 
       <!-- Progress section -->
@@ -810,10 +813,8 @@
         await ensureFujiNetwork();
         updateWalletUI();
 
-        // Fill the manual input as well (for the claim flow)
-        var input = document.getElementById('walletAddress');
-        input.value = connectedAddress;
-        input.dispatchEvent(new Event('input'));
+        // Check if this wallet already claimed
+        checkClaimStatus(connectedAddress);
 
         provider.on('chainChanged', handleChainChanged);
         provider.on('accountsChanged', handleAccountsChanged);
@@ -862,9 +863,7 @@
       if (!accounts || accounts.length === 0) { disconnectWallet(); return; }
       connectedAddress = accounts[0];
       updateWalletUI();
-      var input = document.getElementById('walletAddress');
-      input.value = connectedAddress;
-      input.dispatchEvent(new Event('input'));
+      checkClaimStatus(connectedAddress);
     }
 
     function disconnectWallet() {
@@ -878,9 +877,6 @@
       document.getElementById('connectWalletBtn').classList.remove('connected');
       document.getElementById('connectedAddress').style.display = 'none';
       document.getElementById('networkBadge').style.display = 'none';
-      var input = document.getElementById('walletAddress');
-      input.value = '';
-      input.dispatchEvent(new Event('input'));
     }
 
     function updateWalletUI() {
@@ -1071,19 +1067,32 @@
         const imgGrid = document.createElement('div');
         imgGrid.className = 'weapon-img-grid';
         data.weapons.forEach(function (w) {
+          const weaponName = w.weaponName || w.name || 'Unknown';
           const wItem = document.createElement('div');
           wItem.className = 'weapon-img-item';
-          const imgUrl = getWeaponImageUrl(w.name);
+          const imgUrl = getWeaponImageUrl(weaponName);
           if (imgUrl) {
             const img = document.createElement('img');
             img.src = imgUrl;
-            img.alt = w.name;
+            img.alt = weaponName;
             img.onerror = function() { this.style.display = 'none'; };
             wItem.appendChild(img);
           }
           const nameSpan = document.createElement('span');
-          nameSpan.textContent = w.name;
+          nameSpan.className = 'weapon-name';
+          nameSpan.textContent = weaponName;
           wItem.appendChild(nameSpan);
+          if (w.txHash) {
+            const txSpan = document.createElement('span');
+            txSpan.className = 'weapon-tx';
+            const a = document.createElement('a');
+            a.href = txLink(w.txHash);
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.textContent = shortenHash(w.txHash);
+            txSpan.appendChild(a);
+            wItem.appendChild(txSpan);
+          }
           imgGrid.appendChild(wItem);
         });
         item.appendChild(imgGrid);
@@ -1165,18 +1174,20 @@
         const imgGrid = document.createElement('div');
         imgGrid.className = 'weapon-img-grid';
         data.weapons.forEach(function (w) {
+          const weaponName = w.weaponName || w.name || 'Unknown';
           const wItem = document.createElement('div');
           wItem.className = 'weapon-img-item';
-          const imgUrl = getWeaponImageUrl(w.name);
+          const imgUrl = getWeaponImageUrl(weaponName);
           if (imgUrl) {
             const img = document.createElement('img');
             img.src = imgUrl;
-            img.alt = w.name;
+            img.alt = weaponName;
             img.onerror = function() { this.style.display = 'none'; };
             wItem.appendChild(img);
           }
           const nameSpan = document.createElement('span');
-          nameSpan.textContent = w.name;
+          nameSpan.className = 'weapon-name';
+          nameSpan.textContent = weaponName;
           wItem.appendChild(nameSpan);
           imgGrid.appendChild(wItem);
         });
@@ -1201,13 +1212,11 @@
     async function handleClaim() {
       if (isClaiming) return;
 
-      const input = document.getElementById('walletAddress');
       const btn = document.getElementById('claimBtn');
-      const address = connectedAddress || input.value.trim();
+      const address = connectedAddress;
 
-      if (!isValidAddress(address)) {
-        alert('Please connect your wallet or enter a valid address (0x followed by 40 hex characters).');
-        input.focus();
+      if (!address || !isValidAddress(address)) {
+        alert('Please connect your wallet first.');
         return;
       }
 
@@ -1339,34 +1348,19 @@
       }
     }
 
-    // ============================================================
-    // Auto-check on address paste/change
-    // ============================================================
-    let checkTimeout;
-    document.getElementById('walletAddress').addEventListener('input', function () {
-      clearTimeout(checkTimeout);
-      const address = this.value.trim();
+    // Auto-check claim status when wallet connects
+    async function checkClaimStatus(address) {
       if (!isValidAddress(address)) return;
-
-      checkTimeout = setTimeout(async function () {
-        try {
-          const res = await fetch(API_BASE + '/claim/check/' + encodeURIComponent(address));
-          const data = await res.json();
-          if (data.data && data.data.claimed && data.data.status === 'completed') {
-            showAlreadyClaimed(data.data);
-          }
-        } catch (e) {
-          // Ignore — claim check is non-critical
+      try {
+        const res = await fetch(API_BASE + '/claim/check/' + encodeURIComponent(address));
+        const data = await res.json();
+        if (data.data && data.data.claimed && data.data.status === 'completed') {
+          showAlreadyClaimed(data.data);
         }
-      }, 500);
-    });
-
-    // Submit on Enter key
-    document.getElementById('walletAddress').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        handleClaim();
+      } catch (e) {
+        // Ignore — claim check is non-critical
       }
-    });
+    }
   </script>
 </body>
 </html>
