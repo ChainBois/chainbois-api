@@ -20,7 +20,7 @@ Install any of these browser wallet extensions:
 - [Phantom](https://phantom.app/) (supports EVM chains)
 - [Coinbase Wallet](https://www.coinbase.com/wallet) or [Trust Wallet](https://trustwallet.com/)
 
-> **No manual network setup needed.** Both the faucet and the website will automatically prompt your wallet to add and switch to the Avalanche Fuji Testnet — just click Approve when prompted.
+> **No manual network setup needed.** Both the faucet and the website will automatically prompt your wallet to add and switch to the Avalanche Fuji Testnet — just click Approve when prompted. If you have multiple wallets installed, you'll see a chooser to pick which one to use.
 
 Get free testnet AVAX from the [Avalanche Faucet](https://core.app/tools/testnet-faucet/) (needed for level-ups).
 

@@ -258,6 +258,83 @@
       font-size: 16px; padding: 2px 4px; opacity: 0.6; transition: opacity 0.2s;
     }
     .btn-disconnect:hover { opacity: 1; }
+    /* Wallet chooser modal */
+    .wallet-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .wallet-modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      width: 360px;
+      max-width: 90vw;
+    }
+    .wallet-modal-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .wallet-modal-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .wallet-modal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .wallet-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+    }
+    .wallet-option:hover {
+      border-color: var(--chain-red);
+      background: rgba(236,27,36,0.08);
+    }
+    .wallet-option img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+    .wallet-modal-cancel {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .wallet-modal-cancel:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-secondary);
+    }
+
     .weapon-name {
       font-size: 11px;
       color: var(--text-primary);
@@ -789,19 +866,115 @@
     const FUJI_CHAIN_ID = 43113;
 
     // ============================================================
-    // Wallet Connect + Chain Switch
+    // Wallet Discovery (EIP-6963 + legacy fallback)
     // ============================================================
-    function getWalletProvider() {
-      if (window.ethereum) return window.ethereum;
-      if (window.avalanche) return window.avalanche;
-      return null;
+    var discoveredWallets = new Map();
+
+    // EIP-6963: Modern multi-wallet discovery
+    window.addEventListener('eip6963:announceProvider', function (event) {
+      var detail = event.detail;
+      if (detail && detail.info && detail.provider) {
+        discoveredWallets.set(detail.info.rdns, { info: detail.info, provider: detail.provider });
+      }
+    });
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+    // Legacy fallback: detect wallets that don't support EIP-6963
+    setTimeout(function () {
+      if (window.ethereum && window.ethereum.isMetaMask && !discoveredWallets.has('io.metamask')) {
+        discoveredWallets.set('io.metamask', {
+          info: { name: 'MetaMask', rdns: 'io.metamask', icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHBhdGggZD0iTTI3LjIgNC42bC05LjYgNy4yIDEuOC00LjJ6IiBmaWxsPSIjZTI3NjFiIi8+PC9zdmc+' },
+          provider: window.ethereum
+        });
+      }
+      if (window.phantom && window.phantom.ethereum && !discoveredWallets.has('app.phantom')) {
+        discoveredWallets.set('app.phantom', {
+          info: { name: 'Phantom', rdns: 'app.phantom', icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM1NTFiZjkiLz48L3N2Zz4=' },
+          provider: window.phantom.ethereum
+        });
+      }
+      if (window.avalanche && !discoveredWallets.has('app.core.extension')) {
+        discoveredWallets.set('app.core.extension', {
+          info: { name: 'Core', rdns: 'app.core.extension', icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNlODQxNDIiLz48L3N2Zz4=' },
+          provider: window.avalanche
+        });
+      }
+      if (window.ethereum && window.ethereum.isCoinbaseWallet && !discoveredWallets.has('com.coinbase.wallet')) {
+        discoveredWallets.set('com.coinbase.wallet', {
+          info: { name: 'Coinbase Wallet', rdns: 'com.coinbase.wallet', icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMwMDUyZmYiLz48L3N2Zz4=' },
+          provider: window.ethereum
+        });
+      }
+      // Generic fallback if nothing was discovered but window.ethereum exists
+      if (discoveredWallets.size === 0 && window.ethereum) {
+        discoveredWallets.set('unknown', {
+          info: { name: 'Browser Wallet', rdns: 'unknown', icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM2NjYiLz48L3N2Zz4=' },
+          provider: window.ethereum
+        });
+      }
+    }, 200);
+
+    // ============================================================
+    // Wallet Chooser Modal
+    // ============================================================
+    function showWalletChooserModal(wallets) {
+      return new Promise(function (resolve) {
+        var overlay = document.createElement('div');
+        overlay.className = 'wallet-modal-overlay';
+        var modal = document.createElement('div');
+        modal.className = 'wallet-modal';
+        modal.innerHTML = '<div class="wallet-modal-title">Connect Wallet</div>' +
+          '<div class="wallet-modal-subtitle">Choose your wallet to continue</div>';
+        var list = document.createElement('div');
+        list.className = 'wallet-modal-list';
+
+        wallets.forEach(function (wallet) {
+          var btn = document.createElement('button');
+          btn.className = 'wallet-option';
+          var img = document.createElement('img');
+          img.src = wallet.info.icon;
+          img.alt = wallet.info.name;
+          img.width = 32;
+          img.height = 32;
+          img.onerror = function () { this.style.display = 'none'; };
+          btn.appendChild(img);
+          btn.appendChild(document.createTextNode(wallet.info.name));
+          btn.onclick = function () { overlay.remove(); resolve(wallet); };
+          list.appendChild(btn);
+        });
+
+        var cancel = document.createElement('button');
+        cancel.className = 'wallet-modal-cancel';
+        cancel.textContent = 'Cancel';
+        cancel.onclick = function () { overlay.remove(); resolve(null); };
+
+        modal.appendChild(list);
+        modal.appendChild(cancel);
+        overlay.appendChild(modal);
+        overlay.addEventListener('click', function (e) {
+          if (e.target === overlay) { overlay.remove(); resolve(null); }
+        });
+        document.body.appendChild(overlay);
+      });
     }
 
+    // ============================================================
+    // Connect Wallet
+    // ============================================================
     async function connectWallet() {
-      var provider = getWalletProvider();
-      if (!provider) {
+      var wallets = Array.from(discoveredWallets.values());
+
+      if (wallets.length === 0) {
         alert('No wallet detected. Please install MetaMask, Core Wallet, or Phantom.');
         return;
+      }
+
+      var chosen;
+      if (wallets.length === 1) {
+        chosen = wallets[0];
+      } else {
+        chosen = await showWalletChooserModal(wallets);
+        if (!chosen) return;
       }
 
       var btn = document.getElementById('connectWalletBtn');
@@ -810,30 +983,27 @@
       btnText.textContent = 'Connecting...';
 
       try {
-        var accounts = await provider.request({ method: 'eth_requestAccounts' });
+        var accounts = await chosen.provider.request({ method: 'eth_requestAccounts' });
         if (!accounts || accounts.length === 0) throw new Error('No accounts returned');
 
-        connectedProvider = provider;
+        connectedProvider = chosen.provider;
         connectedAddress = accounts[0];
         document.getElementById('claimBtn').disabled = false;
 
         await ensureFujiNetwork();
         updateWalletUI();
 
-        // Check if this wallet already claimed
         checkClaimStatus(connectedAddress);
 
-        provider.on('chainChanged', handleChainChanged);
-        provider.on('accountsChanged', handleAccountsChanged);
+        chosen.provider.on('chainChanged', handleChainChanged);
+        chosen.provider.on('accountsChanged', handleAccountsChanged);
       } catch (err) {
         if (err.code !== 4001) {
           console.error('Wallet connect failed:', err);
         }
-        // Connection failed — reset UI but keep wallet if accounts were obtained
         if (!connectedAddress) {
           btnText.textContent = 'Connect Wallet';
         } else {
-          // Chain switch was rejected but wallet is connected — still enable claim
           updateWalletUI();
         }
       } finally {

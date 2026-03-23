@@ -10,15 +10,21 @@ When a user visits the faucet or the ChainBois website, they click **"Connect Wa
 
 ### Step 1: User Clicks "Connect Wallet"
 
-The faucet page shows a red **Connect Wallet** button with a wallet icon.
+The faucet page shows a red **Connect Wallet** button with a wallet icon. The Claim Starter Pack button is disabled until a wallet is connected.
 
-### Step 2: Wallet Selection Popup
+### Step 2: Wallet Selection
 
-The user's browser wallet (MetaMask, Core, Phantom, etc.) shows a popup:
+**If only one wallet is installed:** The wallet connects directly — no extra steps.
+
+**If multiple wallets are installed (e.g., MetaMask + Core + Phantom):** A chooser modal appears showing all detected wallets with their icons and names. The user clicks their preferred wallet.
+
+Wallet detection uses **EIP-6963** (Multi Injected Provider Discovery) — the modern standard supported by MetaMask, Core, Phantom, Coinbase Wallet, and others. Legacy fallback detection catches older wallets that don't support EIP-6963.
+
+### Step 3: Wallet Connect Popup
+
+The chosen wallet shows its connection popup:
 > **"chainbois-testnet-faucet.vercel.app wants to connect to your wallet"**
 > → User clicks **Connect**
-
-If the user has multiple wallets installed, the browser may show a selection. Most users have MetaMask.
 
 ### Step 3: Automatic Network Check
 

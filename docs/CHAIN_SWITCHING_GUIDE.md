@@ -403,19 +403,34 @@ const FUJI_CHAIN_ID = 43113;
 let connectedProvider = null;
 let connectedAddress = null;
 
-// Detect wallet provider (MetaMask, Core, Phantom, etc.)
-function getProvider() {
-  if (window.ethereum) return window.ethereum;
-  if (window.avalanche) return window.avalanche;
-  return null;
-}
+// --- EIP-6963 Multi-Wallet Discovery ---
+const discoveredWallets = new Map();
+
+window.addEventListener('eip6963:announceProvider', (event) => {
+  const { info, provider } = event.detail;
+  if (info && provider) discoveredWallets.set(info.rdns, { info, provider });
+});
+window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+// Legacy fallback for older wallets (runs after 200ms)
+setTimeout(() => {
+  if (window.ethereum?.isMetaMask && !discoveredWallets.has('io.metamask'))
+    discoveredWallets.set('io.metamask', { info: { name: 'MetaMask', rdns: 'io.metamask', icon: '' }, provider: window.ethereum });
+  if (window.phantom?.ethereum && !discoveredWallets.has('app.phantom'))
+    discoveredWallets.set('app.phantom', { info: { name: 'Phantom', rdns: 'app.phantom', icon: '' }, provider: window.phantom.ethereum });
+  if (window.avalanche && !discoveredWallets.has('app.core.extension'))
+    discoveredWallets.set('app.core.extension', { info: { name: 'Core', rdns: 'app.core.extension', icon: '' }, provider: window.avalanche });
+  if (discoveredWallets.size === 0 && window.ethereum)
+    discoveredWallets.set('unknown', { info: { name: 'Browser Wallet', rdns: 'unknown', icon: '' }, provider: window.ethereum });
+}, 200);
 
 async function connectWallet() {
-  const provider = getProvider();
-  if (!provider) {
-    showError('No wallet detected. Please install MetaMask, Core Wallet, or Phantom.');
-    return;
-  }
+  const wallets = Array.from(discoveredWallets.values());
+  if (wallets.length === 0) { alert('No wallet detected.'); return; }
+
+  // Show chooser modal if multiple wallets, auto-select if only one
+  const chosen = wallets.length === 1 ? wallets[0] : await showWalletChooserModal(wallets);
+  if (!chosen) return;
 
   const btn = document.getElementById('connectWalletBtn');
   const btnText = document.getElementById('connectBtnText');
@@ -423,37 +438,23 @@ async function connectWallet() {
   btnText.textContent = 'Connecting...';
 
   try {
-    // Request account access
-    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    const accounts = await chosen.provider.request({ method: 'eth_requestAccounts' });
     if (!accounts || accounts.length === 0) throw new Error('No accounts returned');
 
-    connectedProvider = provider;
+    connectedProvider = chosen.provider;
     connectedAddress = accounts[0];
-    document.getElementById('claimBtn').disabled = false; // Enable claim button immediately
+    document.getElementById('claimBtn').disabled = false;
 
-    // Switch to Fuji if not already on it
     await ensureFujiNetwork();
-
-    // Update UI
     updateWalletUI();
-
-    // Check if this wallet already claimed
     checkClaimStatus(connectedAddress);
 
-    // Listen for chain/account changes
-    provider.on('chainChanged', handleChainChanged);
-    provider.on('accountsChanged', handleAccountsChanged);
-
+    chosen.provider.on('chainChanged', handleChainChanged);
+    chosen.provider.on('accountsChanged', handleAccountsChanged);
   } catch (err) {
-    if (err.code !== 4001) {
-      console.error('Wallet connect failed:', err);
-    }
-    if (!connectedAddress) {
-      btnText.textContent = 'Connect Wallet';
-    } else {
-      // Chain switch rejected but wallet is connected — still enable claim
-      updateWalletUI();
-    }
+    if (err.code !== 4001) console.error('Wallet connect failed:', err);
+    if (!connectedAddress) { btnText.textContent = 'Connect Wallet'; }
+    else { updateWalletUI(); }
   } finally {
     btn.disabled = false;
   }
