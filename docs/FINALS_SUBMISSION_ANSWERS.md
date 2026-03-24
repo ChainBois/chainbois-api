@@ -15,7 +15,7 @@
 
 **Answer:**
 
-ChainBois is a live, playable Web3 competitive shooter on Avalanche where player-owned NFTs evolve on-chain as you play. Your ChainBoi NFT levels up from Private to Field Marshal (8 ranks), each level unlocking 4 new characters in our Unity-based multiplayer game. 3 smart contracts (ERC-20 capped $BATTLE token + 2 ERC-721 NFTs), 50+ API endpoints, 10 automated cron jobs, and 268 passing tests — all deployed on Fuji testnet.
+ChainBois is a live, playable Web3 competitive shooter on Avalanche where player-owned NFTs evolve on-chain as you play. Your ChainBoi NFT levels up from Private to Field Marshal (8 ranks), each level unlocking 4 new characters in our Unity-based multiplayer game. 3 smart contracts (ERC-20 capped $BATTLE token + 2 ERC-721 NFTs), 50+ API endpoints, 10 automated cron jobs, and 258 passing tests — all deployed on Fuji testnet.
 
 Players earn points through gameplay, convert them to $BATTLE tokens at dynamic rates, buy weapons in the Armory, and compete in tiered tournaments for auto-distributed AVAX and $BATTLE prizes. The economy is genuinely deflationary — a fixed 10M token supply with periodic on-chain burns and a 5-tier health system that self-balances to prevent depletion.
 
@@ -36,11 +36,11 @@ Built in 8 days. Everything is live.
 **Answer:**
 
 **Technical Guidance (Highest Priority):**
-We need architecture review and guidance on migrating from C-Chain to a dedicated Avalanche Subnet. As we scale past 5K+ players, gas costs from level-ups, weapon purchases, and tournament prize distributions will compound. A gasless Subnet with our own validator set would let us offer zero-gas gameplay while keeping true on-chain ownership. We'd love technical support from Ava Labs on Subnet design, custom gas tokens, and cross-chain bridging for $BATTLE.
+We need architecture review and guidance on migrating from C-Chain to a dedicated Avalanche L1. Since the Etna upgrade (Avalanche9000), launching a sovereign L1 is 99.9% cheaper — validators pay ~1.33 AVAX/month instead of staking 2,000 AVAX each. As we scale past 5K+ players, a gasless L1 with our own validator set would let us offer zero-gas gameplay while keeping true on-chain ownership. We'd love technical support from Ava Labs and AvaCloud on L1 design, custom gas tokens, and Interchain Messaging (ICM) for cross-chain $BATTLE bridging.
 
 **BD & Ecosystem Introductions:**
-- **Core Wallet** — We already use EIP-6963 wallet discovery; a native Core integration would streamline onboarding for Avalanche-native players
-- **Trader Joe / Pharaoh** — $BATTLE liquidity pool on mainnet launch for token utility and price discovery
+- **Core Wallet** — We already use EIP-6963 wallet discovery; a native Core integration with its direct bank/card onramps would streamline onboarding for Avalanche-native players
+- **LFJ (formerly Trader Joe) / Pharaoh** — $BATTLE liquidity pool on mainnet launch for token utility and price discovery
 - **Joepegs / Campfire** — Featured collection placement for ChainBoi NFTs (our metadata is already EIP-4906 compliant and marketplace-ready)
 - **Gaming-focused Avalanche projects** — Cross-promotions, shared tournament events, interoperable NFTs
 
@@ -50,7 +50,7 @@ We need architecture review and guidance on migrating from C-Chain to a dedicate
 - Co-branded content opportunities (blog features, Twitter Spaces, livestreams)
 
 **Funding Allocation (if grant awarded):**
-- 40% Product Development (mobile port, Subnet migration, battle pass system)
+- 40% Product Development (mobile port, L1 migration, battle pass system)
 - 35% User Acquisition (tournament prize pools, influencer partnerships, community incentives)
 - 15% Ecosystem Partnerships (liquidity provision, marketplace integrations)
 - 10% Operations (infrastructure, monitoring, security audits)
@@ -69,7 +69,7 @@ We're transparent about where we are: ChainBois was built in 8 days for this hac
 - **13 weapon NFTs** across 8 categories, purchasable with $BATTLE
 - **10M $BATTLE tokens** minted (ERC20Capped — hard cap enforced on-chain)
 - **50+ API endpoints** live and tested
-- **268 tests passing** across all 7 implementation phases
+- **258 tests passing** across all 7 implementation phases
 - **10 cron jobs** running continuously (score sync, tournaments, tokenomics sweeps, wallet health, platform audits)
 - **Testnet faucet** distributing starter packs (2 NFTs + 8 weapons + 1,000 $BATTLE per wallet)
 - **Full frontend** deployed on Vercel with wallet connect, training room, armory, inventory, battleground
@@ -81,17 +81,10 @@ We're transparent about where we are: ChainBois was built in 8 days for this hac
   - ChainBoisNFT: `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b`
   - WeaponNFT: `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d`
 - NFT minting, token transfers, level-ups, weapon purchases — all on-chain and verifiable
-
-**Technical Readiness Metrics:**
-- Full tokenomics engine with dynamic health tiers (tested and running)
-- Anti-cheat system with threat scoring, velocity checks, auto-bans
-- Purchase failsafe with auto-retry and auto-refund
-- Wallet health monitoring with auto-funding
-- Daily platform solvency audits
-- Real-time Discord webhook notifications for all critical events
+- Note: All testnet activity is from our development and QA testing — we have not done a public testnet launch yet
 
 **What This Means:**
-We prioritized building a **complete, production-ready system** over inflating testnet numbers. Every feature — from the burn mechanism to tournament auto-distribution to the anti-cheat — is implemented, tested, and running. We're not showing mockups; we're showing a live platform that's ready for mainnet deployment and real players.
+We prioritized building a **complete, production-ready system** over inflating testnet numbers. Every feature — from the dynamic tokenomics engine to tournament auto-distribution to the anti-cheat with threat scoring — is implemented, tested, and running. The platform includes purchase failsafes, wallet health monitoring, daily solvency audits, and Discord webhook alerts for all critical events. We're not showing mockups; we're showing a live platform that's ready for mainnet deployment and real players.
 
 ---
 
@@ -118,22 +111,20 @@ We prioritized building a **complete, production-ready system** over inflating t
 - Mobile port (Android first, iOS to follow)
 - Target: **5,000 MAU**, $50K+ in on-chain transaction volume/month, 2 ecosystem partnerships live
 
-**Q4 2026 — Scale & Subnet (Months 7-9)**
-- Migrate to dedicated **Avalanche Subnet** for zero-gas gameplay
+**Q4 2026 — Scale & L1 Migration (Months 7-9)**
+- Migrate to dedicated **Avalanche L1** for zero-gas gameplay
   - Custom gas token or gasless transactions
   - Own validator set (team + community)
-  - Cross-chain bridge for $BATTLE (C-Chain ↔ Subnet)
+  - Interchain Messaging (ICM) bridge for $BATTLE (C-Chain ↔ L1)
 - In-house secondary marketplace (2.5% commission on NFT trades)
-- DAO governance for tournament rules, economy parameters, and community proposals
-- Console exploration (Xbox/PlayStation partnership discussions)
+- Community tournament creation tools (user-organized competitive scene)
 - Target: **15,000 MAU**, $150K+ monthly on-chain volume
 
 **Q1 2027 — Expansion (Months 10-12)**
-- Cross-chain expansion (other EVM chains via bridges)
+- Cross-chain expansion (other EVM chains via ICM bridges)
 - Season 2 game content: new maps, modes, 30+ new weapons
 - Player-created tournament brackets (community-run competitive scene)
-- ChainBois SDK: let other games integrate our NFT/token economy
-- Target: **50,000 MAU**, **$500K+ ARR** from:
+- Target: **50,000 MAU**, **$200K-400K ARR** from:
   - Primary NFT sales (new seasons, limited editions)
   - Marketplace commission (2.5% on secondary trades)
   - Battle Pass revenue (seasonal purchases)
@@ -143,17 +134,17 @@ We prioritized building a **complete, production-ready system** over inflating t
 **Revenue Model at Scale:**
 | Stream | Projected Annual Revenue |
 |--------|------------------------|
-| Primary NFT Sales | $100K-200K |
-| Marketplace Fees (2.5%) | $100K-150K |
-| Battle Pass (seasonal) | $100K-150K |
-| Tournament Fees | $50K-75K |
-| Token Sinks & Upgrades | $50K-100K |
-| **Total ARR** | **$400K-675K** |
+| Primary NFT Sales | $50K-100K |
+| Marketplace Fees (2.5%) | $50K-80K |
+| Battle Pass (seasonal) | $50K-100K |
+| Tournament Fees | $20K-50K |
+| Token Sinks & Upgrades | $30K-70K |
+| **Total ARR** | **$200K-400K** |
 
 **Why Avalanche:**
 - Sub-second finality for real-time game transactions
-- Subnet architecture for dedicated game infrastructure at scale
-- Growing gaming ecosystem (DeFi Kingdoms, Shrapnel, Off The Grid proved the market)
-- Low gas costs on C-Chain for bootstrapping, Subnet for scaling
+- Sovereign L1 architecture (post-Etna/Avalanche9000) for dedicated game infrastructure at 99.9% lower cost
+- Proven gaming ecosystem: Off The Grid (13M+ users on GUNZ L1), MapleStory Universe (100M+ transactions on Henesys L1), BEAM gaming chain, FCHAIN
+- Low gas costs on C-Chain for bootstrapping (further reduced by Octane upgrade), dedicated L1 for scaling
 
 **The North Star:** Build the first Web3 competitive shooter where players' on-chain progression and economic activity is meaningful enough to sustain both the game AND the community long-term. Not play-to-earn — play-to-own.

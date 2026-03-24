@@ -223,7 +223,6 @@ POST /armory/purchase/weapon
 | 404 | No account found for this wallet. Please login first. |
 | 404 | Weapon not available or out of stock |
 | 409 | This transaction has already been used |
-| 423 | Armory is closed during tournament cooldown |
 
 ### 7. Purchase ChainBoi NFT (Public)
 

@@ -34,7 +34,7 @@
 **Bullets:**
 - ChainBoi NFTs level up on-chain (Level 0 Private → Level 7 Field Marshal)
 - Each level unlocks 4 new in-game characters (32 total)
-- Dynamic metadata: your kills, score, rank, and badge update in real-time
+- Dynamic metadata: your kills, score, rank, and badge update as you progress
 - NFTs gain value as you play — skill = real economic value
 - Trade on any marketplace (Joepegs, Campfire) — your progression travels with you
 
@@ -52,7 +52,7 @@
 | Smart Contracts | 3 deployed (ERC-20 + 2 ERC-721) |
 | API Endpoints | 50+ RESTful |
 | Automated Jobs | 10 cron jobs |
-| Tests Passing | 268 |
+| Tests Passing | 258 |
 | Game Modes | 7 (FPS multiplayer) |
 | Weapons | 13 across 8 categories |
 | Characters | 32 unlockable |
@@ -71,7 +71,7 @@
 1. **DOWNLOAD** — Get the game from our website (Windows + Mobile)
 2. **CLAIM** — Visit testnet faucet → 2 NFTs + 8 weapons + 1,000 $BATTLE (one click)
 3. **CONNECT** — Link wallet on website → backend verifies on-chain ownership
-4. **PLAY** — 7 game modes, scores sync to backend every 5 minutes via Firebase
+4. **PLAY** — 5 game modes (2 more coming), scores sync to backend every 5 minutes via Firebase
 5. **TRAIN** — Level up NFTs (pay AVAX) → unlock characters, earn higher rank
 6. **ARM** — Buy premium weapons with $BATTLE tokens in the Armory
 7. **COMPETE** — Enter tier-based tournaments → auto-distributed AVAX + $BATTLE prizes
@@ -91,8 +91,8 @@
 - Kill Confirmed — Collect dog tags to score
 - Gun Fight — Small team tactical
 - Battle Royale — Last player standing
-- Capture the Flag — Objective-based (coming soon)
-- Search and Destroy — Plant/defuse (coming soon)
+
+**Coming Soon:** Capture the Flag | Search and Destroy
 
 **Weapon Categories:** Assault | SMG | LMG | Marksman | Handgun | Launcher | Shotgun | Melee
 
@@ -130,6 +130,25 @@ Level 0: Private → Level 1: Corporal → Level 2: Sergeant → Level 3: Captai
 - All weapon purchases feed the deflationary burn cycle
 
 **Visual:** Armory UI screenshot with weapon cards and prices
+
+---
+
+## SLIDE 8.5: COMPETITIVE LANDSCAPE
+
+**Headline:** Where ChainBois Fits
+
+| | Off The Grid | Shrapnel | ChainBois |
+|--|--|--|--|
+| **Status** | Live (13M+ users) | Early Access | Live on Fuji Testnet |
+| **Chain** | GUNZ (Avalanche L1) | Left Avalanche for GalaChain | Avalanche C-Chain |
+| **On-Chain Progression** | No | No | Yes (levels stored on-chain) |
+| **Deflationary Token** | No | No | Yes (auto-burn + health tiers) |
+| **Auto Prize Distribution** | No | No | Yes (no manual claiming) |
+| **Team Size** | 450+ | 100+ | 6 (built in 8 days) |
+
+**Our Edge:** On-chain NFT progression where your skill directly increases asset value. Not extraction royale — ownership-based competitive gaming.
+
+**Visual:** Comparison table
 
 ---
 
@@ -235,7 +254,7 @@ Level 0: Private → Level 1: Corporal → Level 2: Sergeant → Level 3: Captai
 
 ## SLIDE 13: 12-MONTH VISION
 
-**Headline:** From Testnet to Avalanche Subnet
+**Headline:** From Testnet to Avalanche L1
 
 **Q2 2026 — Mainnet Launch**
 - Deploy to Avalanche C-Chain mainnet
@@ -245,20 +264,19 @@ Level 0: Private → Level 1: Corporal → Level 2: Sergeant → Level 3: Captai
 **Q3 2026 — Competitive Community**
 - PvP ranked mode + seasonal tournaments
 - Mythic weapon upgrades (5-tier system)
-- Ecosystem integrations (Trader Joe liquidity, Core wallet features)
+- Ecosystem integrations (LFJ/Trader Joe liquidity, Core Wallet features)
 - Target: 5,000 active players
 
 **Q4 2026 — Scale**
-- Mobile port (iOS + Android)
-- Dedicated Avalanche Subnet for zero-gas gameplay
+- Mobile port (Android first, iOS to follow)
+- Dedicated Avalanche L1 for zero-gas gameplay
 - In-house marketplace with 2.5% commission
-- DAO governance for tournament rules and economy
+- Community tournament creation tools
 - Target: 15,000+ monthly active players
 
 **2027**
 - Cross-chain expansion
-- Console version
-- 50,000 MAU | $500K+ ARR from marketplace fees + season passes
+- 50,000 MAU | $200K-400K ARR from marketplace fees + season passes
 
 **Visual:** Roadmap timeline with milestones
 
@@ -277,8 +295,8 @@ Level 0: Private → Level 1: Corporal → Level 2: Sergeant → Level 3: Captai
 - Declan — NFT Art Direction
 
 **What We Need:**
-- Technical guidance on Subnet migration for scalable gameplay
-- BD introductions to Avalanche ecosystem (Trader Joe, Core Wallet, Joepegs)
+- Technical guidance on Avalanche L1 migration for scalable gameplay
+- BD introductions to Avalanche ecosystem (LFJ/Trader Joe, Core Wallet, Joepegs)
 - Marketing support for mainnet launch and tournament series
 - Grant funding: 40% product dev, 35% user acquisition, 15% partnerships, 10% ops
 

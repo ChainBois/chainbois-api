@@ -36,23 +36,21 @@ Before you start recording, make sure:
 
 ---
 
-## SECTION 2: DOWNLOAD THE GAME (0:30 - 1:00)
+## SECTION 2: DOWNLOAD THE GAME (0:30 - 0:45)
 
 **[SCREEN: Show the ChainBois website landing page]**
 
 **Voiceover:**
-> "First — the game. Players visit our website and download the game directly. We have Windows and mobile builds."
+> "Players visit our website and download the game. We have Windows and mobile builds."
 
 **Actions:**
-1. Show the landing page hero section with the download buttons
-2. Click "Download Desktop Build" — show the download starting
-3. Quick scroll through the landing page to show features, leaderboard preview, roadmap
+1. Show the landing page hero section — quick 5-sec scroll highlighting features and download buttons
 
 > "While the game downloads, let's get our wallet set up with some assets."
 
 ---
 
-## SECTION 3: TESTNET FAUCET — CLAIM STARTER PACK (1:00 - 2:00)
+## SECTION 3: TESTNET FAUCET — CLAIM STARTER PACK (0:45 - 1:45)
 
 **[SCREEN: Navigate to https://chainbois-testnet-faucet.vercel.app]**
 
@@ -75,7 +73,7 @@ Before you start recording, make sure:
 
 ---
 
-## SECTION 4: REGISTER & CONNECT WALLET ON WEBSITE (2:00 - 2:45)
+## SECTION 4: REGISTER & CONNECT WALLET ON WEBSITE (1:45 - 2:30)
 
 **[SCREEN: Back to the main website]**
 
@@ -95,12 +93,12 @@ Before you start recording, make sure:
 
 ---
 
-## SECTION 5: GAME — PLAY & EARN (2:45 - 3:45)
+## SECTION 5: GAME — PLAY & EARN (2:30 - 3:30)
 
 **[SCREEN: Show game launching OR pre-recorded gameplay clips]**
 
 **Voiceover:**
-> "Now for the fun part. ChainBois is a third-person competitive shooter built in Unity. We have seven game modes — Frontline, Team Deathmatch, Kill Confirmed, Battle Royale, and more."
+> "Now for the fun part. ChainBois is a third-person competitive shooter built in Unity with multiple game modes — Frontline, Team Deathmatch, Kill Confirmed, Gun Fight, and Battle Royale."
 
 **Actions:**
 1. Show the game main menu
@@ -113,6 +111,19 @@ Before you start recording, make sure:
 **[SHOW SLIDE: Architecture diagram — Game → Firebase → Backend → MongoDB → Leaderboard]**
 
 > "This Firebase bridge pattern means game developers don't need to change anything. The backend handles all the complexity."
+
+---
+
+## SECTION 5.5: GITHUB FLASH (3:30 - 3:45)
+
+**[SCREEN: Quick flash of GitHub repo + terminal showing test results]**
+
+**Voiceover:**
+> "Quick look at the codebase — 258 passing tests across 20 test suites, covering everything from anti-cheat validation to tokenomics calculations."
+
+**Actions:**
+1. Flash the GitHub repo page (3 sec)
+2. Flash terminal with test results showing "258 passed, 258 total" (3 sec)
 
 ---
 
@@ -198,11 +209,11 @@ Before you start recording, make sure:
 **[SHOW SLIDE: Technical Overview]**
 
 **Voiceover:**
-> "Under the hood: 3 smart contracts on Avalanche C-Chain — an ERC-20 with a hard 10 million cap, and two ERC-721s with on-chain level storage and weapon names. 50+ API endpoints. 10 automated cron jobs handling everything from score syncing to wallet health monitoring to platform solvency audits. 268 passing tests."
+> "Under the hood: 3 smart contracts on Avalanche C-Chain — an ERC-20 with a hard 10 million cap, and two ERC-721s with on-chain level storage and weapon names. 50+ API endpoints. 10 automated cron jobs handling everything from score syncing to wallet health monitoring to platform solvency audits. 258 passing tests."
 
 **[SHOW SLIDE: What's Next]**
 
-> "Post-hackathon, we're targeting mainnet deployment, a loot box system, battle passes, mythic weapon upgrades, and ultimately an Avalanche Subnet for zero-gas gameplay at scale."
+> "Post-hackathon, we're targeting mainnet deployment, a loot box system, battle passes, mythic weapon upgrades, and ultimately a dedicated Avalanche L1 for zero-gas gameplay at scale."
 
 **[SHOW SLIDE: Team / Final]**
 
@@ -220,3 +231,5 @@ Before you start recording, make sure:
 6. **Show real transactions** — the on-chain verification is your credibility
 7. **Energy matters** — speak with confidence, this is a competition
 8. **Time yourself** — practice once at 1.5x pace, then slow down for the real recording
+9. **Have fallback clips** — If a transaction gets stuck on Fuji testnet, have a pre-recorded backup of that step ready to splice in post-production
+10. **End strong** — Close with the differentiator, not just a feature list

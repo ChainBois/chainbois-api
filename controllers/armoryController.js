@@ -229,14 +229,14 @@ const purchaseWeapon = catchAsync(async (req, res, next) => {
     return next(new AppError("You must own a ChainBoi NFT to purchase weapons", 403));
   }
 
-  // 3. Check armory is not closed during cooldown
-  const settings = await Settings.getCached();
-  if (settings && settings.armoryClosedDuringCooldown) {
-    const cooldownTournament = await Tournament.findOne({ status: "cooldown" });
-    if (cooldownTournament) {
-      return next(new AppError("Armory is closed during tournament cooldown", 423));
-    }
-  }
+  // 3. Cooldown check DISABLED — armory stays open at all times
+  // const settings = await Settings.getCached();
+  // if (settings && settings.armoryClosedDuringCooldown) {
+  //   const cooldownTournament = await Tournament.findOne({ status: "cooldown" });
+  //   if (cooldownTournament) {
+  //     return next(new AppError("Armory is closed during tournament cooldown", 423));
+  //   }
+  // }
 
   // 4. Find weapon_store wallet
   const weaponStoreWallet = await Wallet.findOne({ role: WALLET_ROLES.WEAPON_STORE }).select("+key +iv");
