@@ -82,6 +82,7 @@ const createUser = catchAsync(async (req, res, next) => {
   // Both hasNFT and hasnft written for compatibility with different Unity game versions
   const db = getFirebaseDb();
   await db.ref(`${FIREBASE_PATHS.USERS}/${userRecord.uid}`).update({
+    email,
     username: sanitizedUsername,
     Score: 0,
     hasNFT: false,

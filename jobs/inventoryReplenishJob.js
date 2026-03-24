@@ -219,7 +219,7 @@ const replenishWeapons = async function (deployerKey) {
           ownerAddress: storeAddress,
           weaponName: weaponDef.name,
           category: weaponDef.category,
-          price: 0,
+          price: weaponDef.price || 20,
           supply: 1,
           imageUri: getWeaponImageUri(weaponDef.name),
         });

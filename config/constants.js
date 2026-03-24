@@ -99,20 +99,21 @@ module.exports = {
 
   // Full weapon definitions with metadata from ghetto-warzones (for NFT minting)
   // Multi-mint NFTs: each weapon has supply > 1 (multiple copies)
+  // Prices in $BATTLE: 20 = common, 30 = mid-tier, 50 = premium
   WEAPON_DEFINITIONS: [
-    { gameId: 10, name: "AM-18", category: "handgun", supply: 75, description: "Semi-automatic precision pistol with 33-round magazine and 1,100-1,200 rounds per minute fire rate." },
-    { gameId: 8, name: "AR M4 MK18", category: "assault", supply: 30, description: "A pinnacle of tactical excellence, featuring a 10.3\" barrel, CNC-machined 7075-T6 aluminum receiver, and RIS II picatinny quad rail." },
-    { gameId: 11, name: "SPAS-12", category: "shotgun", supply: 30, description: "A versatile combat shotgun known for its dual semi-automatic and pump-action modes, featuring a folding stock and heat shield." },
-    { gameId: 9, name: "H&K MP5", category: "smg", supply: 75, description: "A legendary 9mm submachine gun renowned for its reliability and precision. Features a roller-delayed blowback mechanism." },
-    { gameId: 12, name: "Barrett M82", category: "marksman", supply: 50, description: "A .50 BMG semi-automatic sniper rifle known for its precision and long-range capabilities." },
-    { gameId: 15, name: "Sawed-Off Shotgun", category: "shotgun", supply: 75, description: "A compact double-barrel shotgun with shortened barrel and stock, perfect for close-quarters combat." },
-    { gameId: 14, name: "M32A1 MSGL", category: "launcher", supply: 50, description: "A semi-automatic 40mm grenade launcher with a 6-round cylinder, capable of firing all rounds in 3 seconds." },
-    { gameId: 20, name: "M-9 Bayonet", category: "melee", supply: 75, description: "A versatile 12-inch multi-purpose tool featuring a durable stainless steel blade with a saw-toothed edge." },
-    { gameId: 19, name: "Stoner 96", category: "lmg", supply: 50, description: "A state-of-the-art light machine gun featuring an open-bolt, constant recoil action for enhanced control and accuracy." },
-    { gameId: 18, name: "AK74M", category: "assault", supply: 75, description: "Utilizing the 5.45x39mm cartridge, offers superior accuracy and reduced recoil compared to its predecessor, the AK-47." },
-    { gameId: 17, name: "SRS99G-S6 AM", category: "marksman", supply: 50, description: "A pinnacle of precision and lethality in sniper rifles featuring modular design and kinetic suppression technology." },
-    { gameId: 16, name: "Colt M1911", category: "handgun", supply: 75, description: "A .45 caliber semi-automatic pistol with a 7-round detachable magazine. Designed for reliability and precision in close-quarters combat." },
-    { gameId: 13, name: "UMP 45", category: "smg", supply: 75, description: "A lightweight, blowback-operated submachine gun with a cyclic rate of 600-750 rounds per minute." },
+    { gameId: 10, name: "AM-18", category: "handgun", supply: 75, price: 20, description: "Semi-automatic precision pistol with 33-round magazine and 1,100-1,200 rounds per minute fire rate." },
+    { gameId: 8, name: "AR M4 MK18", category: "assault", supply: 30, price: 50, description: "A pinnacle of tactical excellence, featuring a 10.3\" barrel, CNC-machined 7075-T6 aluminum receiver, and RIS II picatinny quad rail." },
+    { gameId: 11, name: "SPAS-12", category: "shotgun", supply: 30, price: 50, description: "A versatile combat shotgun known for its dual semi-automatic and pump-action modes, featuring a folding stock and heat shield." },
+    { gameId: 9, name: "H&K MP5", category: "smg", supply: 75, price: 20, description: "A legendary 9mm submachine gun renowned for its reliability and precision. Features a roller-delayed blowback mechanism." },
+    { gameId: 12, name: "Barrett M82", category: "marksman", supply: 50, price: 30, description: "A .50 BMG semi-automatic sniper rifle known for its precision and long-range capabilities." },
+    { gameId: 15, name: "Sawed-Off Shotgun", category: "shotgun", supply: 75, price: 20, description: "A compact double-barrel shotgun with shortened barrel and stock, perfect for close-quarters combat." },
+    { gameId: 14, name: "M32A1 MSGL", category: "launcher", supply: 50, price: 30, description: "A semi-automatic 40mm grenade launcher with a 6-round cylinder, capable of firing all rounds in 3 seconds." },
+    { gameId: 20, name: "M-9 Bayonet", category: "melee", supply: 75, price: 20, description: "A versatile 12-inch multi-purpose tool featuring a durable stainless steel blade with a saw-toothed edge." },
+    { gameId: 19, name: "Stoner 96", category: "lmg", supply: 50, price: 30, description: "A state-of-the-art light machine gun featuring an open-bolt, constant recoil action for enhanced control and accuracy." },
+    { gameId: 18, name: "AK74M", category: "assault", supply: 75, price: 20, description: "Utilizing the 5.45x39mm cartridge, offers superior accuracy and reduced recoil compared to its predecessor, the AK-47." },
+    { gameId: 17, name: "SRS99G-S6 AM", category: "marksman", supply: 50, price: 30, description: "A pinnacle of precision and lethality in sniper rifles featuring modular design and kinetic suppression technology." },
+    { gameId: 16, name: "Colt M1911", category: "handgun", supply: 75, price: 20, description: "A .45 caliber semi-automatic pistol with a 7-round detachable magazine. Designed for reliability and precision in close-quarters combat." },
+    { gameId: 13, name: "UMP 45", category: "smg", supply: 75, price: 20, description: "A lightweight, blowback-operated submachine gun with a cyclic rate of 600-750 rounds per minute." },
   ],
 
   // Battle token decimals (OZ ERC20 default = 18, contract does not override)
@@ -288,12 +289,14 @@ module.exports = {
   CHAINBOIS_IMAGES_CID: "bafybeifd4wjgbvnpf7kmcrkjxp7i4ipz3w2aag3elgfj6v364y2meq6ep4",
   WEAPONS_IMAGES_CID: "bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe",
 
-  // Map weapon names to their IPFS file number (01-13)
-  WEAPON_FILE_MAP: {
-    "AM-18": "01", "AR M4 MK18": "02", "SPAS-12": "03", "H&K MP5": "04",
-    "Barrett M82": "05", "Sawed-Off Shotgun": "06", "M32A1 MSGL": "07",
-    "M-9 Bayonet": "08", "Stoner 96": "09", "AK74M": "10",
-    "SRS99G-S6 AM": "11", "Colt M1911": "12", "UMP 45": "13",
+  // Map weapon names to their exact IPFS image filename (without .jpeg extension)
+  // These must match the actual uploaded filenames on IPFS exactly
+  WEAPON_IMAGE_MAP: {
+    "AM-18": "01-AM-18", "AR M4 MK18": "02-AR-M4-MK18", "SPAS-12": "03-SPAS-12",
+    "H&K MP5": "04-HK-MP5", "Barrett M82": "05-Barrett-M82",
+    "Sawed-Off Shotgun": "06-Sawed-Off-Shotgun", "M32A1 MSGL": "07-M32A1-MSGL",
+    "M-9 Bayonet": "08-M9-Bayonet", "Stoner 96": "09-Stoner-96", "AK74M": "10-AK74M",
+    "SRS99G-S6 AM": "11-SRS99G-S6-AM", "Colt M1911": "12-Colt-M1911", "UMP 45": "13-UMP-45",
   },
 
   /**
@@ -307,14 +310,14 @@ module.exports = {
 
   /**
    * Get the IPFS image URI for a weapon NFT.
+   * Uses exact filename map to avoid normalization bugs (e.g. M-9 Bayonet → M9-Bayonet).
    * @param {string} weaponName
    * @returns {string} ipfs:// URI or empty string
    */
   getWeaponImageUri: function (weaponName) {
-    const num = module.exports.WEAPON_FILE_MAP[weaponName];
-    if (!num) return "";
-    const normalized = String(weaponName).trim().replace(/\s/g, "-").replace(/&/g, "");
-    return `ipfs://${module.exports.WEAPONS_IMAGES_CID}/${num}-${normalized}.jpeg`;
+    const filename = module.exports.WEAPON_IMAGE_MAP[weaponName];
+    if (!filename) return "";
+    return `ipfs://${module.exports.WEAPONS_IMAGES_CID}/${filename}.jpeg`;
   },
 
   /**

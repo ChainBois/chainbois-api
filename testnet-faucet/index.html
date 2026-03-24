@@ -826,12 +826,13 @@
     const WEAPONS_CID = 'bafybeigabwclqqsu4xz6konsq6dav3wva3xh3vlxcjw72vkoo6wxllxjfe';
     const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs';
 
-    // Map weapon names to their IPFS file number
-    const WEAPON_FILE_MAP = {
-      'AM-18': '01', 'AR M4 MK18': '02', 'SPAS-12': '03', 'H&K MP5': '04',
-      'Barrett M82': '05', 'Sawed-Off Shotgun': '06', 'M32A1 MSGL': '07',
-      'M-9 Bayonet': '08', 'Stoner 96': '09', 'AK74M': '10',
-      'SRS99G-S6 AM': '11', 'Colt M1911': '12', 'UMP 45': '13'
+    // Map weapon names to their exact IPFS image filename (without .jpeg)
+    const WEAPON_IMAGE_MAP = {
+      'AM-18': '01-AM-18', 'AR M4 MK18': '02-AR-M4-MK18', 'SPAS-12': '03-SPAS-12',
+      'H&K MP5': '04-HK-MP5', 'Barrett M82': '05-Barrett-M82',
+      'Sawed-Off Shotgun': '06-Sawed-Off-Shotgun', 'M32A1 MSGL': '07-M32A1-MSGL',
+      'M-9 Bayonet': '08-M9-Bayonet', 'Stoner 96': '09-Stoner-96', 'AK74M': '10-AK74M',
+      'SRS99G-S6 AM': '11-SRS99G-S6-AM', 'Colt M1911': '12-Colt-M1911', 'UMP 45': '13-UMP-45'
     };
 
     function getChainBoiImageUrl(tokenId) {
@@ -839,10 +840,9 @@
     }
 
     function getWeaponImageUrl(name) {
-      var num = WEAPON_FILE_MAP[name];
-      if (!num) return '';
-      var normalized = String(name).trim().replace(/\s/g, '-').replace(/&/g, '');
-      return IPFS_GATEWAY + '/' + WEAPONS_CID + '/' + num + '-' + normalized + '.jpeg';
+      var filename = WEAPON_IMAGE_MAP[name];
+      if (!filename) return '';
+      return IPFS_GATEWAY + '/' + WEAPONS_CID + '/' + filename + '.jpeg';
     }
 
     // ============================================================
