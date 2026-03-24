@@ -81,7 +81,6 @@ We're transparent about where we are: ChainBois was built in 8 days for this hac
   - ChainBoisNFT: `0xB2FDDb56D85073BCBE245D46dbC1BE4D4541305b`
   - WeaponNFT: `0xa2AFf3105668124A187b1212Ab850bf8b98dD07d`
 - NFT minting, token transfers, level-ups, weapon purchases — all on-chain and verifiable
-- Note: All testnet activity is from our development and QA testing — we have not done a public testnet launch yet
 
 **What This Means:**
 We prioritized building a **complete, production-ready system** over inflating testnet numbers. Every feature — from the dynamic tokenomics engine to tournament auto-distribution to the anti-cheat with threat scoring — is implemented, tested, and running. The platform includes purchase failsafes, wallet health monitoring, daily solvency audits, and Discord webhook alerts for all critical events. We're not showing mockups; we're showing a live platform that's ready for mainnet deployment and real players.
@@ -120,9 +119,11 @@ We prioritized building a **complete, production-ready system** over inflating t
 - Community tournament creation tools (user-organized competitive scene)
 - Target: **15,000 MAU**, $150K+ monthly on-chain volume
 
-**Q1 2027 — Expansion (Months 10-12)**
+**Q1 2027 — Expansion & Multi-Title Studio (Months 10-12)**
 - Cross-chain expansion (other EVM chains via ICM bridges)
 - Season 2 game content: new maps, modes, 30+ new weapons
+- Console version exploration (Xbox/PlayStation partnership discussions)
+- Begin development of second game title — shared $BATTLE token economy across games
 - Player-created tournament brackets (community-run competitive scene)
 - Target: **50,000 MAU**, **$200K-400K ARR** from:
   - Primary NFT sales (new seasons, limited editions)
@@ -147,4 +148,4 @@ We prioritized building a **complete, production-ready system** over inflating t
 - Proven gaming ecosystem: Off The Grid (13M+ users on GUNZ L1), MapleStory Universe (100M+ transactions on Henesys L1), BEAM gaming chain, FCHAIN
 - Low gas costs on C-Chain for bootstrapping (further reduced by Octane upgrade), dedicated L1 for scaling
 
-**The North Star:** Build the first Web3 competitive shooter where players' on-chain progression and economic activity is meaningful enough to sustain both the game AND the community long-term. Not play-to-earn — play-to-own.
+**The North Star:** Build a cross-chain gaming studio where multiple titles share a unified token economy and NFT ecosystem on Avalanche. ChainBois is the flagship — a competitive shooter where on-chain progression and economic activity is meaningful enough to sustain both the game AND the community long-term. The $BATTLE token and platform infrastructure are designed to power not just one game, but an expanding portfolio of titles. Not play-to-earn — play-to-own.

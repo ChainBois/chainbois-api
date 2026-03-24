@@ -274,8 +274,11 @@ Level 0: Private → Level 1: Corporal → Level 2: Sergeant → Level 3: Captai
 - Community tournament creation tools
 - Target: 15,000+ monthly active players
 
-**2027**
-- Cross-chain expansion
+**2027 — Cross-Chain Gaming Studio**
+- Cross-chain expansion to other EVM chains
+- Console version exploration (Xbox/PlayStation)
+- Second game title sharing $BATTLE token economy
+- Vision: multi-title studio with unified on-chain economy
 - 50,000 MAU | $200K-400K ARR from marketplace fees + season passes
 
 **Visual:** Roadmap timeline with milestones
